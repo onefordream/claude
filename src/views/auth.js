@@ -1,4 +1,4 @@
-import { layout, escapeHtml } from './layout.js';
+import { layout, escapeHtml, logoLockup } from './layout.js';
 
 export function loginPage({ flash } = {}) {
   return layout({
@@ -7,7 +7,7 @@ export function loginPage({ flash } = {}) {
     flash,
     body: `
       <div class="auth-card">
-        <h1>⛳ ゴルフスタジオシャドー</h1>
+        <div class="logo-wrap">${logoLockup()}</div>
         <p class="subtitle">デジタルカルテ・AI伴走システム</p>
         <form method="post" action="/login" class="form">
           <label>メールアドレス
@@ -36,6 +36,9 @@ export function registerPage({ flash, values = {} } = {}) {
         <form method="post" action="/register" class="form">
           <label>お名前
             <input type="text" name="name" required value="${escapeHtml(values.name || '')}">
+          </label>
+          <label>フリガナ（検索用・任意）
+            <input type="text" name="furigana" placeholder="例）ヤマダ ハナコ" value="${escapeHtml(values.furigana || '')}">
           </label>
           <label>メールアドレス
             <input type="email" name="email" required value="${escapeHtml(values.email || '')}">

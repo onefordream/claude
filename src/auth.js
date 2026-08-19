@@ -16,11 +16,11 @@ export function verifyPassword(password, salt, expectedHash) {
   return timingSafeEqual(hash, expected);
 }
 
-export function createUser({ name, email, password, role }) {
+export function createUser({ name, email, password, role, furigana }) {
   const { salt, hash } = hashPassword(password);
   const result = run(
-    `INSERT INTO users (name, email, password_hash, password_salt, role) VALUES (?, ?, ?, ?, ?)`,
-    [name, email.toLowerCase().trim(), hash, salt, role]
+    `INSERT INTO users (name, email, password_hash, password_salt, role, furigana) VALUES (?, ?, ?, ?, ?, ?)`,
+    [name, email.toLowerCase().trim(), hash, salt, role, furigana || null]
   );
   return Number(result.lastInsertRowid);
 }

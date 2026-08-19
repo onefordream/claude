@@ -40,6 +40,7 @@ import {
   newPracticePage,
   recordDetailPage,
   roundsPage,
+  newGoalPage,
 } from './src/views/student.js';
 import { studentListPage, studentDetailPage } from './src/views/admin.js';
 
@@ -259,6 +260,9 @@ const routes = [
   { method: 'POST', pattern: /^\/practice$/, handler: requireStudent(handleCreatePractice) },
   { method: 'GET', pattern: /^\/rounds$/, handler: requireStudent(handleRoundsPage) },
   { method: 'POST', pattern: /^\/rounds$/, handler: requireStudent(handleCreateRound) },
+  { method: 'GET', pattern: /^\/goals\/new$/, handler: requireStudent(handleNewGoalPage) },
+  { method: 'POST', pattern: /^\/goals$/, handler: requireStudent(handleCreateGoal) },
+  { method: 'POST', pattern: /^\/goals\/(?<id>\d+)\/achieve$/, handler: requireStudent(handleAchieveGoal) },
   { method: 'POST', pattern: /^\/ai\/suggest$/, handler: requireStudent(handleAiSuggest) },
   { method: 'GET', pattern: /^\/admin$/, handler: requireInstructor(handleStudentList) },
   {
@@ -324,6 +328,7 @@ function handleRegisterPage(ctx) {
 async function handleRegister(ctx) {
   const { fields } = await parseRequestBody(ctx.req);
   const name = (fields.name || '').trim();
+  const furigana = (fields.furigana || '').trim();
   const email = (fields.email || '').trim();
   const password = fields.password || '';
 
@@ -333,7 +338,7 @@ async function handleRegister(ctx) {
       400,
       registerPage({
         flash: { type: 'error', message: '入力内容をご確認ください（パスワードは8文字以上）。' },
-        values: { name, email },
+        values: { name, furigana, email },
       })
     );
   }
@@ -343,12 +348,12 @@ async function handleRegister(ctx) {
       400,
       registerPage({
         flash: { type: 'error', message: 'そのメールアドレスは既に登録されています。' },
-        values: { name, email },
+        values: { name, furigana, email },
       })
     );
   }
 
-  const userId = createUser({ name, email, password, role: 'student' });
+  const userId = createUser({ name, furigana, email, password, role: 'student' });
   const session = createSession(userId);
   redirect(ctx.res, '/dashboard', [sessionCookieHeader(session.token), clearFlashCookie()]);
 }
@@ -358,9 +363,14 @@ function handleLogout(ctx) {
   redirect(ctx.res, '/login', [sessionCookieHeader(null, { clear: true })]);
 }
 
+function getActiveGoal(userId) {
+  return get(`SELECT * FROM goals WHERE user_id = ? AND status = 'active' ORDER BY id DESC LIMIT 1`, [userId]);
+}
+
 function handleDashboard(ctx) {
   if (ctx.user.role === 'instructor') return redirect(ctx.res, '/admin');
   const stats = studentStats(ctx.user.id);
+  const goal = getActiveGoal(ctx.user.id);
   const recentRecords = all(
     `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'lesson' ORDER BY record_date DESC, id DESC LIMIT 5`,
     [ctx.user.id]
@@ -376,7 +386,7 @@ function handleDashboard(ctx) {
   sendHtml(
     ctx.res,
     200,
-    dashboardPage({ user: ctx.user, flash: ctx.flash, stats, recentRecords, recentPractice, recentRounds }),
+    dashboardPage({ user: ctx.user, flash: ctx.flash, stats, goal, recentRecords, recentPractice, recentRounds }),
     [clearFlashCookie()]
   );
 }
@@ -595,6 +605,55 @@ async function handleCreateRound(ctx) {
   redirect(ctx.res, '/rounds', [encodeFlash('success', 'ラウンド記録を保存しました。')]);
 }
 
+function handleNewGoalPage(ctx) {
+  sendHtml(ctx.res, 200, newGoalPage({ user: ctx.user, flash: ctx.flash }), [clearFlashCookie()]);
+}
+
+async function handleCreateGoal(ctx) {
+  const { fields } = await parseRequestBody(ctx.req);
+  const content = (fields.content || '').trim();
+  const targetDate = fields.target_date || null;
+
+  if (!content) {
+    return sendHtml(
+      ctx.res,
+      400,
+      newGoalPage({ user: ctx.user, flash: { type: 'error', message: '目標を入力してください。' }, values: fields })
+    );
+  }
+
+  if (getActiveGoal(ctx.user.id)) {
+    return sendHtml(
+      ctx.res,
+      400,
+      newGoalPage({
+        user: ctx.user,
+        flash: { type: 'error', message: 'すでに設定中の目標があります。達成するか、達成ボタンを押してから新しい目標を設定してください。' },
+        values: fields,
+      })
+    );
+  }
+
+  run(`INSERT INTO goals (user_id, content, target_date) VALUES (?, ?, ?)`, [ctx.user.id, content, targetDate]);
+  redirect(ctx.res, '/dashboard', [encodeFlash('success', '目標を設定しました。達成に向けてがんばりましょう！')]);
+}
+
+function handleAchieveGoal(ctx) {
+  const goal = get(`SELECT * FROM goals WHERE id = ? AND user_id = ? AND status = 'active'`, [
+    ctx.params.id,
+    ctx.user.id,
+  ]);
+  if (!goal) return redirect(ctx.res, '/dashboard');
+
+  run(`UPDATE goals SET status = 'achieved', achieved_at = datetime('now') WHERE id = ?`, [goal.id]);
+  redirect(ctx.res, '/goals/new', [
+    encodeFlash(
+      'success',
+      'おめでとうございます🎊見事目標達成されましたね👏では次の目標を設定して更なる高みを目指しましょう🔥'
+    ),
+  ]);
+}
+
 async function handleAiSuggest(ctx) {
   if (!isAiConfigured()) {
     return sendJson(ctx.res, 200, {
@@ -619,13 +678,17 @@ async function handleAiSuggest(ctx) {
 }
 
 function handleStudentList(ctx) {
+  const q = (ctx.query.get('q') || '').trim();
+  const where = q ? `AND (u.name LIKE ? OR u.furigana LIKE ?)` : '';
+  const params = q ? [`%${q}%`, `%${q}%`] : [];
   const students = all(
-    `SELECT u.id, u.name, u.email,
+    `SELECT u.id, u.name, u.email, u.furigana,
             (SELECT COUNT(*) FROM lesson_records lr WHERE lr.user_id = u.id) AS record_count,
             (SELECT MAX(record_date) FROM lesson_records lr WHERE lr.user_id = u.id) AS last_date
-     FROM users u WHERE u.role = 'student' ORDER BY u.name`
+     FROM users u WHERE u.role = 'student' ${where} ORDER BY u.name`,
+    params
   );
-  sendHtml(ctx.res, 200, studentListPage({ user: ctx.user, flash: ctx.flash, students }), [clearFlashCookie()]);
+  sendHtml(ctx.res, 200, studentListPage({ user: ctx.user, flash: ctx.flash, students, q }), [clearFlashCookie()]);
 }
 
 function handleStudentDetail(ctx) {
@@ -645,10 +708,11 @@ function handleStudentDetail(ctx) {
   const rounds = all(`SELECT * FROM round_records WHERE user_id = ? ORDER BY round_date DESC, id DESC`, [
     student.id,
   ]);
+  const goal = getActiveGoal(student.id);
   sendHtml(
     ctx.res,
     200,
-    studentDetailPage({ user: ctx.user, flash: ctx.flash, student, records, practiceRecords, rounds }),
+    studentDetailPage({ user: ctx.user, flash: ctx.flash, student, records, practiceRecords, rounds, goal }),
     [clearFlashCookie()]
   );
 }
@@ -698,7 +762,7 @@ const server = http.createServer(async (req, res) => {
 ensureOwnerSeed();
 
 server.listen(PORT, () => {
-  console.log(`ゴルフスタジオシャドー デジタルカルテ: http://localhost:${PORT}`);
+  console.log(`GOLF STUDIO SHADOW デジタルカルテ: http://localhost:${PORT}`);
   if (!isAiConfigured()) {
     console.log('[info] ANTHROPIC_API_KEY is not set — AI要約・提案機能は無効化されています。');
   }

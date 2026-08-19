@@ -66,9 +66,20 @@ db.exec(`
     expires_at TEXT NOT NULL
   );
 
+  CREATE TABLE IF NOT EXISTS goals (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    target_date TEXT,
+    status TEXT NOT NULL DEFAULT 'active',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    achieved_at TEXT
+  );
+
   CREATE INDEX IF NOT EXISTS idx_lesson_records_user ON lesson_records(user_id, record_date);
   CREATE INDEX IF NOT EXISTS idx_round_records_user ON round_records(user_id, round_date);
   CREATE INDEX IF NOT EXISTS idx_videos_record ON videos(lesson_record_id);
+  CREATE INDEX IF NOT EXISTS idx_goals_user ON goals(user_id, status);
 `);
 
 // Additive migrations for columns introduced after the initial release.
@@ -85,6 +96,7 @@ ensureColumn('lesson_records', 'record_type', "TEXT NOT NULL DEFAULT 'lesson'");
 ensureColumn('lesson_records', 'duration_minutes', 'INTEGER');
 ensureColumn('lesson_records', 'ball_count', 'INTEGER');
 ensureColumn('round_records', 'putts', 'INTEGER');
+ensureColumn('users', 'furigana', 'TEXT');
 
 export function run(sql, params = []) {
   const stmt = db.prepare(sql);

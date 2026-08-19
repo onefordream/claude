@@ -25,7 +25,64 @@ function practiceMeta(record) {
   return parts.length ? `<span class="muted">(${parts.join(' / ')})</span>` : '';
 }
 
-export function dashboardPage({ user, flash, stats, recentRecords, recentPractice, recentRounds }) {
+export function goalCard(goal, { readOnly = false } = {}) {
+  if (!goal) {
+    return readOnly
+      ? `<div class="card goal-card goal-card-empty"><h2>🎯 現在の目標</h2><p class="muted">まだ目標が設定されていません。</p></div>`
+      : `
+        <div class="card goal-card goal-card-empty">
+          <h2>🎯 目標を設定しましょう</h2>
+          <p class="muted">「1年以内に100切り」「飛距離+30ヤード」など、達成したい目標と期限を決めておくと、練習のモチベーションが続きやすくなります。</p>
+          <a href="/goals/new" class="btn btn-primary">＋ 目標を設定する</a>
+        </div>`;
+  }
+
+  let dueLine = '';
+  if (goal.target_date) {
+    const days = Math.ceil((new Date(goal.target_date) - new Date(new Date().toISOString().slice(0, 10))) / 86400000);
+    if (days > 0) dueLine = `<span class="goal-due">期限: ${escapeHtml(goal.target_date)}（あと${days}日）</span>`;
+    else if (days === 0) dueLine = `<span class="goal-due goal-due-today">期限: ${escapeHtml(goal.target_date)}（本日まで）</span>`;
+    else dueLine = `<span class="goal-due goal-due-over">期限: ${escapeHtml(goal.target_date)}（${-days}日超過）</span>`;
+  }
+
+  return `
+    <div class="card goal-card">
+      <h2>🎯 現在の目標</h2>
+      <p class="goal-content">${escapeHtml(goal.content)}</p>
+      ${dueLine}
+      ${
+        readOnly
+          ? ''
+          : `<form method="post" action="/goals/${goal.id}/achieve" class="inline-form goal-achieve-form">
+               <button type="submit" class="btn btn-primary">🎉 目標達成！</button>
+             </form>`
+      }
+    </div>`;
+}
+
+export function newGoalPage({ user, flash, values = {} }) {
+  return layout({
+    title: '目標を設定する',
+    user,
+    active: 'dashboard',
+    flash,
+    body: `
+      <h1>新しい目標を設定する</h1>
+      <p class="muted">具体的で、期限のある目標にすると振り返りやすくなります。</p>
+      <form method="post" action="/goals" class="form card">
+        <label>目標
+          <input type="text" name="content" required placeholder="例）1年以内に100切り / 飛距離+30ヤード" value="${escapeHtml(values.content || '')}">
+        </label>
+        <label>達成期限（任意）
+          <input type="date" name="target_date" value="${escapeHtml(values.target_date || '')}">
+        </label>
+        <button type="submit" class="btn btn-primary">目標を設定する</button>
+      </form>
+    `,
+  });
+}
+
+export function dashboardPage({ user, flash, stats, goal, recentRecords, recentPractice, recentRounds }) {
   const recordsHtml = recentRecords.length
     ? recentRecords
         .map(
@@ -81,6 +138,8 @@ export function dashboardPage({ user, flash, stats, recentRecords, recentPractic
           <a href="/practice/new" class="btn btn-secondary">＋ 自主練を記録する</a>
         </div>
       </div>
+
+      ${goalCard(goal)}
 
       <div class="stat-row">
         <div class="stat-card"><div class="stat-num">${stats.recordCount}</div><div class="stat-label">レッスン記録</div></div>

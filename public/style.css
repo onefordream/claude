@@ -36,7 +36,12 @@ a:hover { text-decoration: underline; }
   flex-wrap: wrap;
   gap: 0.5rem;
 }
-.nav .brand { color: white; font-weight: 700; font-size: 1.1rem; }
+.nav .brand { color: white; font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem; letter-spacing: 0.03em; }
+.logo-icon { color: white; flex-shrink: 0; }
+.logo-wrap { color: var(--green-900); margin-bottom: 0.5rem; }
+.logo-lockup { width: 100%; max-width: 280px; height: auto; color: var(--green-900); }
+.logo-arc-text { font-size: 14px; letter-spacing: 2.5px; fill: var(--green-900); font-family: inherit; }
+.logo-wordmark { font-size: 58px; font-weight: 800; letter-spacing: 2px; fill: var(--green-900); font-family: inherit; }
 .nav-links { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
 .nav-links a { color: #dfe9e3; }
 .nav-links a.active { color: white; font-weight: 700; border-bottom: 2px solid var(--green-500); }
@@ -106,6 +111,11 @@ input:focus, textarea:focus { outline: 2px solid var(--green-500); outline-offse
 }
 .page-header h1 { margin: 0; }
 .header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+.search-form { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.search-form input { flex: 1; min-width: 200px; }
+.clear-search { font-size: 0.85rem; }
+.furigana { font-weight: 400; font-size: 0.85em; }
 
 .card {
   background: var(--card);
@@ -209,3 +219,12 @@ input:focus, textarea:focus { outline: 2px solid var(--green-500); outline-offse
 .type-badge { font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 999px; }
 .type-badge-lesson { background: var(--green-100); color: var(--green-900); }
 .type-badge-practice { background: #e6ecf4; color: #2b4c7e; }
+
+.goal-card { border-color: var(--green-500); background: linear-gradient(135deg, var(--green-100), #fff); }
+.goal-card h2 { margin-top: 0; }
+.goal-card-empty { background: var(--card); }
+.goal-content { font-size: 1.2rem; font-weight: 700; color: var(--green-900); margin: 0.25rem 0 0.5rem; }
+.goal-due { display: inline-block; font-size: 0.85rem; color: var(--muted); margin-bottom: 0.75rem; }
+.goal-due-today { color: var(--warn); font-weight: 700; }
+.goal-due-over { color: var(--danger); font-weight: 700; }
+.goal-achieve-form { display: block; margin-top: 0.25rem; }

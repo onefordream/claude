@@ -1,13 +1,14 @@
 import { layout, escapeHtml, nl2br } from './layout.js';
+import { goalCard } from './student.js';
 
-export function studentListPage({ user, flash, students }) {
+export function studentListPage({ user, flash, students, q = '' }) {
   const rows = students.length
     ? students
         .map(
           (s) => `
       <li class="list-item">
         <a href="/admin/students/${s.id}">
-          <span class="list-title">${escapeHtml(s.name)}</span>
+          <span class="list-title">${escapeHtml(s.name)}${s.furigana ? ` <span class="muted furigana">(${escapeHtml(s.furigana)})</span>` : ''}</span>
           <span class="muted">${escapeHtml(s.email)}</span>
           <span class="badge">記録 ${s.record_count}件</span>
           <span class="list-date">${s.last_date ? '最終: ' + s.last_date : '記録なし'}</span>
@@ -15,7 +16,7 @@ export function studentListPage({ user, flash, students }) {
       </li>`
         )
         .join('')
-    : `<li class="empty">まだ生徒が登録されていません。</li>`;
+    : `<li class="empty">${q ? '該当する生徒が見つかりません。' : 'まだ生徒が登録されていません。'}</li>`;
 
   return layout({
     title: '生徒一覧',
@@ -25,12 +26,17 @@ export function studentListPage({ user, flash, students }) {
     body: `
       <h1>生徒一覧</h1>
       <p class="muted">生徒がこれまでどんなレッスン・練習をしてきたかを確認できます。</p>
+      <form method="get" action="/admin" class="search-form">
+        <input type="text" name="q" placeholder="名前・フリガナで検索" value="${escapeHtml(q)}">
+        <button type="submit" class="btn btn-secondary">検索</button>
+        ${q ? `<a href="/admin" class="clear-search">クリア</a>` : ''}
+      </form>
       <div class="card"><ul class="list">${rows}</ul></div>
     `,
   });
 }
 
-export function studentDetailPage({ user, flash, student, records, practiceRecords, rounds }) {
+export function studentDetailPage({ user, flash, student, records, practiceRecords, rounds, goal }) {
   const recordsHtml = records.length
     ? records
         .map(
@@ -84,6 +90,8 @@ export function studentDetailPage({ user, flash, student, records, practiceRecor
         <a href="/admin">← 生徒一覧に戻る</a>
       </div>
       <p class="muted">${escapeHtml(student.email)}</p>
+
+      ${goalCard(goal, { readOnly: true })}
 
       <div class="grid-2">
         <div class="card">
