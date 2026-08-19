@@ -105,6 +105,7 @@ input:focus, textarea:focus { outline: 2px solid var(--green-500); outline-offse
   margin-bottom: 1.25rem;
 }
 .page-header h1 { margin: 0; }
+.header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
 .card {
   background: var(--card);
@@ -184,3 +185,27 @@ input:focus, textarea:focus { outline: 2px solid var(--green-500); outline-offse
 .flash-success { background: var(--green-100); color: var(--green-900); border: 1px solid #bfe3cd; }
 
 .inline-form { display: inline; }
+
+.score-chart { width: 100%; height: auto; overflow: visible; }
+.chart-caption { color: var(--muted); font-size: 0.85rem; margin: -0.5rem 0 0.75rem; }
+.chart-grid { stroke: var(--border); stroke-width: 1; }
+.chart-axis-label { fill: var(--muted); font-size: 10px; }
+.chart-line { fill: none; stroke: var(--green-700); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.chart-point { fill: white; stroke: var(--green-700); stroke-width: 2; cursor: pointer; }
+.chart-point:hover { fill: var(--green-700); }
+.chart-tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: var(--green-900);
+  color: white;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  z-index: 50;
+  transform: translate(-50%, -115%);
+  white-space: nowrap;
+}
+
+.type-badge { font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 999px; }
+.type-badge-lesson { background: var(--green-100); color: var(--green-900); }
+.type-badge-practice { background: #e6ecf4; color: #2b4c7e; }

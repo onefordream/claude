@@ -30,7 +30,7 @@ export function studentListPage({ user, flash, students }) {
   });
 }
 
-export function studentDetailPage({ user, flash, student, records, rounds }) {
+export function studentDetailPage({ user, flash, student, records, practiceRecords, rounds }) {
   const recordsHtml = records.length
     ? records
         .map(
@@ -46,13 +46,27 @@ export function studentDetailPage({ user, flash, student, records, rounds }) {
         .join('')
     : `<li class="empty">まだレッスン記録がありません。</li>`;
 
+  const practiceHtml = practiceRecords.length
+    ? practiceRecords
+        .map(
+          (r) => `
+      <li class="list-item">
+        <a href="/records/${r.id}">
+          <span class="list-date">${r.record_date}</span>
+          <span class="list-title">${escapeHtml(r.content.slice(0, 50))}${r.content.length > 50 ? '…' : ''}</span>
+        </a>
+      </li>`
+        )
+        .join('')
+    : `<li class="empty">まだ自主練の記録がありません。</li>`;
+
   const roundsHtml = rounds.length
     ? rounds
         .map(
           (r) => `
       <li class="list-item round-item">
         <span class="list-date">${r.round_date}</span>
-        <span class="list-title">${escapeHtml(r.course_name)}${r.score ? ' / スコア ' + r.score : ''}</span>
+        <span class="list-title">${escapeHtml(r.course_name)}${r.score ? ' / スコア ' + r.score : ''}${r.putts ? ' / パット ' + r.putts : ''}</span>
         ${r.issues ? `<div class="round-issues">課題: ${escapeHtml(r.issues)}</div>` : ''}
       </li>`
         )
@@ -77,9 +91,13 @@ export function studentDetailPage({ user, flash, student, records, rounds }) {
           <ul class="list">${recordsHtml}</ul>
         </div>
         <div class="card">
-          <h2>ラウンド記録</h2>
-          <ul class="list">${roundsHtml}</ul>
+          <h2>自主練記録</h2>
+          <ul class="list">${practiceHtml}</ul>
         </div>
+      </div>
+      <div class="card">
+        <h2>ラウンド記録</h2>
+        <ul class="list">${roundsHtml}</ul>
       </div>
     `,
   });

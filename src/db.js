@@ -31,6 +31,9 @@ db.exec(`
     ai_summary TEXT,
     ai_next_issues TEXT,
     ai_status TEXT NOT NULL DEFAULT 'pending',
+    record_type TEXT NOT NULL DEFAULT 'lesson',
+    duration_minutes INTEGER,
+    ball_count INTEGER,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
@@ -50,6 +53,7 @@ db.exec(`
     round_date TEXT NOT NULL,
     course_name TEXT NOT NULL,
     score INTEGER,
+    putts INTEGER,
     issues TEXT,
     notes TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -66,6 +70,21 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_round_records_user ON round_records(user_id, round_date);
   CREATE INDEX IF NOT EXISTS idx_videos_record ON videos(lesson_record_id);
 `);
+
+// Additive migrations for columns introduced after the initial release.
+// CREATE TABLE IF NOT EXISTS doesn't touch tables that already exist, so an
+// already-deployed database needs these added explicitly.
+function ensureColumn(table, column, ddl) {
+  const existing = db.prepare(`PRAGMA table_info(${table})`).all().map((c) => c.name);
+  if (!existing.includes(column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+  }
+}
+
+ensureColumn('lesson_records', 'record_type', "TEXT NOT NULL DEFAULT 'lesson'");
+ensureColumn('lesson_records', 'duration_minutes', 'INTEGER');
+ensureColumn('lesson_records', 'ball_count', 'INTEGER');
+ensureColumn('round_records', 'putts', 'INTEGER');
 
 export function run(sql, params = []) {
   const stmt = db.prepare(sql);

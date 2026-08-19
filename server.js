@@ -36,6 +36,8 @@ import {
   dashboardPage,
   recordsListPage,
   newRecordPage,
+  practiceListPage,
+  newPracticePage,
   recordDetailPage,
   roundsPage,
 } from './src/views/student.js';
@@ -47,6 +49,12 @@ const UPLOADS_DIR = join(__dirname, 'uploads');
 mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const PORT = Number(process.env.PORT || 3000);
+
+// Render's free tier gives the process ~512MB of RAM and the multipart
+// parser buffers the whole request in memory, so a phone video that's too
+// large will stall or crash the instance. Fail fast with a clear message
+// instead of hanging on a huge upload.
+const MAX_UPLOAD_BODY_BYTES = 70 * 1024 * 1024;
 
 // ---------- helpers ----------
 
@@ -142,13 +150,41 @@ function serveMedia(req, res, filename, user) {
 }
 
 function studentStats(userId) {
-  const recordCount = get(`SELECT COUNT(*) AS c FROM lesson_records WHERE user_id = ?`, [userId]).c;
+  const recordCount = get(
+    `SELECT COUNT(*) AS c FROM lesson_records WHERE user_id = ? AND record_type = 'lesson'`,
+    [userId]
+  ).c;
+  const practiceCount = get(
+    `SELECT COUNT(*) AS c FROM lesson_records WHERE user_id = ? AND record_type = 'self_practice'`,
+    [userId]
+  ).c;
   const roundCount = get(`SELECT COUNT(*) AS c FROM round_records WHERE user_id = ?`, [userId]).c;
   const last = get(
     `SELECT record_date FROM lesson_records WHERE user_id = ? ORDER BY record_date DESC, id DESC LIMIT 1`,
     [userId]
   );
-  return { recordCount, roundCount, lastDate: last ? last.record_date : null };
+  return { recordCount, practiceCount, roundCount, lastDate: last ? last.record_date : null };
+}
+
+function roundStats(userId) {
+  const currentYear = String(new Date().getFullYear());
+  const best = get(
+    `SELECT MIN(score) AS v FROM round_records WHERE user_id = ? AND score IS NOT NULL`,
+    [userId]
+  );
+  const yearAvg = get(
+    `SELECT AVG(score) AS v FROM round_records WHERE user_id = ? AND score IS NOT NULL AND substr(round_date, 1, 4) = ?`,
+    [userId, currentYear]
+  );
+  const avgPutts = get(
+    `SELECT AVG(putts) AS v FROM round_records WHERE user_id = ? AND putts IS NOT NULL`,
+    [userId]
+  );
+  return {
+    bestScore: best.v ?? null,
+    yearAvgScore: yearAvg.v !== null && yearAvg.v !== undefined ? Math.round(yearAvg.v * 10) / 10 : null,
+    avgPutts: avgPutts.v !== null && avgPutts.v !== undefined ? Math.round(avgPutts.v * 10) / 10 : null,
+  };
 }
 
 async function generateAiSummaryInBackground(recordId, content, notes) {
@@ -176,9 +212,17 @@ function saveVideoFile(file) {
   return storedName;
 }
 
-async function parseRequestBody(req) {
+async function parseRequestBody(req, { maxBytes } = {}) {
   const contentType = req.headers['content-type'] || '';
-  const buf = await readBody(req);
+
+  // Reject early from the Content-Length header, before buffering anything,
+  // so an oversized upload fails in milliseconds instead of tying up memory.
+  const declaredLength = Number(req.headers['content-length'] || 0);
+  if (maxBytes && declaredLength && declaredLength > maxBytes) {
+    throw Object.assign(new Error('Request body too large'), { code: 'BODY_TOO_LARGE' });
+  }
+
+  const buf = await readBody(req, maxBytes);
   if (contentType.startsWith('multipart/form-data')) {
     const boundary = getBoundary(contentType);
     if (!boundary) return { fields: {}, files: [] };
@@ -210,6 +254,9 @@ const routes = [
   { method: 'GET', pattern: /^\/records\/new$/, handler: requireStudent(handleNewRecordPage) },
   { method: 'POST', pattern: /^\/records$/, handler: requireStudent(handleCreateRecord) },
   { method: 'GET', pattern: /^\/records\/(?<id>\d+)$/, handler: requireAuth(handleRecordDetail) },
+  { method: 'GET', pattern: /^\/practice$/, handler: requireStudent(handlePracticeList) },
+  { method: 'GET', pattern: /^\/practice\/new$/, handler: requireStudent(handleNewPracticePage) },
+  { method: 'POST', pattern: /^\/practice$/, handler: requireStudent(handleCreatePractice) },
   { method: 'GET', pattern: /^\/rounds$/, handler: requireStudent(handleRoundsPage) },
   { method: 'POST', pattern: /^\/rounds$/, handler: requireStudent(handleCreateRound) },
   { method: 'POST', pattern: /^\/ai\/suggest$/, handler: requireStudent(handleAiSuggest) },
@@ -315,7 +362,11 @@ function handleDashboard(ctx) {
   if (ctx.user.role === 'instructor') return redirect(ctx.res, '/admin');
   const stats = studentStats(ctx.user.id);
   const recentRecords = all(
-    `SELECT * FROM lesson_records WHERE user_id = ? ORDER BY record_date DESC, id DESC LIMIT 5`,
+    `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'lesson' ORDER BY record_date DESC, id DESC LIMIT 5`,
+    [ctx.user.id]
+  );
+  const recentPractice = all(
+    `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'self_practice' ORDER BY record_date DESC, id DESC LIMIT 5`,
     [ctx.user.id]
   );
   const recentRounds = all(
@@ -325,15 +376,16 @@ function handleDashboard(ctx) {
   sendHtml(
     ctx.res,
     200,
-    dashboardPage({ user: ctx.user, flash: ctx.flash, stats, recentRecords, recentRounds }),
+    dashboardPage({ user: ctx.user, flash: ctx.flash, stats, recentRecords, recentPractice, recentRounds }),
     [clearFlashCookie()]
   );
 }
 
 function handleRecordsList(ctx) {
-  const records = all(`SELECT * FROM lesson_records WHERE user_id = ? ORDER BY record_date DESC, id DESC`, [
-    ctx.user.id,
-  ]);
+  const records = all(
+    `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'lesson' ORDER BY record_date DESC, id DESC`,
+    [ctx.user.id]
+  );
   sendHtml(ctx.res, 200, recordsListPage({ user: ctx.user, flash: ctx.flash, records }), [clearFlashCookie()]);
 }
 
@@ -344,13 +396,16 @@ function handleNewRecordPage(ctx) {
 async function handleCreateRecord(ctx) {
   let fields, files;
   try {
-    ({ fields, files } = await parseRequestBody(ctx.req));
+    ({ fields, files } = await parseRequestBody(ctx.req, { maxBytes: MAX_UPLOAD_BODY_BYTES }));
   } catch (err) {
     if (err.code === 'BODY_TOO_LARGE') {
       return sendHtml(
         ctx.res,
         413,
-        newRecordPage({ user: ctx.user, flash: { type: 'error', message: '添付ファイルが大きすぎます。' } })
+        newRecordPage({
+          user: ctx.user,
+          flash: { type: 'error', message: '添付ファイルが大きすぎます(合計70MBまで)。動画の解像度を下げるか、短く撮影してからお試しください。' },
+        })
       );
     }
     throw err;
@@ -373,7 +428,7 @@ async function handleCreateRecord(ctx) {
   }
 
   const result = run(
-    `INSERT INTO lesson_records (user_id, record_date, content, notes) VALUES (?, ?, ?, ?)`,
+    `INSERT INTO lesson_records (user_id, record_date, content, notes, record_type) VALUES (?, ?, ?, ?, 'lesson')`,
     [ctx.user.id, recordDate, content, notes || null]
   );
   const recordId = Number(result.lastInsertRowid);
@@ -392,6 +447,77 @@ async function handleCreateRecord(ctx) {
 
   redirect(ctx.res, `/records/${recordId}`, [
     encodeFlash('success', '記録を保存しました。AIによる要約は数秒後に反映されます。'),
+  ]);
+}
+
+function handlePracticeList(ctx) {
+  const records = all(
+    `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'self_practice' ORDER BY record_date DESC, id DESC`,
+    [ctx.user.id]
+  );
+  sendHtml(ctx.res, 200, practiceListPage({ user: ctx.user, flash: ctx.flash, records }), [clearFlashCookie()]);
+}
+
+function handleNewPracticePage(ctx) {
+  sendHtml(ctx.res, 200, newPracticePage({ user: ctx.user, flash: ctx.flash }), [clearFlashCookie()]);
+}
+
+async function handleCreatePractice(ctx) {
+  let fields, files;
+  try {
+    ({ fields, files } = await parseRequestBody(ctx.req, { maxBytes: MAX_UPLOAD_BODY_BYTES }));
+  } catch (err) {
+    if (err.code === 'BODY_TOO_LARGE') {
+      return sendHtml(
+        ctx.res,
+        413,
+        newPracticePage({
+          user: ctx.user,
+          flash: { type: 'error', message: '添付ファイルが大きすぎます(合計70MBまで)。動画の解像度を下げるか、短く撮影してからお試しください。' },
+        })
+      );
+    }
+    throw err;
+  }
+
+  const recordDate = fields.record_date || new Date().toISOString().slice(0, 10);
+  const content = (fields.content || '').trim();
+  const notes = (fields.notes || '').trim();
+  const durationMinutes = fields.duration_minutes ? parseInt(fields.duration_minutes, 10) : null;
+  const ballCount = fields.ball_count ? parseInt(fields.ball_count, 10) : null;
+
+  if (!content) {
+    return sendHtml(
+      ctx.res,
+      400,
+      newPracticePage({
+        user: ctx.user,
+        flash: { type: 'error', message: '練習内容を入力してください。' },
+        values: fields,
+      })
+    );
+  }
+
+  const result = run(
+    `INSERT INTO lesson_records (user_id, record_date, content, notes, record_type, duration_minutes, ball_count)
+     VALUES (?, ?, ?, ?, 'self_practice', ?, ?)`,
+    [ctx.user.id, recordDate, content, notes || null, durationMinutes, ballCount]
+  );
+  const recordId = Number(result.lastInsertRowid);
+
+  const videoFiles = files.filter((f) => f.fieldName === 'videos');
+  for (const file of videoFiles) {
+    const storedName = saveVideoFile(file);
+    run(
+      `INSERT INTO videos (lesson_record_id, filename, original_name, mime_type, size_bytes) VALUES (?, ?, ?, ?, ?)`,
+      [recordId, storedName, file.filename, file.mimeType, file.data.length]
+    );
+  }
+
+  generateAiSummaryInBackground(recordId, content, notes);
+
+  redirect(ctx.res, `/records/${recordId}`, [
+    encodeFlash('success', '自主練の記録を保存しました。AIによる要約は数秒後に反映されます。'),
   ]);
 }
 
@@ -432,7 +558,8 @@ function handleRoundsPage(ctx) {
   const rounds = all(`SELECT * FROM round_records WHERE user_id = ? ORDER BY round_date DESC, id DESC`, [
     ctx.user.id,
   ]);
-  sendHtml(ctx.res, 200, roundsPage({ user: ctx.user, flash: ctx.flash, rounds }), [clearFlashCookie()]);
+  const stats = roundStats(ctx.user.id);
+  sendHtml(ctx.res, 200, roundsPage({ user: ctx.user, flash: ctx.flash, rounds, stats }), [clearFlashCookie()]);
 }
 
 async function handleCreateRound(ctx) {
@@ -440,6 +567,7 @@ async function handleCreateRound(ctx) {
   const roundDate = fields.round_date || new Date().toISOString().slice(0, 10);
   const courseName = (fields.course_name || '').trim();
   const score = fields.score ? parseInt(fields.score, 10) : null;
+  const putts = fields.putts ? parseInt(fields.putts, 10) : null;
   const issues = (fields.issues || '').trim();
   const notes = (fields.notes || '').trim();
 
@@ -454,14 +582,15 @@ async function handleCreateRound(ctx) {
         user: ctx.user,
         flash: { type: 'error', message: 'コース名を入力してください。' },
         rounds,
+        stats: roundStats(ctx.user.id),
         values: fields,
       })
     );
   }
 
   run(
-    `INSERT INTO round_records (user_id, round_date, course_name, score, issues, notes) VALUES (?, ?, ?, ?, ?, ?)`,
-    [ctx.user.id, roundDate, courseName, score, issues || null, notes || null]
+    `INSERT INTO round_records (user_id, round_date, course_name, score, putts, issues, notes) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [ctx.user.id, roundDate, courseName, score, putts, issues || null, notes || null]
   );
   redirect(ctx.res, '/rounds', [encodeFlash('success', 'ラウンド記録を保存しました。')]);
 }
@@ -505,16 +634,21 @@ function handleStudentDetail(ctx) {
     ctx.res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
     return ctx.res.end('生徒が見つかりません');
   }
-  const records = all(`SELECT * FROM lesson_records WHERE user_id = ? ORDER BY record_date DESC, id DESC`, [
-    student.id,
-  ]);
+  const records = all(
+    `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'lesson' ORDER BY record_date DESC, id DESC`,
+    [student.id]
+  );
+  const practiceRecords = all(
+    `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'self_practice' ORDER BY record_date DESC, id DESC`,
+    [student.id]
+  );
   const rounds = all(`SELECT * FROM round_records WHERE user_id = ? ORDER BY round_date DESC, id DESC`, [
     student.id,
   ]);
   sendHtml(
     ctx.res,
     200,
-    studentDetailPage({ user: ctx.user, flash: ctx.flash, student, records, rounds }),
+    studentDetailPage({ user: ctx.user, flash: ctx.flash, student, records, practiceRecords, rounds }),
     [clearFlashCookie()]
   );
 }
