@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480" role="img" aria-label="ORGANIZER">
+  <defs>
+    <linearGradient id="gucvch8" gradientTransform="rotate(135)">
+      <stop offset="0%" stop-color="#12734F"/>
+      <stop offset="100%" stop-color="#5FC79A"/>
+    </linearGradient>
+    <radialGradient id="gucvch8-glow" cx="50%" cy="20%" r="75%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="480" height="480" fill="url(#gucvch8)"/>
+  <rect width="480" height="480" fill="url(#gucvch8-glow)"/>
+  <circle cx="412.8" cy="57.599999999999994" r="105.6" fill="#ffffff" opacity="0.08"/>
+  <circle cx="48" cy="441.6" r="134.4" fill="#ffffff" opacity="0.07"/>
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5">
+    <circle cx="240" cy="230.4" r="48"/>
+  </g>
+  <text x="240" y="246" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="26.4" fill="#FFFFFF" letter-spacing="2">ORGANIZER</text>
+  <text x="240" y="284.4" text-anchor="middle" font-family="'Noto Sans JP',sans-serif" font-size="15.36" fill="rgba(255,255,255,0.72)">IMAGE 差し替え予定</text>
+</svg>

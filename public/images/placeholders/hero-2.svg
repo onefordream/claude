@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="520" viewBox="0 0 520 520" role="img" aria-label="HERO IMAGE">
+  <defs>
+    <linearGradient id="g1rya4m" gradientTransform="rotate(135)">
+      <stop offset="0%" stop-color="#BE9448"/>
+      <stop offset="100%" stop-color="#E23B72"/>
+    </linearGradient>
+    <radialGradient id="g1rya4m-glow" cx="50%" cy="20%" r="75%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="520" height="520" fill="url(#g1rya4m)"/>
+  <rect width="520" height="520" fill="url(#g1rya4m-glow)"/>
+  <circle cx="447.2" cy="62.4" r="114.4" fill="#ffffff" opacity="0.08"/>
+  <circle cx="52" cy="478.40000000000003" r="145.60000000000002" fill="#ffffff" opacity="0.07"/>
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5">
+    <circle cx="260" cy="249.6" r="52"/>
+  </g>
+  <text x="260" y="266" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="28.6" fill="#FFFFFF" letter-spacing="2">HERO IMAGE</text>
+  <text x="260" y="307.6" text-anchor="middle" font-family="'Noto Sans JP',sans-serif" font-size="16.64" fill="rgba(255,255,255,0.72)">差し替え予定</text>
+</svg>
