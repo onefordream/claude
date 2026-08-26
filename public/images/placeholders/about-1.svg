@@ -1,21 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="800" viewBox="0 0 640 800" role="img" aria-label="ABOUT IMAGE">
   <defs>
-    <linearGradient id="gq04bej" gradientTransform="rotate(135)">
-      <stop offset="0%" stop-color="#3B1F66"/>
-      <stop offset="100%" stop-color="#E23B72"/>
+    <linearGradient id="gmdw8nv" gradientTransform="rotate(130)">
+      <stop offset="0%" stop-color="#1F4A3B"/>
+      <stop offset="100%" stop-color="#0C2019"/>
     </linearGradient>
-    <radialGradient id="gq04bej-glow" cx="50%" cy="20%" r="75%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    <radialGradient id="gmdw8nv-vg" cx="50%" cy="42%" r="72%">
+      <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.16"/>
     </radialGradient>
   </defs>
-  <rect width="640" height="800" fill="url(#gq04bej)"/>
-  <rect width="640" height="800" fill="url(#gq04bej-glow)"/>
-  <circle cx="550.4" cy="96" r="140.8" fill="#ffffff" opacity="0.08"/>
-  <circle cx="64" cy="736" r="179.20000000000002" fill="#ffffff" opacity="0.07"/>
-  <g fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5">
-    <circle cx="320" cy="384" r="64"/>
-  </g>
-  <text x="320" y="406" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="35.2" fill="#FFFFFF" letter-spacing="2">ABOUT IMAGE</text>
-  <text x="320" y="457.2" text-anchor="middle" font-family="'Noto Sans JP',sans-serif" font-size="20.48" fill="rgba(255,255,255,0.72)">差し替え予定</text>
+  <rect width="640" height="800" fill="url(#gmdw8nv)"/>
+  <rect width="640" height="800" fill="url(#gmdw8nv-vg)"/>
+  <rect x="28.799999999999997" y="28.799999999999997" width="582.4" height="742.4" fill="none" stroke="rgba(200,169,106,0.85)" stroke-opacity="0.55" stroke-width="1"/>
+  <line x1="294" y1="386" x2="346" y2="386" stroke="rgba(200,169,106,0.85)" stroke-width="1"/>
+  <text x="320" y="410" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="26.880000000000003" fill="#FFFFFF" letter-spacing="3">ABOUT IMAGE</text>
+  <text x="320" y="454.8" text-anchor="middle" font-family="'Noto Sans JP',sans-serif" font-size="16.64" fill="rgba(255,255,255,0.68)">差し替え予定</text>
 </svg>

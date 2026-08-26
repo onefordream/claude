@@ -181,23 +181,25 @@ function textWidth(text, scale) {
   return w - scale; // no trailing gap
 }
 
-// ---- Colors ------------------------------------------------------------------
+// ---- Colors (FEMININE × GOLF × FASHION × PREMIUM palette) --------------------
 const WHITE = [255, 255, 255];
-const GOLD = [241, 223, 174];
-const YELLOW = [255, 201, 74];
-const DEEP_PURPLE = [44, 23, 80];
-const ROSE = [226, 59, 114];
+const OFFWHITE = [248, 247, 243];
+const GOLD = [200, 169, 106];
+const GOLD_LIGHT = [228, 211, 172];
+const DEEP_GREEN = [22, 55, 44];
+const GREEN_DEEP = [12, 32, 25];
+const ROSE = [217, 77, 120];
 
 // ---- Build favicon / touch icon ----------------------------------------------
 function buildMonogram(size) {
   const c = new Canvas(size, size);
-  c.fillDiagonalGradient([108, 52, 160], [226, 59, 114]);
-  c.glowCircle(size * 0.8, size * 0.15, size * 0.55, [255, 201, 74], 70);
+  c.fillDiagonalGradient(GREEN_DEEP, DEEP_GREEN);
+  c.glowCircle(size * 0.82, size * 0.14, size * 0.5, GOLD, 55);
   const scale = Math.max(1, Math.round(size / 16));
   const text = "SL";
   const w = textWidth(text, scale);
   const h = 7 * scale;
-  drawText(c, text, Math.round((size - w) / 2), Math.round((size - h) / 2), scale, WHITE);
+  drawText(c, text, Math.round((size - w) / 2), Math.round((size - h) / 2), scale, OFFWHITE);
   return c;
 }
 
@@ -209,12 +211,12 @@ fs.writeFileSync(path.join(PUBLIC_DIR, "icon-512.png"), buildMonogram(512).toPng
 const faviconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#6C34A0"/>
-      <stop offset="100%" stop-color="#E23B72"/>
+      <stop offset="0%" stop-color="#1F4A3B"/>
+      <stop offset="100%" stop-color="#0C2019"/>
     </linearGradient>
   </defs>
-  <rect width="64" height="64" rx="16" fill="url(#g)"/>
-  <text x="32" y="42" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="28" fill="#ffffff">SL</text>
+  <rect width="64" height="64" fill="url(#g)"/>
+  <text x="32" y="41" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="500" font-size="26" fill="#F8F7F3">SL</text>
 </svg>`;
 fs.writeFileSync(path.join(PUBLIC_DIR, "favicon.svg"), faviconSvg, "utf8");
 
@@ -223,14 +225,14 @@ function buildOgImage() {
   const width = 1200;
   const height = 630;
   const c = new Canvas(width, height);
-  c.fillDiagonalGradient(DEEP_PURPLE, ROSE);
-  c.glowCircle(width * 0.92, height * 0.06, 340, YELLOW, 55);
-  c.glowCircle(width * 0.04, height * 1.0, 300, [30, 157, 108], 45);
+  c.fillDiagonalGradient(GREEN_DEEP, DEEP_GREEN);
+  c.glowCircle(width * 0.92, height * 0.04, 320, GOLD, 40);
+  c.glowCircle(width * 0.02, height * 1.02, 280, ROSE, 26);
 
   const padX = 90;
   let y = 150;
 
-  drawText(c, "2ND", padX, y, 11, YELLOW);
+  drawText(c, "2ND", padX, y, 11, GOLD_LIGHT);
   y += 11 * 7 + 26;
 
   drawText(c, "SHADOW LADIES", padX, y, 10, WHITE);
@@ -239,7 +241,7 @@ function buildOgImage() {
   drawText(c, "PRO-AM TOURNAMENT", padX, y, 6, WHITE);
   y += 6 * 7 + 46;
 
-  drawText(c, "2026.12.03", padX, y, 7, GOLD);
+  drawText(c, "2026.12.03", padX, y, 7, GOLD_LIGHT);
 
   // monogram badge
   const badgeSize = 120;
@@ -250,7 +252,7 @@ function buildOgImage() {
       const dx = xx - badgeSize / 2;
       const dy = yy - badgeSize / 2;
       if (Math.hypot(dx, dy) <= badgeSize / 2) {
-        c.setPixel(bx + xx, by + yy, [255, 255, 255, 46]);
+        c.setPixel(bx + xx, by + yy, [255, 255, 255, 30]);
       }
     }
   }

@@ -1,21 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800" role="img" aria-label="1st TOURNAMENT">
   <defs>
-    <linearGradient id="g3ddj32" gradientTransform="rotate(135)">
-      <stop offset="0%" stop-color="#4F2C8C"/>
-      <stop offset="100%" stop-color="#1E9D6C"/>
+    <linearGradient id="g4ag6vm" gradientTransform="rotate(130)">
+      <stop offset="0%" stop-color="#16372C"/>
+      <stop offset="100%" stop-color="#93743E"/>
     </linearGradient>
-    <radialGradient id="g3ddj32-glow" cx="50%" cy="20%" r="75%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    <radialGradient id="g4ag6vm-vg" cx="50%" cy="42%" r="72%">
+      <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.16"/>
     </radialGradient>
   </defs>
-  <rect width="800" height="800" fill="url(#g3ddj32)"/>
-  <rect width="800" height="800" fill="url(#g3ddj32-glow)"/>
-  <circle cx="688" cy="96" r="176" fill="#ffffff" opacity="0.08"/>
-  <circle cx="80" cy="736" r="224.00000000000003" fill="#ffffff" opacity="0.07"/>
-  <g fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5">
-    <circle cx="400" cy="384" r="80"/>
-  </g>
-  <text x="400" y="406" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="44" fill="#FFFFFF" letter-spacing="2">1st TOURNAMENT</text>
-  <text x="400" y="470" text-anchor="middle" font-family="'Noto Sans JP',sans-serif" font-size="25.6" fill="rgba(255,255,255,0.72)">GALLERY 差し替え予定</text>
+  <rect width="800" height="800" fill="url(#g4ag6vm)"/>
+  <rect width="800" height="800" fill="url(#g4ag6vm-vg)"/>
+  <rect x="36" y="36" width="728" height="728" fill="none" stroke="rgba(200,169,106,0.85)" stroke-opacity="0.55" stroke-width="1"/>
+  <line x1="374" y1="386" x2="426" y2="386" stroke="rgba(200,169,106,0.85)" stroke-width="1"/>
+  <text x="400" y="410" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="33.6" fill="#FFFFFF" letter-spacing="3">1st TOURNAMENT</text>
+  <text x="400" y="466" text-anchor="middle" font-family="'Noto Sans JP',sans-serif" font-size="20.8" fill="rgba(255,255,255,0.68)">GALLERY 差し替え予定</text>
 </svg>

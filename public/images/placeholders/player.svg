@@ -1,21 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="480" height="600" viewBox="0 0 480 600" role="img" aria-label="PRO PLAYER">
   <defs>
-    <linearGradient id="gyacfdw" gradientTransform="rotate(135)">
-      <stop offset="0%" stop-color="#4F2C8C"/>
-      <stop offset="100%" stop-color="#1E9D6C"/>
+    <linearGradient id="ge3slqf" gradientTransform="rotate(130)">
+      <stop offset="0%" stop-color="#16372C"/>
+      <stop offset="100%" stop-color="#93743E"/>
     </linearGradient>
-    <radialGradient id="gyacfdw-glow" cx="50%" cy="20%" r="75%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
-      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    <radialGradient id="ge3slqf-vg" cx="50%" cy="42%" r="72%">
+      <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.16"/>
     </radialGradient>
   </defs>
-  <rect width="480" height="600" fill="url(#gyacfdw)"/>
-  <rect width="480" height="600" fill="url(#gyacfdw-glow)"/>
-  <circle cx="412.8" cy="72" r="105.6" fill="#ffffff" opacity="0.08"/>
-  <circle cx="48" cy="552" r="134.4" fill="#ffffff" opacity="0.07"/>
-  <g fill="none" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5">
-    <circle cx="240" cy="288" r="48"/>
-  </g>
-  <text x="240" y="306" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="26.4" fill="#FFFFFF" letter-spacing="2">PRO PLAYER</text>
-  <text x="240" y="344.4" text-anchor="middle" font-family="'Noto Sans JP',sans-serif" font-size="15.36" fill="rgba(255,255,255,0.72)">IMAGE 差し替え予定</text>
+  <rect width="480" height="600" fill="url(#ge3slqf)"/>
+  <rect width="480" height="600" fill="url(#ge3slqf-vg)"/>
+  <rect x="21.599999999999998" y="21.599999999999998" width="436.8" height="556.8" fill="none" stroke="rgba(200,169,106,0.85)" stroke-opacity="0.55" stroke-width="1"/>
+  <line x1="214" y1="286" x2="266" y2="286" stroke="rgba(200,169,106,0.85)" stroke-width="1"/>
+  <text x="240" y="310" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="20.16" fill="#FFFFFF" letter-spacing="3">PRO PLAYER</text>
+  <text x="240" y="343.6" text-anchor="middle" font-family="'Noto Sans JP',sans-serif" font-size="12.479999999999999" fill="rgba(255,255,255,0.68)">IMAGE 差し替え予定</text>
 </svg>

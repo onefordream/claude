@@ -27,7 +27,7 @@ export function renderGallery() {
     </ul>`
         : `
     <div class="gallery-empty reveal" data-reveal data-reveal-delay="2">
-      <p class="gallery-empty__icon" aria-hidden="true">📷</p>
+      <p class="gallery-empty__rule" aria-hidden="true"></p>
       <p class="gallery-empty__title">大会終了後、オフィシャルフォトを公開予定</p>
       <p class="gallery-empty__desc">大会当日はカメラマンによる撮影を予定しています。終了後、随時こちらのギャラリーに公開いたします。</p>
     </div>`

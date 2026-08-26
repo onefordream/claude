@@ -1,58 +1,49 @@
 import { site } from "../../data/site.mjs";
 import { esc } from "../../lib/render.mjs";
 
-// HERO_IMAGE: 複数の女子プロ写真を差し替え可能な3枚構成。
-// 実写真が届いたら /public/images/hero/*.jpg に置き換え、下記 src を変更するだけでよい。
-const HERO_IMAGES = [
-  { src: "/images/placeholders/hero-1.svg", alt: "HERO_IMAGE — 出場プロ写真（差し替え予定）", cls: "hero__photo hero__photo--a" },
-  { src: "/images/placeholders/hero-2.svg", alt: "HERO_IMAGE — 出場プロ写真（差し替え予定）", cls: "hero__photo hero__photo--b" },
-  { src: "/images/placeholders/hero-3.svg", alt: "HERO_IMAGE — 出場プロ写真（差し替え予定）", cls: "hero__photo hero__photo--c" },
-];
+// HERO_IMAGE: 実写(または許諾済みAI生成)の女子プロゴルファー写真に差し替える前提の
+// プレースホルダー。/public/images/hero-main.jpg 等を用意し、下記 src を書き換えるだけでよい。
+const HERO_IMAGE = { src: "/images/placeholders/hero-portrait.svg", alt: "HERO_IMAGE — 女子プロゴルファー写真（差し替え予定）" };
 
 export function renderHero() {
   return `
 <section class="hero" id="hero" aria-label="${esc(site.nameJa)}">
   <div class="hero__bg" aria-hidden="true">
-    <div class="hero__gradient"></div>
-    <div class="hero__glow hero__glow--1"></div>
-    <div class="hero__glow hero__glow--2"></div>
-    <div class="hero__pattern"></div>
+    <div class="hero__wash"></div>
   </div>
 
-  <div class="hero__photos" aria-hidden="false" data-parallax-group>
-    ${HERO_IMAGES.map(
-      (img, i) => `
-    <figure class="${img.cls}" data-parallax data-parallax-speed="${0.06 + i * 0.03}">
-      <img src="${esc(img.src)}" alt="${esc(img.alt)}" loading="eager" decoding="async" width="640" height="800" />
-    </figure>`
-    ).join("")}
-  </div>
+  <div class="container hero__grid">
+    <figure class="hero__photo reveal" data-hero-reveal data-reveal-delay="1">
+      <img src="${esc(HERO_IMAGE.src)}" alt="${esc(HERO_IMAGE.alt)}" loading="eager" decoding="async" width="760" height="950" />
+    </figure>
 
-  <div class="container hero__content">
-    <p class="hero__edition reveal" data-reveal>${esc(site.editionLabel)} / ${esc(site.editionNumber)}nd</p>
+    <div class="hero__content">
+      <p class="hero__edition reveal reveal--mask" data-hero-reveal data-reveal-delay="0">${esc(site.editionNumber)}nd</p>
 
-    <h1 class="hero__title reveal" data-reveal data-reveal-delay="1">
-      <span class="hero__title-en">SHADOW LADIES</span>
-      <span class="hero__title-en hero__title-en--accent">PRO-AM TOURNAMENT</span>
-    </h1>
+      <h1 class="hero__title">
+        <span class="hero__title-line-wrap"><span class="hero__title-line reveal reveal--mask" data-hero-reveal data-reveal-delay="1">SHADOW</span></span>
+        <span class="hero__title-line-wrap"><span class="hero__title-line reveal reveal--mask" data-hero-reveal data-reveal-delay="2">LADIES</span></span>
+      </h1>
 
-    <p class="hero__tagline reveal" data-reveal data-reveal-delay="2">${esc(site.tagline)}</p>
+      <p class="hero__subtitle reveal reveal--mask" data-hero-reveal data-reveal-delay="3">PRO-AM TOURNAMENT</p>
 
-    <dl class="hero__facts reveal" data-reveal data-reveal-delay="3">
-      <div class="hero__fact">
-        <dt>DATE</dt>
-        <dd>${esc(site.eventDateLabelShort)}</dd>
+      <p class="hero__tagline reveal" data-hero-reveal data-reveal-delay="4">${esc(site.tagline)}</p>
+
+      <dl class="hero__facts reveal" data-hero-reveal data-reveal-delay="5">
+        <div class="hero__fact">
+          <dt>DATE</dt>
+          <dd>${esc(site.eventDateLabelShort)}</dd>
+        </div>
+        <div class="hero__fact-divider" aria-hidden="true"></div>
+        <div class="hero__fact">
+          <dt>VENUE</dt>
+          <dd>${esc(site.venue.name)}</dd>
+        </div>
+      </dl>
+
+      <div class="hero__cta reveal" data-hero-reveal data-reveal-delay="6">
+        <a href="#entry" class="btn btn--primary btn--lg">エントリーはこちら</a>
       </div>
-      <div class="hero__fact-divider" aria-hidden="true"></div>
-      <div class="hero__fact">
-        <dt>VENUE</dt>
-        <dd>${esc(site.venue.name)}</dd>
-      </div>
-    </dl>
-
-    <div class="hero__cta reveal" data-reveal data-reveal-delay="4">
-      <a href="#entry" class="btn btn--primary btn--lg">エントリーはこちら</a>
-      <a href="#about" class="btn btn--ghost-light btn--lg">大会について見る</a>
     </div>
   </div>
 
