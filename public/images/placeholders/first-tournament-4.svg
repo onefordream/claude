@@ -1,16 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-label="1st TOURNAMENT">
   <defs>
-    <linearGradient id="gul473g" gradientTransform="rotate(130)">
+    <linearGradient id="giri48z" gradientTransform="rotate(130)">
       <stop offset="0%" stop-color="#B93862"/>
       <stop offset="100%" stop-color="#16372C"/>
     </linearGradient>
-    <radialGradient id="gul473g-vg" cx="50%" cy="42%" r="72%">
+    <radialGradient id="giri48z-vg" cx="50%" cy="42%" r="72%">
       <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
       <stop offset="100%" stop-color="#000000" stop-opacity="0.16"/>
     </radialGradient>
   </defs>
-  <rect width="800" height="1000" fill="url(#gul473g)"/>
-  <rect width="800" height="1000" fill="url(#gul473g-vg)"/>
+  <rect width="800" height="1000" fill="url(#giri48z)"/>
+  <rect width="800" height="1000" fill="url(#giri48z-vg)"/>
   <rect x="36" y="36" width="728" height="928" fill="none" stroke="rgba(200,169,106,0.85)" stroke-opacity="0.55" stroke-width="1"/>
   <line x1="374" y1="486" x2="426" y2="486" stroke="rgba(200,169,106,0.85)" stroke-width="1"/>
   <text x="400" y="510" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="33.6" fill="#FFFFFF" letter-spacing="3">1st TOURNAMENT</text>

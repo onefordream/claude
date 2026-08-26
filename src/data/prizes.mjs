@@ -26,6 +26,9 @@ export const proPrizes = [
   { rank: 13, amount: 10000, label: "10,000円" },
 ];
 
+// HERO / PRIZE 双方で使う優勝賞金ラベル（単一の情報源）
+export const proWinnerAmountLabel = proPrizes.find((p) => p.featured).label;
+
 export const amateurFormat = {
   title: "アマチュアの部",
   competition: "ダブルペリア方式",
@@ -49,4 +52,4 @@ export const participationGift = {
   photo: null, // /images/gift/marker.jpg などに差し替え
 };
 
-export default { proFormat, proPrizes, amateurFormat, amateurPrizes, participationGift };
+export default { proFormat, proPrizes, proWinnerAmountLabel, amateurFormat, amateurPrizes, participationGift };

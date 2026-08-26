@@ -1,16 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="480" height="600" viewBox="0 0 480 600" role="img" aria-label="PRO PLAYER">
   <defs>
-    <linearGradient id="ge3slqf" gradientTransform="rotate(130)">
+    <linearGradient id="gbzw5vu" gradientTransform="rotate(130)">
       <stop offset="0%" stop-color="#16372C"/>
       <stop offset="100%" stop-color="#93743E"/>
     </linearGradient>
-    <radialGradient id="ge3slqf-vg" cx="50%" cy="42%" r="72%">
+    <radialGradient id="gbzw5vu-vg" cx="50%" cy="42%" r="72%">
       <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
       <stop offset="100%" stop-color="#000000" stop-opacity="0.16"/>
     </radialGradient>
   </defs>
-  <rect width="480" height="600" fill="url(#ge3slqf)"/>
-  <rect width="480" height="600" fill="url(#ge3slqf-vg)"/>
+  <rect width="480" height="600" fill="url(#gbzw5vu)"/>
+  <rect width="480" height="600" fill="url(#gbzw5vu-vg)"/>
   <rect x="21.599999999999998" y="21.599999999999998" width="436.8" height="556.8" fill="none" stroke="rgba(200,169,106,0.85)" stroke-opacity="0.55" stroke-width="1"/>
   <line x1="214" y1="286" x2="266" y2="286" stroke="rgba(200,169,106,0.85)" stroke-width="1"/>
   <text x="240" y="310" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="20.16" fill="#FFFFFF" letter-spacing="3">PRO PLAYER</text>

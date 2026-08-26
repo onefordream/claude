@@ -1,12 +1,14 @@
 import { site } from "../../data/site.mjs";
 import { esc } from "../../lib/render.mjs";
+import { ARROW_ICON } from "../../lib/icons.mjs";
 
-function capacityBadge(category, label, cap) {
-  const text = cap.full ? "定員に達しました｜キャンセル待ち受付中" : `残り${cap.remaining}名`;
+function quickCard(category, label, cap, btnClass) {
+  const text = cap.full ? "定員に達しました｜キャンセル待ち受付中" : `定員${cap.capacity}名／残り${cap.remaining}名`;
   return `
-      <div class="capacity-badge ${cap.full ? "capacity-badge--full" : ""}" data-capacity="${category}">
-        <span class="capacity-badge__label">${esc(label)}</span>
-        <span class="capacity-badge__value" data-capacity-text>${esc(text)}</span>
+      <div class="entry-hero__card ${cap.full ? "capacity-badge--full" : ""}" data-capacity="${category}">
+        <p class="entry-hero__card-label">${esc(label)}で参加</p>
+        <p class="entry-hero__card-cap" data-capacity-text>${esc(text)}</p>
+        <button type="button" class="btn ${btnClass} btn--block btn--arrow" data-entry-quick="${category}">エントリーする${ARROW_ICON}</button>
       </div>`;
 }
 
@@ -15,19 +17,30 @@ export function renderEntry({ capacity }) {
 
   return `
 <section class="section section--entry" id="entry">
-  <div class="container">
-    <p class="eyebrow reveal" data-reveal>ENTRY</p>
-    <h2 class="h2 reveal" data-reveal data-reveal-delay="1">エントリー</h2>
-    <p class="lead reveal" data-reveal data-reveal-delay="2">
-      申込締切：${esc(site.entry.deadlineLabelJa)}／${esc(site.entry.note)}
-    </p>
+  <div class="entry-hero">
+    <div class="container entry-hero__inner">
+      <div class="entry-hero__intro reveal" data-reveal>
+        <p class="entry-hero__eyebrow">ENTRY</p>
+        <h2 class="entry-hero__title">エントリー受付中！</h2>
+        <p class="entry-hero__deadline">申込締切：${esc(site.entry.deadlineLabelJa)}<br />${esc(site.entry.note)}</p>
+      </div>
 
-    <div class="capacity-badges reveal" data-reveal data-reveal-delay="3" data-capacity-root>
-      ${capacityBadge("pro", "プロ", pro)}
-      ${capacityBadge("amateur", "アマチュア", amateur)}
+      <div class="entry-hero__cards" data-capacity-root>
+        ${quickCard("pro", "プロ", pro, "btn--primary")}
+        ${quickCard("amateur", "アマチュア", amateur, "btn--secondary-green")}
+        <div class="entry-hero__card entry-hero__card--fee">
+          <p class="entry-hero__card-label">参加料金（アマチュア）</p>
+          <p class="entry-hero__fee-amount">${esc(site.amateurFee.amountLabel)} <span>/ ${esc(site.amateurFee.unit)}</span></p>
+          <ul class="entry-hero__fee-list">
+            ${site.amateurFee.includes.map((i) => `<li>${esc(i)}</li>`).join("")}
+          </ul>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="entry-panel reveal" data-reveal data-reveal-delay="4">
+  <div class="container">
+    <div class="entry-panel reveal" data-reveal data-reveal-delay="1">
       <div class="entry-tabs" role="tablist" aria-label="参加区分の選択" data-category-tabs>
         <button type="button" class="entry-tab is-active" role="tab" aria-selected="true" data-category-tab="amateur">アマチュア</button>
         <button type="button" class="entry-tab" role="tab" aria-selected="false" data-category-tab="pro">プロ</button>
@@ -103,3 +116,4 @@ export function renderEntry({ capacity }) {
   </div>
 </section>`;
 }
+

@@ -38,6 +38,13 @@ export function initEntryForm() {
     tab.addEventListener("click", () => setCategory(tab.getAttribute("data-category-tab")));
   });
 
+  document.querySelectorAll("[data-entry-quick]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setCategory(btn.getAttribute("data-entry-quick"));
+      form.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
   function clearErrors() {
     form.querySelectorAll(".field-error").forEach((el) => (el.textContent = ""));
     form.querySelectorAll("[aria-invalid]").forEach((el) => el.removeAttribute("aria-invalid"));
@@ -75,7 +82,7 @@ export function initEntryForm() {
           text.textContent = "定員に達しました｜キャンセル待ち受付中";
         } else {
           badge.classList.remove("capacity-badge--full");
-          text.textContent = `残り${info.remaining}名`;
+          text.textContent = `定員${info.capacity}名／残り${info.remaining}名`;
         }
       });
     } catch {

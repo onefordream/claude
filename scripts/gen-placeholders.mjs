@@ -48,31 +48,33 @@ function svgPlaceholder({ width, height, from, to, angle = 130, label, sublabel,
 </svg>`;
 }
 
-// HEROの人物写真スロット専用：縦長・エディトリアルなフレーム。
-// 中央に控えめなシルエットのモノグラム風マークのみを置き、余計な装飾を足さない。
-function svgHeroPortrait({ width, height }) {
-  const id = `hp${Math.random().toString(36).slice(2, 8)}`;
-  const cx = width / 2;
+// HERO全面背景用：横長のエディトリアルな写真プレースホルダー。
+// 額縁は付けず、実写に差し替えたときそのまま全面写真になる構成にする。
+function svgHeroBg({ width, height }) {
+  const id = `hb${Math.random().toString(36).slice(2, 8)}`;
+  const spotX = width * 0.68;
+  const spotY = height * 0.42;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="HERO_IMAGE placeholder">
   <defs>
-    <linearGradient id="${id}" x1="0" y1="0" x2="0.6" y2="1">
+    <linearGradient id="${id}" x1="0.1" y1="0" x2="0.9" y2="1">
       <stop offset="0%" stop-color="#1F4A3B"/>
-      <stop offset="55%" stop-color="#16372C"/>
+      <stop offset="50%" stop-color="#16372C"/>
       <stop offset="100%" stop-color="#0C2019"/>
     </linearGradient>
-    <radialGradient id="${id}-vg" cx="50%" cy="30%" r="75%">
+    <radialGradient id="${id}-spot" cx="${(spotX / width) * 100}%" cy="${(spotY / height) * 100}%" r="55%">
+      <stop offset="0%" stop-color="#E4D3AC" stop-opacity="0.28"/>
+      <stop offset="60%" stop-color="#E4D3AC" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#E4D3AC" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="${id}-vg" cx="50%" cy="42%" r="78%">
       <stop offset="55%" stop-color="#000000" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3"/>
     </radialGradient>
   </defs>
   <rect width="${width}" height="${height}" fill="url(#${id})"/>
+  <rect width="${width}" height="${height}" fill="url(#${id}-spot)"/>
   <rect width="${width}" height="${height}" fill="url(#${id}-vg)"/>
-  <rect x="${width * 0.045}" y="${height * 0.035}" width="${width * 0.91}" height="${height * 0.93}" fill="none" stroke="#C8A96A" stroke-opacity="0.55" stroke-width="1"/>
-  <circle cx="${cx}" cy="${height * 0.44}" r="${width * 0.11}" fill="none" stroke="#E4D3AC" stroke-opacity="0.7" stroke-width="1.4"/>
-  <text x="${cx}" y="${height * 0.44 + 10}" text-anchor="middle" font-family="'Bodoni Moda','Times New Roman',serif" font-weight="500" font-size="${width * 0.09}" fill="#F8F7F3" fill-opacity="0.92">SL</text>
-  <line x1="${cx - 30}" y1="${height * 0.62}" x2="${cx + 30}" y2="${height * 0.62}" stroke="#C8A96A" stroke-width="1"/>
-  <text x="${cx}" y="${height * 0.67}" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="${Math.max(13, width * 0.028)}" fill="#F8F7F3" letter-spacing="3">HERO IMAGE</text>
-  <text x="${cx}" y="${height * 0.67 + 24}" text-anchor="middle" font-family="'Noto Sans JP',sans-serif" font-size="${Math.max(11, width * 0.02)}" fill="rgba(248,247,243,0.68)">女子プロゴルファー写真　差し替え予定</text>
+  <text x="${width - 28}" y="${height - 26}" text-anchor="end" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="${Math.max(13, width * 0.013)}" fill="#F8F7F3" fill-opacity="0.85" letter-spacing="2">HERO IMAGE — 差し替え予定</text>
 </svg>`;
 }
 
@@ -90,6 +92,7 @@ const files = [
   // ABOUT
   { name: "about-1.svg", width: 640, height: 800, ...PALETTES.deepGreen, label: "ABOUT IMAGE", sublabel: "差し替え予定" },
   { name: "about-2.svg", width: 480, height: 480, ...PALETTES.roseGold, label: "PRO PLAYER", sublabel: "差し替え予定" },
+  { name: "about-3.svg", width: 360, height: 360, ...PALETTES.gold, label: "VENUE", sublabel: "差し替え予定" },
   // PLAYER (generic)
   { name: "player.svg", width: 480, height: 600, ...PALETTES.greenGold, label: "PRO PLAYER", sublabel: "IMAGE 差し替え予定" },
   // SPECIAL MC
@@ -114,6 +117,6 @@ for (const f of files) {
   fs.writeFileSync(path.join(OUT_DIR, f.name), svgPlaceholder(f), "utf8");
 }
 
-fs.writeFileSync(path.join(OUT_DIR, "hero-portrait.svg"), svgHeroPortrait({ width: 760, height: 950 }), "utf8");
+fs.writeFileSync(path.join(OUT_DIR, "hero-bg.svg"), svgHeroBg({ width: 1920, height: 1200 }), "utf8");
 
 console.log(`Generated ${files.length + 1} placeholder SVGs in ${OUT_DIR}`);

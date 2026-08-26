@@ -1,5 +1,6 @@
-import { proFormat, proPrizes, amateurFormat, amateurPrizes, participationGift } from "../../data/prizes.mjs";
+import { proFormat, proPrizes, proWinnerAmountLabel, amateurFormat, amateurPrizes, participationGift } from "../../data/prizes.mjs";
 import { esc } from "../../lib/render.mjs";
+import { laurelIcon } from "../../lib/icons.mjs";
 
 function prizeRow(p) {
   return `
@@ -10,52 +11,47 @@ function prizeRow(p) {
 }
 
 export function renderPrize() {
-  const featuredPro = proPrizes.find((p) => p.featured);
-
   return `
 <section class="section section--prize" id="prize">
   <div class="container">
     <p class="eyebrow reveal" data-reveal>PRIZE</p>
     <h2 class="h2 reveal" data-reveal data-reveal-delay="1">賞金・賞品</h2>
 
-    <div class="prize-featured reveal" data-reveal data-reveal-delay="2">
-      <p class="prize-featured__label">プロの部 優勝賞金</p>
-      <p class="prize-featured__amount">${esc(featuredPro.label)}</p>
-    </div>
-
-    <div class="prize-grid">
-      <div class="prize-panel prize-panel--pro reveal" data-reveal data-reveal-delay="3">
-        <div class="prize-panel__head">
-          <p class="prize-panel__title">${esc(proFormat.title)}</p>
-          <p class="prize-panel__format">${esc(proFormat.competition)}</p>
-          <p class="prize-panel__kind">賞金</p>
+    <div class="prize-cards">
+      <div class="prize-card prize-card--pro reveal" data-reveal data-reveal-delay="2">
+        <p class="prize-card__title">PRIZE</p>
+        <p class="prize-card__subtitle">賞金・賞品</p>
+        <span class="prize-card__badge">${esc(proFormat.title)}（${esc(proFormat.competition)}）</span>
+        <div class="prize-card__hero">
+          ${laurelIcon("prize-card__laurel")}
+          <span class="prize-card__hero-text">
+            <span class="prize-card__hero-label">優勝賞金</span>
+            <span class="prize-card__hero-amount">${esc(proWinnerAmountLabel)}</span>
+          </span>
         </div>
-        <ul class="prize-list">
-          ${proPrizes.map(prizeRow).join("")}
-        </ul>
+        <details class="prize-card__details">
+          <summary>全順位の賞金を見る</summary>
+          <ul class="prize-list">${proPrizes.map(prizeRow).join("")}</ul>
+        </details>
       </div>
 
-      <div class="prize-panel prize-panel--amateur reveal" data-reveal data-reveal-delay="4">
-        <div class="prize-panel__head">
-          <p class="prize-panel__title">${esc(amateurFormat.title)}</p>
-          <p class="prize-panel__format">${esc(amateurFormat.competition)}／${esc(amateurFormat.handicap)}</p>
-          <p class="prize-panel__kind prize-panel__kind--voucher">入賞は現金ではなく金券</p>
+      <div class="prize-card prize-card--amateur reveal" data-reveal data-reveal-delay="3">
+        <p class="prize-card__title prize-card__title--rose">AMATEUR PRIZE</p>
+        <p class="prize-card__subtitle">アマチュア入賞</p>
+        <span class="prize-card__badge prize-card__badge--green">${esc(amateurFormat.title)}（${esc(amateurFormat.competition)}）</span>
+        <p class="prize-card__voucher">入賞は現金ではなく金券</p>
+        <ul class="prize-list prize-list--compact">${amateurPrizes.map(prizeRow).join("")}</ul>
+        <p class="prize-card__note">${esc(amateurFormat.teamNote)}</p>
+      </div>
+
+      <div class="prize-card prize-card--gift reveal" data-reveal data-reveal-delay="4">
+        <p class="prize-card__title prize-card__title--gold">SPECIAL GIFT</p>
+        <p class="prize-card__subtitle">参加者特典</p>
+        <div class="prize-card__gift-media">
+          <img src="${esc(participationGift.photo || "/images/placeholders/gift.svg")}" alt="参加賞：${esc(participationGift.name)}（差し替え予定）" loading="lazy" decoding="async" width="320" height="320" />
         </div>
-        <ul class="prize-list">
-          ${amateurPrizes.map(prizeRow).join("")}
-        </ul>
-        <p class="prize-panel__note">${esc(amateurFormat.teamNote)}</p>
-      </div>
-    </div>
-
-    <div class="gift-card reveal" data-reveal data-reveal-delay="5">
-      <div class="gift-card__media">
-        <img src="${esc(participationGift.photo || "/images/placeholders/gift.svg")}" alt="参加賞：${esc(participationGift.name)}（差し替え予定）" loading="lazy" decoding="async" width="480" height="480" />
-      </div>
-      <div class="gift-card__body">
-        <p class="eyebrow">参加賞</p>
-        <p class="gift-card__title">${esc(participationGift.name)}</p>
-        <p class="gift-card__desc">${esc(participationGift.description)}</p>
+        <p class="prize-card__gift-name">${esc(participationGift.name)}</p>
+        <p class="prize-card__gift-desc">${esc(participationGift.description)}</p>
       </div>
     </div>
   </div>

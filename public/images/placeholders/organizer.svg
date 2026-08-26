@@ -1,16 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480" role="img" aria-label="ORGANIZER">
   <defs>
-    <linearGradient id="gruuaz7" gradientTransform="rotate(130)">
+    <linearGradient id="g07pxfc" gradientTransform="rotate(130)">
       <stop offset="0%" stop-color="#1F4A3B"/>
       <stop offset="100%" stop-color="#0C2019"/>
     </linearGradient>
-    <radialGradient id="gruuaz7-vg" cx="50%" cy="42%" r="72%">
+    <radialGradient id="g07pxfc-vg" cx="50%" cy="42%" r="72%">
       <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
       <stop offset="100%" stop-color="#000000" stop-opacity="0.16"/>
     </radialGradient>
   </defs>
-  <rect width="480" height="480" fill="url(#gruuaz7)"/>
-  <rect width="480" height="480" fill="url(#gruuaz7-vg)"/>
+  <rect width="480" height="480" fill="url(#g07pxfc)"/>
+  <rect width="480" height="480" fill="url(#g07pxfc-vg)"/>
   <rect x="21.599999999999998" y="21.599999999999998" width="436.8" height="436.8" fill="none" stroke="rgba(200,169,106,0.85)" stroke-opacity="0.55" stroke-width="1"/>
   <line x1="214" y1="226" x2="266" y2="226" stroke="rgba(200,169,106,0.85)" stroke-width="1"/>
   <text x="240" y="250" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="20.16" fill="#FFFFFF" letter-spacing="3">ORGANIZER</text>

@@ -1,16 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480" role="img" aria-label="参加賞">
   <defs>
-    <linearGradient id="ggr85u4" gradientTransform="rotate(130)">
+    <linearGradient id="g3ygaw3" gradientTransform="rotate(130)">
       <stop offset="0%" stop-color="#93743E"/>
       <stop offset="100%" stop-color="#E4D3AC"/>
     </linearGradient>
-    <radialGradient id="ggr85u4-vg" cx="50%" cy="42%" r="72%">
+    <radialGradient id="g3ygaw3-vg" cx="50%" cy="42%" r="72%">
       <stop offset="60%" stop-color="#000000" stop-opacity="0"/>
       <stop offset="100%" stop-color="#000000" stop-opacity="0.16"/>
     </radialGradient>
   </defs>
-  <rect width="480" height="480" fill="url(#ggr85u4)"/>
-  <rect width="480" height="480" fill="url(#ggr85u4-vg)"/>
+  <rect width="480" height="480" fill="url(#g3ygaw3)"/>
+  <rect width="480" height="480" fill="url(#g3ygaw3-vg)"/>
   <rect x="21.599999999999998" y="21.599999999999998" width="436.8" height="436.8" fill="none" stroke="rgba(147,116,62,0.7)" stroke-opacity="0.55" stroke-width="1"/>
   <line x1="214" y1="226" x2="266" y2="226" stroke="rgba(147,116,62,0.7)" stroke-width="1"/>
   <text x="240" y="250" text-anchor="middle" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="20.16" fill="#16372C" letter-spacing="3">参加賞</text>

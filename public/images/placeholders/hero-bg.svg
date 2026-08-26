@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1200" viewBox="0 0 1920 1200" role="img" aria-label="HERO_IMAGE placeholder">
+  <defs>
+    <linearGradient id="hbre1d3k" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#1F4A3B"/>
+      <stop offset="50%" stop-color="#16372C"/>
+      <stop offset="100%" stop-color="#0C2019"/>
+    </linearGradient>
+    <radialGradient id="hbre1d3k-spot" cx="68%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#E4D3AC" stop-opacity="0.28"/>
+      <stop offset="60%" stop-color="#E4D3AC" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#E4D3AC" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="hbre1d3k-vg" cx="50%" cy="42%" r="78%">
+      <stop offset="55%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.3"/>
+    </radialGradient>
+  </defs>
+  <rect width="1920" height="1200" fill="url(#hbre1d3k)"/>
+  <rect width="1920" height="1200" fill="url(#hbre1d3k-spot)"/>
+  <rect width="1920" height="1200" fill="url(#hbre1d3k-vg)"/>
+  <text x="1892" y="1174" text-anchor="end" font-family="'Zen Kaku Gothic New','Noto Sans JP',sans-serif" font-weight="700" font-size="24.959999999999997" fill="#F8F7F3" fill-opacity="0.85" letter-spacing="2">HERO IMAGE — 差し替え予定</text>
+</svg>

@@ -6,16 +6,32 @@ import { site } from "../data/site.mjs";
 import { esc } from "../lib/render.mjs";
 
 const NAV_LINKS = [
-  { href: "/#about", label: "大会について" },
-  { href: "/#players", label: "出場プロ" },
-  { href: "/#prize", label: "賞金・賞品" },
-  { href: "/#schedule", label: "スケジュール" },
-  { href: "/#sponsors", label: "スポンサー" },
-  { href: "/#gallery", label: "ギャラリー" },
-  { href: "/#faq", label: "FAQ" },
-  { href: "/#access", label: "アクセス" },
-  { href: "/news/", label: "NEWS" },
+  { href: "/#about", en: "ABOUT", ja: "大会について" },
+  { href: "/#players", en: "PLAYERS", ja: "出場プロ" },
+  { href: "/#info", en: "TOURNAMENT", ja: "大会概要" },
+  { href: "/#entry", en: "ENTRY", ja: "エントリー" },
+  { href: "/#sponsors", en: "SPONSORS", ja: "スポンサー" },
+  { href: "/#first", en: "1st TOURNAMENT", ja: "第1回大会" },
+  { href: "/news/", en: "NEWS", ja: "お知らせ" },
 ];
+
+const FOOTER_LINKS = [
+  ...NAV_LINKS,
+  { href: "/#prize", en: "PRIZE", ja: "賞金・賞品" },
+  { href: "/#schedule", en: "SCHEDULE", ja: "スケジュール" },
+  { href: "/#gallery", en: "GALLERY", ja: "ギャラリー" },
+  { href: "/#faq", en: "FAQ", ja: "よくある質問" },
+  { href: "/#access", en: "ACCESS", ja: "アクセス" },
+];
+
+const GOLFER_ICON = `<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <circle cx="19.5" cy="7" r="2.6" fill="currentColor"/>
+  <path d="M17 11.5 12 15l1.6 2 3.9-2.7 2 3.2-3.5 6.4M17 11.5l4.5 1.4-1 4.6M12 15l-4.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M21.5 12.9 27 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M4 25.5h24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+</svg>`;
+
+const ARROW_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 export function renderHead({ title, description, path = "/", ogImage } = {}) {
   const fullTitle = title || site.seo.title;
@@ -87,21 +103,21 @@ export function renderHeader() {
 <header class="site-header" id="site-header" data-header>
   <div class="site-header__inner container">
     <a href="/" class="brand" aria-label="${esc(site.shortName)} トップへ">
-      <span class="brand__mark">SL</span>
+      <span class="brand__mark">${GOLFER_ICON}</span>
       <span class="brand__text">
-        <span class="brand__edition">${esc(site.editionLabel)}</span>
-        <span class="brand__name">SHADOW LADIES PRO-AM</span>
+        <span class="brand__name">SHADOW LADIES</span>
+        <span class="brand__edition">PRO-AM TOURNAMENT</span>
       </span>
     </a>
 
     <nav class="nav-desktop" aria-label="メインナビゲーション">
       <ul>
-        ${NAV_LINKS.map((l) => `<li><a href="${esc(l.href)}">${esc(l.label)}</a></li>`).join("")}
+        ${NAV_LINKS.map((l) => `<li><a href="${esc(l.href)}"><span class="nav-desktop__en">${esc(l.en)}</span><span class="nav-desktop__ja">${esc(l.ja)}</span></a></li>`).join("")}
       </ul>
     </nav>
 
     <div class="site-header__actions">
-      <a href="/#entry" class="btn btn--primary btn--sm">エントリーはこちら</a>
+      <a href="/#entry" class="btn btn--primary btn--sm btn--arrow">エントリーはこちら<span class="btn__arrow">${ARROW_ICON}</span></a>
       <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="nav-mobile" aria-label="メニューを開く">
         <span></span><span></span><span></span>
       </button>
@@ -111,9 +127,9 @@ export function renderHeader() {
   <div class="nav-mobile" id="nav-mobile" data-nav-mobile hidden>
     <nav aria-label="モバイルナビゲーション">
       <ul>
-        ${NAV_LINKS.map((l) => `<li><a href="${esc(l.href)}" data-nav-link>${esc(l.label)}</a></li>`).join("")}
-        <li><a href="/rules/" data-nav-link>競技規則</a></li>
-        <li><a href="/#contact" data-nav-link>お問い合わせ</a></li>
+        ${NAV_LINKS.map((l) => `<li><a href="${esc(l.href)}" data-nav-link>${esc(l.en)}<span class="nav-mobile__ja">${esc(l.ja)}</span></a></li>`).join("")}
+        <li><a href="/rules/" data-nav-link>RULES<span class="nav-mobile__ja">競技規則</span></a></li>
+        <li><a href="/#contact" data-nav-link>CONTACT<span class="nav-mobile__ja">お問い合わせ</span></a></li>
       </ul>
     </nav>
   </div>
@@ -133,7 +149,7 @@ export function renderFooter() {
 
     <nav class="site-footer__nav" aria-label="フッターナビゲーション">
       <ul>
-        ${NAV_LINKS.map((l) => `<li><a href="${esc(l.href)}">${esc(l.label)}</a></li>`).join("")}
+        ${FOOTER_LINKS.map((l) => `<li><a href="${esc(l.href)}">${esc(l.ja)}</a></li>`).join("")}
         <li><a href="/rules/">競技規則</a></li>
         <li><a href="/#contact">お問い合わせ</a></li>
       </ul>
