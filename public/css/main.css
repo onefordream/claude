@@ -74,12 +74,12 @@ dialog { border: none; padding: 0; }
   /* spacing / layout */
   --container-w: 1200px;
   --container-pad: clamp(1.25rem, 4vw, 3rem);
-  --section-pad-y: clamp(4.5rem, 9vw, 8.5rem);
+  --section-pad-y: clamp(3rem, 6vw, 5.5rem);
   --radius-s: 3px;
   --radius-m: 6px;
   --radius-l: 3px;
-  --shadow-card: 0 24px 60px -24px rgba(12, 32, 25, 0.32);
-  --shadow-soft: 0 10px 34px -18px rgba(12, 32, 25, 0.22);
+  --shadow-card: 0 14px 32px -16px rgba(12, 32, 25, 0.24);
+  --shadow-soft: 0 6px 18px -10px rgba(12, 32, 25, 0.16);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --dur-m: 0.7s;
@@ -491,15 +491,6 @@ body.nav-open { overflow: hidden; }
 .section--highlights {
   background: var(--g-green);
   color: var(--c-white);
-  position: relative;
-  overflow: hidden;
-}
-.section--highlights::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 88% -10%, rgba(200,169,106,0.16), transparent 55%);
-  pointer-events: none;
 }
 .highlights-band { position: relative; display: flex; flex-direction: column; }
 .highlights__grid {
