@@ -20,9 +20,9 @@ import { renderContact } from "../sections/contact.mjs";
 export function renderHome({ capacity }) {
   const content = [
     renderHero(),
+    renderHighlights(),
     renderNewsStrip(),
     renderAbout(),
-    renderHighlights(),
     renderPlayers(),
     renderSpecialMc(),
     renderPrize(),
