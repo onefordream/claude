@@ -33,6 +33,12 @@ const GOLFER_ICON = `<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.o
 
 const ARROW_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
+// トップページ上では純粋なページ内アンカー（#entry）にし、他ページでは
+// トップに戻ってからアンカー先へ（/#entry）遷移させる。
+function homeLink(path, hash) {
+  return path === "/" ? hash : `/${hash}`;
+}
+
 export function renderHead({ title, description, path = "/", ogImage } = {}) {
   const fullTitle = title || site.seo.title;
   const desc = description || site.seo.description;
@@ -98,7 +104,7 @@ export function renderHead({ title, description, path = "/", ogImage } = {}) {
 `;
 }
 
-export function renderHeader() {
+export function renderHeader(path = "/") {
   return `
 <header class="site-header" id="site-header" data-header>
   <div class="site-header__inner container">
@@ -112,12 +118,12 @@ export function renderHeader() {
 
     <nav class="nav-desktop" aria-label="メインナビゲーション">
       <ul>
-        ${NAV_LINKS.map((l) => `<li><a href="${esc(l.href)}"><span class="nav-desktop__en">${esc(l.en)}</span><span class="nav-desktop__ja">${esc(l.ja)}</span></a></li>`).join("")}
+        ${NAV_LINKS.map((l) => `<li><a href="${esc(l.href.startsWith("/#") ? homeLink(path, l.href.slice(1)) : l.href)}"><span class="nav-desktop__en">${esc(l.en)}</span><span class="nav-desktop__ja">${esc(l.ja)}</span></a></li>`).join("")}
       </ul>
     </nav>
 
     <div class="site-header__actions">
-      <a href="/#entry" class="btn btn--primary btn--sm btn--arrow">エントリーはこちら<span class="btn__arrow">${ARROW_ICON}</span></a>
+      <a href="${esc(homeLink(path, "#entry"))}" class="btn btn--primary btn--sm btn--arrow">エントリーはこちら<span class="btn__arrow">${ARROW_ICON}</span></a>
       <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="nav-mobile" aria-label="メニューを開く">
         <span></span><span></span><span></span>
       </button>
@@ -127,16 +133,16 @@ export function renderHeader() {
   <div class="nav-mobile" id="nav-mobile" data-nav-mobile hidden>
     <nav aria-label="モバイルナビゲーション">
       <ul>
-        ${NAV_LINKS.map((l) => `<li><a href="${esc(l.href)}" data-nav-link>${esc(l.en)}<span class="nav-mobile__ja">${esc(l.ja)}</span></a></li>`).join("")}
+        ${NAV_LINKS.map((l) => `<li><a href="${esc(l.href.startsWith("/#") ? homeLink(path, l.href.slice(1)) : l.href)}" data-nav-link>${esc(l.en)}<span class="nav-mobile__ja">${esc(l.ja)}</span></a></li>`).join("")}
         <li><a href="/rules/" data-nav-link>RULES<span class="nav-mobile__ja">競技規則</span></a></li>
-        <li><a href="/#contact" data-nav-link>CONTACT<span class="nav-mobile__ja">お問い合わせ</span></a></li>
+        <li><a href="${esc(homeLink(path, "#contact"))}" data-nav-link>CONTACT<span class="nav-mobile__ja">お問い合わせ</span></a></li>
       </ul>
     </nav>
   </div>
 </header>`;
 }
 
-export function renderFooter() {
+export function renderFooter(path = "/") {
   const year = new Date().getFullYear();
   return `
 <footer class="site-footer">
@@ -149,9 +155,9 @@ export function renderFooter() {
 
     <nav class="site-footer__nav" aria-label="フッターナビゲーション">
       <ul>
-        ${FOOTER_LINKS.map((l) => `<li><a href="${esc(l.href)}">${esc(l.ja)}</a></li>`).join("")}
+        ${FOOTER_LINKS.map((l) => `<li><a href="${esc(l.href.startsWith("/#") ? homeLink(path, l.href.slice(1)) : l.href)}">${esc(l.ja)}</a></li>`).join("")}
         <li><a href="/rules/">競技規則</a></li>
-        <li><a href="/#contact">お問い合わせ</a></li>
+        <li><a href="${esc(homeLink(path, "#contact"))}">お問い合わせ</a></li>
       </ul>
     </nav>
 
@@ -166,14 +172,14 @@ export function renderFooter() {
 </footer>`;
 }
 
-export function renderStickyCta() {
+export function renderStickyCta(path = "/") {
   return `
 <div class="sticky-cta" data-sticky-cta>
-  <a href="/#entry" class="btn btn--primary btn--block">エントリーはこちら</a>
+  <a href="${esc(homeLink(path, "#entry"))}" class="btn btn--primary btn--block">エントリーはこちら</a>
 </div>`;
 }
 
-export function renderDocument({ title, description, path, ogImage, bodyClass = "", content }) {
+export function renderDocument({ title, description, path = "/", ogImage, bodyClass = "", content }) {
   return `<!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -181,12 +187,12 @@ ${renderHead({ title, description, path, ogImage })}
 </head>
 <body class="${esc(bodyClass)}">
 <a href="#main" class="skip-link">本文へスキップ</a>
-${renderHeader()}
+${renderHeader(path)}
 <main id="main">
 ${content}
 </main>
-${renderFooter()}
-${renderStickyCta()}
+${renderFooter(path)}
+${renderStickyCta(path)}
 <script type="module" src="/js/main.js"></script>
 </body>
 </html>`;

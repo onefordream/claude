@@ -820,7 +820,7 @@ body.nav-open { overflow: hidden; }
 .entry-hero__card.capacity-badge--full .entry-hero__card-cap { color: var(--c-rose-deep); }
 
 .entry-hero__card--fee { background: var(--c-green-tint); grid-column: 1 / -1; }
-.entry-hero__fee-amount { font-family: var(--f-display); font-weight: 700; font-size: 1.7rem; color: var(--c-green-deep); margin-top: 0.5rem; }
+.entry-hero__fee-amount { font-family: var(--f-heading); font-weight: 900; font-size: 1.7rem; color: var(--c-green-deep); margin-top: 0.5rem; }
 .entry-hero__fee-amount span { font-family: var(--f-body); font-weight: 400; font-size: 0.85rem; color: var(--c-ink-soft); }
 .entry-hero__fee-list { margin-top: 0.9rem; }
 .entry-hero__fee-list li { position: relative; padding-left: 1.1rem; font-size: 0.82rem; color: var(--c-ink-soft); margin-top: 0.3rem; }
@@ -931,17 +931,6 @@ body.nav-open { overflow: hidden; }
 
 @media (min-width: 640px) { .sponsor-rank__grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 900px) { .sponsor-rank--platinum .sponsor-rank__grid, .sponsor-rank__grid { grid-template-columns: repeat(4, 1fr); } }
-
-/* ---------------------------------------------------------------------------
-   17. Organizer message
-   --------------------------------------------------------------------------- */
-.organizer__grid { display: grid; gap: 2rem; align-items: center; }
-.organizer__photo { border-radius: var(--radius-l); overflow: hidden; max-width: 220px; box-shadow: var(--shadow-soft); }
-.organizer__photo img { aspect-ratio: 1/1; object-fit: cover; }
-.organizer__body p { color: var(--c-ink-soft); margin-top: 0.7rem; }
-.organizer__sign { margin-top: 1.4rem; font-family: var(--f-heading); font-weight: 700; }
-
-@media (min-width: 760px) { .organizer__grid { grid-template-columns: 220px 1fr; gap: 3rem; } }
 
 /* ---------------------------------------------------------------------------
    18. Masonry gallery + lightbox
