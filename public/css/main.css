@@ -445,8 +445,14 @@ body.nav-open { overflow: hidden; }
    --------------------------------------------------------------------------- */
 .about__grid { display: grid; gap: 3rem; align-items: center; }
 .about__copy { position: relative; }
-.about__copy .lead { font-size: 0.92rem; }
-.about__copy .body { font-size: 0.86rem; }
+.about__copy .lead,
+.about__copy .body {
+  font-family: var(--f-heading);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+.about__copy .lead { font-size: 0.78rem; line-height: 1.9; }
+.about__copy .body { font-size: 0.74rem; line-height: 1.85; }
 .about__copy .btn { margin-top: 1.8rem; }
 .about__watermark {
   position: absolute;
