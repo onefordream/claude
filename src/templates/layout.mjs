@@ -24,13 +24,6 @@ const FOOTER_LINKS = [
   { href: "/#access", en: "ACCESS", ja: "アクセス" },
 ];
 
-const GOLFER_ICON = `<svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <circle cx="19.5" cy="7" r="2.6" fill="currentColor"/>
-  <path d="M17 11.5 12 15l1.6 2 3.9-2.7 2 3.2-3.5 6.4M17 11.5l4.5 1.4-1 4.6M12 15l-4.5 2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <path d="M21.5 12.9 27 6.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-  <path d="M4 25.5h24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-</svg>`;
-
 const ARROW_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M8 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 // トップページ上では純粋なページ内アンカー（#entry）にし、他ページでは
@@ -109,11 +102,7 @@ export function renderHeader(path = "/") {
 <header class="site-header" id="site-header" data-header>
   <div class="site-header__inner container">
     <a href="/" class="brand" aria-label="${esc(site.shortName)} トップへ">
-      <span class="brand__mark">${GOLFER_ICON}</span>
-      <span class="brand__text">
-        <span class="brand__name">SHADOW LADIES</span>
-        <span class="brand__edition">PRO-AM TOURNAMENT</span>
-      </span>
+      <img class="brand__logo" src="/images/brand/logo.png" alt="${esc(site.shortName)}" width="528" height="551" decoding="async" />
     </a>
 
     <nav class="nav-desktop" aria-label="メインナビゲーション">
