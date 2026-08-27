@@ -23,9 +23,15 @@ export function renderAccess() {
       ${site.venue.address ? "" : `<p class="access__note">正確な所在地・車でのアクセス情報は確認の上、追ってこちらに掲載いたします。</p>`}
     </div>
 
-    <figure class="access__photo reveal" data-reveal data-reveal-delay="1">
+    ${
+      site.venue.mapEmbedUrl
+        ? `<figure class="access__photo access__map reveal" data-reveal data-reveal-delay="1">
+      <iframe src="${esc(site.venue.mapEmbedUrl)}" title="${esc(site.venue.name)}の地図" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </figure>`
+        : `<figure class="access__photo reveal" data-reveal data-reveal-delay="1">
       <img src="/images/placeholders/venue.svg" alt="VENUE_IMAGE — ${esc(site.venue.name)}（差し替え予定）" loading="lazy" decoding="async" width="640" height="480" />
-    </figure>
+    </figure>`
+    }
   </div>
 </section>`;
 }

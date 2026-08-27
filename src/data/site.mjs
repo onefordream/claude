@@ -25,6 +25,8 @@ export const site = {
     address: "〒529-1821 滋賀県甲賀市信楽町多羅尾字上流1577",
     addressNote: "住所・アクセス詳細は確定次第掲載いたします。",
     mapUrl: "https://maps.app.goo.gl/t4bhC2HfAKiTQeKMA",
+    mapEmbedUrl:
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3275.465221206056!2d136.0302104757497!3d34.81939387287773!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6001449e017de545%3A0xf22c8afc227574f0!2z44OH44Kk44Oq44O85L-h5qW944Kr44Oz44OI44Oq44O85YC25qW96YOo!5e0!3m2!1sja!2sjp!4v1787816943202!5m2!1sja!2sjp",
     phone: null,
   },
 
