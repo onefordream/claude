@@ -20,7 +20,7 @@ export function renderAccess() {
           : `<p class="access__map-pending">Google Mapsへのリンクは確定次第掲載いたします。</p>`
       }
 
-      <p class="access__note">正確な所在地・車でのアクセス情報は確認の上、追ってこちらに掲載いたします。</p>
+      ${site.venue.address ? "" : `<p class="access__note">正確な所在地・車でのアクセス情報は確認の上、追ってこちらに掲載いたします。</p>`}
     </div>
 
     <figure class="access__photo reveal" data-reveal data-reveal-delay="1">

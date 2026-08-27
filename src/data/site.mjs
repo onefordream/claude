@@ -22,10 +22,9 @@ export const site = {
   venue: {
     name: "デイリー信楽カントリー倶楽部",
     nameEn: "Daily Shigaraki Country Club",
-    // 住所・詳細アクセス情報は正式情報確認後に追記する（推測で入力しない）
-    address: null,
+    address: "〒529-1821 滋賀県甲賀市信楽町多羅尾字上流1577",
     addressNote: "住所・アクセス詳細は確定次第掲載いたします。",
-    mapUrl: null,
+    mapUrl: "https://maps.app.goo.gl/t4bhC2HfAKiTQeKMA",
     phone: null,
   },
 
