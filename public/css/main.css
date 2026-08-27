@@ -461,25 +461,10 @@ body.nav-open { overflow: hidden; }
   user-select: none;
 }
 .about__copy > *:not(.about__watermark) { position: relative; z-index: 1; }
-.about__media { position: relative; max-width: 380px; margin-inline: auto; }
+.about__media { position: relative; width: 100%; }
 .about__photo { overflow: hidden; box-shadow: var(--shadow-card); }
 .about__photo--main img { aspect-ratio: 4/5; object-fit: cover; }
-.about__photo--wide img { aspect-ratio: 3/2; object-position: center 35%; }
-.about__badge {
-  width: 44%;
-  position: absolute;
-  right: 2%;
-  bottom: -8%;
-  background: var(--c-white);
-  border: 4px solid var(--c-ivory);
-  box-shadow: var(--shadow-card);
-  padding: 1rem 0.8rem;
-  text-align: center;
-}
-.about__badge-laurel { width: 44px; height: 22px; color: var(--c-gold); margin-inline: auto; }
-.about__badge-num { font-family: var(--f-display); font-weight: 700; font-size: 1.7rem; color: var(--c-rose-deep); margin-top: 0.4rem; line-height: 1; }
-.about__badge-num span { display: block; font-family: var(--f-heading); font-weight: 700; font-size: 0.6rem; letter-spacing: 0.14em; color: var(--c-ink-soft); margin-top: 0.3rem; }
-.about__badge-label { font-family: var(--f-heading); font-weight: 700; font-size: 0.7rem; color: var(--c-ink); margin-top: 0.5rem; }
+.about__photo--wide img { aspect-ratio: 16/9; object-position: center 65%; }
 .about__photo--accent {
   width: 30%;
   position: absolute;
@@ -565,51 +550,51 @@ body.nav-open { overflow: hidden; }
 .player-slider::-webkit-scrollbar { display: none; }
 .player-slider__track {
   display: flex;
-  gap: 1.25rem;
+  gap: 0.7rem;
   padding-inline: var(--container-pad);
   width: max-content;
 }
 .player-card {
   position: relative;
   flex: 0 0 auto;
-  width: min(52vw, 190px);
+  width: min(30vw, 120px);
   scroll-snap-align: start;
   background: var(--c-white);
   border: 1px solid rgba(185,56,98,0.12);
   box-shadow: var(--shadow-soft);
 }
 .player-card__insta {
-  position: absolute; top: 0.7rem; right: 0.7rem; z-index: 2;
-  width: 32px; height: 32px; border-radius: 50%;
+  position: absolute; top: 0.4rem; right: 0.4rem; z-index: 2;
+  width: 22px; height: 22px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   background: rgba(255,255,255,0.85); backdrop-filter: blur(4px);
   color: var(--c-rose-deep); transition: background var(--dur-s), color var(--dur-s);
 }
 .player-card__insta:hover { background: var(--c-rose); color: var(--c-white); }
-.player-card__insta svg { width: 16px; height: 16px; }
+.player-card__insta svg { width: 11px; height: 11px; }
 .player-card__trigger { display: block; width: 100%; text-align: left; }
-.player-card__photo { display: block; aspect-ratio: 4/5; overflow: hidden; background: var(--c-rose-tint); }
+.player-card__photo { display: block; aspect-ratio: 1/1; overflow: hidden; background: var(--c-rose-tint); }
 .player-card__photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease-out); }
 .player-card__trigger:hover .player-card__photo img { transform: scale(1.06); }
-.player-card__body { display: block; padding: 1rem 1.1rem 1.3rem; }
-.player-card__name { display: block; font-family: var(--f-heading); font-weight: 700; font-size: 0.98rem; color: var(--c-ink); }
-.player-card__affiliation { display: block; font-size: 0.76rem; color: var(--c-ink-soft); margin-top: 0.25rem; }
+.player-card__body { display: block; padding: 0.55rem 0.6rem 0.7rem; }
+.player-card__name { display: block; font-family: var(--f-heading); font-weight: 700; font-size: 0.74rem; color: var(--c-ink); }
+.player-card__affiliation { display: block; font-size: 0.6rem; color: var(--c-ink-soft); margin-top: 0.15rem; }
 .player-card__more {
-  display: inline-block; margin-top: 0.7rem; font-size: 0.72rem; letter-spacing: 0.08em;
-  color: var(--c-rose-deep); border-bottom: 1px solid rgba(185,56,98,0.35); padding-bottom: 2px;
+  display: inline-block; margin-top: 0.4rem; font-size: 0.6rem; letter-spacing: 0.06em;
+  color: var(--c-rose-deep); border-bottom: 1px solid rgba(185,56,98,0.35); padding-bottom: 1px;
 }
 
 .player-card--soon { background: rgba(217,77,120,0.05); }
 .player-card__photo--soon {
-  aspect-ratio: 4/5;
+  aspect-ratio: 1/1;
   display: flex; align-items: center; justify-content: center;
   border-bottom: 1px solid rgba(185,56,98,0.1);
 }
 .player-card__photo--soon span {
-  font-family: var(--f-heading); font-weight: 900; letter-spacing: 0.14em;
-  text-align: center; color: var(--c-rose-deep); font-size: 0.82rem;
+  font-family: var(--f-heading); font-weight: 900; letter-spacing: 0.08em;
+  text-align: center; color: var(--c-rose-deep); font-size: 0.62rem;
 }
-.player-card__name--soon { display: block; text-align: center; padding: 1rem; font-size: 0.8rem; color: var(--c-ink-soft); }
+.player-card__name--soon { display: block; text-align: center; padding: 0.5rem; font-size: 0.62rem; color: var(--c-ink-soft); }
 
 .player-slider__controls { display: flex; justify-content: flex-end; gap: 0.7rem; margin-top: 1.6rem; }
 .player-slider__arrow {
@@ -646,8 +631,21 @@ body.nav-open { overflow: hidden; }
 .player-modal__achievements li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 6px; height: 6px; border-radius: 50%; background: var(--c-gold); }
 .player-modal__sns { margin-top: 1.3rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--c-green-deep); }
 
-@media (min-width: 640px) { .player-card { width: 200px; } }
-@media (min-width: 960px) { .player-card { width: 208px; } .player-slider__track { gap: 1.5rem; } }
+.roster-modal__content { padding: 1.6rem 1.8rem 1.8rem; }
+.roster-modal__title { font-family: var(--f-heading); font-weight: 900; font-size: 1.15rem; }
+.roster-list { margin-top: 1.2rem; display: flex; flex-direction: column; }
+.roster-list__item {
+  display: flex; align-items: baseline; gap: 0.8rem;
+  padding: 0.7rem 0; border-bottom: 1px solid var(--c-line);
+}
+.roster-list__num { font-family: var(--f-display); font-weight: 700; color: var(--c-rose-deep); font-size: 0.9rem; min-width: 1.6rem; }
+.roster-list__name { font-family: var(--f-heading); font-weight: 700; font-size: 0.92rem; }
+.roster-list__aff { color: var(--c-ink-soft); font-size: 0.8rem; margin-left: auto; }
+.roster-list__item--pending .roster-list__num { color: var(--c-ink-soft); opacity: 0.5; }
+.roster-list__item--pending .roster-list__name { color: var(--c-ink-soft); font-weight: 500; }
+
+@media (min-width: 640px) { .player-card { width: 130px; } }
+@media (min-width: 960px) { .player-card { width: 150px; } .player-slider__track { gap: 1rem; } }
 
 /* ---------------------------------------------------------------------------
    11. Special MC

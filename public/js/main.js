@@ -4,6 +4,7 @@ import { initHeroIntro } from "./hero-intro.js";
 import { initCounters } from "./counter.js";
 import { initPlayerModal } from "./player-modal.js";
 import { initPlayerSlider } from "./player-slider.js";
+import { initPlayerRoster } from "./player-roster.js";
 import { initLightbox } from "./lightbox.js";
 import { initEntryForm } from "./entry-form.js";
 import { initContactForm } from "./contact-form.js";
@@ -16,6 +17,7 @@ function init() {
   initCounters();
   initPlayerModal();
   initPlayerSlider();
+  initPlayerRoster();
   initLightbox();
   initEntryForm();
   initContactForm();

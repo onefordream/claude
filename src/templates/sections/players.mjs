@@ -29,6 +29,16 @@ function playerCard(p) {
     </li>`;
 }
 
+function rosterRow(p, i) {
+  const announced = p.status === "announced";
+  return `
+    <li class="roster-list__item${announced ? "" : " roster-list__item--pending"}">
+      <span class="roster-list__num">${String(i + 1).padStart(2, "0")}</span>
+      <span class="roster-list__name">${announced ? esc(p.name) : "発表をお待ちください"}</span>
+      ${announced && p.affiliation ? `<span class="roster-list__aff">${esc(p.affiliation)}</span>` : ""}
+    </li>`;
+}
+
 export function renderPlayers() {
   const announced = players.filter((p) => p.status === "announced").length;
 
@@ -38,9 +48,10 @@ export function renderPlayers() {
     <p class="eyebrow eyebrow--light reveal" data-reveal>PLAYERS</p>
     <h2 class="h2 h2--light reveal" data-reveal data-reveal-delay="1">出場プロ</h2>
     <p class="lead lead--light reveal" data-reveal data-reveal-delay="2">女子プロ${esc(playerCapacity)}名が集結。（発表済み ${announced}名）</p>
+    <button type="button" class="btn btn--ghost btn--sm reveal" data-reveal data-reveal-delay="3" data-roster-open>出場プロ一覧を見る</button>
   </div>
 
-  <div class="player-slider reveal" data-reveal data-reveal-delay="3">
+  <div class="player-slider reveal" data-reveal data-reveal-delay="4">
     <ul class="player-slider__track" data-player-track role="list">
       ${players.map((p) => playerCard(p)).join("")}
     </ul>
@@ -56,6 +67,18 @@ export function renderPlayers() {
       <button type="submit" class="player-modal__close" aria-label="閉じる">&times;</button>
     </form>
     <div class="player-modal__content" data-player-modal-content></div>
+  </dialog>
+
+  <dialog class="player-modal" id="player-roster-modal" data-roster-modal aria-labelledby="roster-modal-title">
+    <form method="dialog" class="player-modal__close-form">
+      <button type="submit" class="player-modal__close" aria-label="閉じる">&times;</button>
+    </form>
+    <div class="player-modal__content roster-modal__content">
+      <p class="roster-modal__title" id="roster-modal-title">出場プロ一覧（全${esc(playerCapacity)}名）</p>
+      <ol class="roster-list">
+        ${players.map((p, i) => rosterRow(p, i)).join("")}
+      </ol>
+    </div>
   </dialog>
 
   <script type="application/json" id="players-data">${JSON.stringify(
