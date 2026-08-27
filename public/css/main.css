@@ -845,20 +845,14 @@ body.nav-open { overflow: hidden; }
 /* ---------------------------------------------------------------------------
    16. Sponsors
    --------------------------------------------------------------------------- */
-.sponsor-ranks { display: flex; flex-direction: column; gap: 2.4rem; margin-top: 2.4rem; }
-.sponsor-rank__label { font-family: var(--f-heading); font-weight: 900; letter-spacing: 0.12em; font-size: 0.85rem; color: var(--c-ink-soft); margin-bottom: 1rem; }
-.sponsor-rank--title .sponsor-rank__label { color: var(--c-gold-deep); font-size: 1rem; }
-.sponsor-rank__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+.sponsor-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 2.4rem; }
 .sponsor-tile { background: var(--c-white); border-radius: var(--radius-m); padding: 1.2rem; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; box-shadow: var(--shadow-soft); transition: transform var(--dur-s); }
 .sponsor-tile:hover { transform: translateY(-3px); }
 .sponsor-tile__logo { display: block; width: 100%; }
 .sponsor-tile__logo img { width: 100%; height: auto; object-fit: contain; }
 .sponsor-tile__name { font-size: 0.82rem; text-align: center; color: var(--c-ink-soft); }
-.sponsor-rank--title .sponsor-rank__grid { grid-template-columns: 1fr; }
-.sponsor-rank--title .sponsor-tile { padding: 2rem; }
-.sponsor-rank--platinum .sponsor-rank__grid { grid-template-columns: repeat(2, 1fr); }
-.sponsor-rank__empty {
-  padding: 2rem; text-align: center; border: 1.5px dashed var(--c-line-strong); border-radius: var(--radius-m);
+.sponsor-grid__empty {
+  margin-top: 2.4rem; padding: 2rem; text-align: center; border: 1.5px dashed var(--c-line-strong); border-radius: var(--radius-m);
   color: var(--c-ink-soft); font-family: var(--f-heading); font-weight: 700; letter-spacing: 0.05em;
 }
 
@@ -872,8 +866,8 @@ body.nav-open { overflow: hidden; }
 .sponsor-cta__desc { margin-top: 0.7rem; color: var(--c-ink-soft); max-width: 52ch; margin-inline: auto; }
 .sponsor-cta .btn { margin-top: 1.4rem; }
 
-@media (min-width: 640px) { .sponsor-rank__grid { grid-template-columns: repeat(3, 1fr); } }
-@media (min-width: 900px) { .sponsor-rank--platinum .sponsor-rank__grid, .sponsor-rank__grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 640px) { .sponsor-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px) { .sponsor-grid { grid-template-columns: repeat(4, 1fr); } }
 
 /* ---------------------------------------------------------------------------
    18. Masonry gallery + lightbox
