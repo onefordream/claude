@@ -728,7 +728,7 @@ body.nav-open { overflow: hidden; }
   width: 100%;
   font-family: var(--f-heading);
   font-weight: 900;
-  font-size: clamp(2.2rem, 6.5vw, 3.7rem);
+  font-size: clamp(2.8rem, 16vw, 9.5rem);
   white-space: nowrap;
   color: var(--c-gold);
   background: var(--g-gold);
@@ -745,6 +745,7 @@ body.nav-open { overflow: hidden; }
   border: 1px solid rgba(200,169,106,0.35);
   box-shadow: var(--shadow-card);
   color: rgba(255,255,255,0.92);
+  padding-inline: 1.1rem;
 }
 .prize-card--pro .prize-card__title { color: var(--c-white); }
 .prize-card--pro .prize-card__subtitle { color: rgba(255,255,255,0.65); }
@@ -776,7 +777,10 @@ body.nav-open { overflow: hidden; }
 .prize-card__gift-name { font-family: var(--f-heading); font-weight: 900; font-size: 1rem; color: var(--c-rose-deep); }
 .prize-card__gift-desc { color: var(--c-ink-soft); font-size: 0.85rem; margin-top: 0.6rem; }
 
-@media (min-width: 860px) { .prize-cards { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 860px) {
+  .prize-cards { grid-template-columns: repeat(2, 1fr); }
+  .prize-card--pro { grid-column: 1 / -1; }
+}
 
 /* ---------------------------------------------------------------------------
    13. Tournament info
