@@ -102,7 +102,7 @@ export function renderHeader(path = "/") {
 <header class="site-header" id="site-header" data-header>
   <div class="site-header__inner container">
     <a href="/" class="brand" aria-label="${esc(site.shortName)} トップへ">
-      <img class="brand__logo" src="/images/brand/logo.png" alt="${esc(site.shortName)}" width="528" height="551" decoding="async" />
+      <img class="brand__logo" src="/images/brand/logo.webp" alt="${esc(site.shortName)}" width="1285" height="1224" decoding="async" />
     </a>
 
     <nav class="nav-desktop" aria-label="メインナビゲーション">
