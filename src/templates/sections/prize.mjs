@@ -1,4 +1,4 @@
-import { proFormat, proPrizes, proWinnerAmountLabel, amateurFormat, amateurPrizes, participationGift } from "../../data/prizes.mjs";
+import { proFormat, proPrizes, proWinnerAmountLabel, amateurFormat, amateurPrizes } from "../../data/prizes.mjs";
 import { esc } from "../../lib/render.mjs";
 
 function prizeRow(p) {
@@ -38,16 +38,6 @@ export function renderPrize() {
         <p class="prize-card__voucher">入賞は現金ではなく金券</p>
         <ul class="prize-list prize-list--compact">${amateurPrizes.map(prizeRow).join("")}</ul>
         <p class="prize-card__note">${esc(amateurFormat.teamNote)}</p>
-      </div>
-
-      <div class="prize-card prize-card--gift reveal" data-reveal data-reveal-delay="4">
-        <p class="prize-card__title prize-card__title--gold">SPECIAL GIFT</p>
-        <p class="prize-card__subtitle">参加者特典</p>
-        <div class="prize-card__gift-media">
-          <img src="${esc(participationGift.photo || "/images/placeholders/gift.svg")}" alt="参加賞：${esc(participationGift.name)}（差し替え予定）" loading="lazy" decoding="async" width="320" height="320" />
-        </div>
-        <p class="prize-card__gift-name">${esc(participationGift.name)}</p>
-        <p class="prize-card__gift-desc">${esc(participationGift.description)}</p>
       </div>
     </div>
   </div>

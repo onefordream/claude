@@ -8,7 +8,7 @@ function quickCard(category, label, cap, btnClass) {
       <div class="entry-hero__card ${cap.full ? "capacity-badge--full" : ""}" data-capacity="${category}">
         <p class="entry-hero__card-label">${esc(label)}で参加</p>
         <p class="entry-hero__card-cap" data-capacity-text>${esc(text)}</p>
-        <button type="button" class="btn ${btnClass} btn--block btn--arrow" data-entry-quick="${category}">エントリーする${ARROW_ICON}</button>
+        <button type="button" class="btn ${btnClass} btn--sm btn--block btn--arrow" data-entry-quick="${category}">エントリーする<span class="btn__arrow">${ARROW_ICON}</span></button>
       </div>`;
 }
 
