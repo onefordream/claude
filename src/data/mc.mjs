@@ -12,7 +12,7 @@ export const specialMc = {
     "第2回 SHADOW LADIES PRO-AM TOURNAMENT を盛り上げるスペシャルMC。",
     "プロフィール詳細は準備中です。追って公開いたします。",
   ],
-  photo: null, // /images/mc/shadow-iwahashi.jpg などに差し替え
+  photo: "/images/mc/shadow-iwahashi.webp",
 };
 
 export default specialMc;

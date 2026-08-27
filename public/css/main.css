@@ -663,8 +663,8 @@ body.nav-open { overflow: hidden; }
    11. Special MC
    --------------------------------------------------------------------------- */
 .mc__card {
-  background: var(--c-rose-tint);
-  border: 1px solid rgba(217,77,120,0.22);
+  background: #EFEDEA;
+  border: 1px solid rgba(21,21,21,0.1);
   padding: 1.2rem;
   display: grid;
   gap: 1.2rem;
@@ -677,10 +677,10 @@ body.nav-open { overflow: hidden; }
   max-width: 130px;
   margin-inline: auto;
   box-shadow: var(--shadow-soft);
-  background: linear-gradient(135deg, #B93862, #93743E);
+  background: linear-gradient(135deg, #6b6b68, #9a9894);
   border: 1px solid rgba(255,255,255,0.5);
 }
-.mc__photo img { aspect-ratio: 4/5; object-fit: cover; }
+.mc__photo img { aspect-ratio: 1/1; object-fit: cover; }
 .mc__badge {
   position: absolute; left: 0.6rem; bottom: 0.6rem;
   background: var(--g-gold);
@@ -688,7 +688,7 @@ body.nav-open { overflow: hidden; }
   font-family: var(--f-heading); font-weight: 900; letter-spacing: 0.04em;
   padding: 0.25rem 0.5rem; font-size: 0.58rem;
 }
-.mc__copy .eyebrow { color: var(--c-rose-deep); font-size: 0.72rem; }
+.mc__copy .eyebrow { color: var(--c-ink-soft); font-size: 0.72rem; }
 .mc__copy .h3 { font-size: 1.2rem; margin-bottom: 0.4rem; }
 .mc__bio p { color: var(--c-ink-soft); font-size: 0.9rem; margin-top: 0.4rem; }
 

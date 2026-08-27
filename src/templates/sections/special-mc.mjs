@@ -7,7 +7,7 @@ export function renderSpecialMc() {
   <div class="container section--narrow">
     <div class="mc__card">
       <figure class="mc__photo reveal" data-reveal>
-        <img src="${esc(specialMc.photo || "/images/placeholders/mc.svg")}" alt="SPECIAL_MC_IMAGE — ${esc(specialMc.name)}" loading="lazy" decoding="async" width="640" height="800" />
+        <img src="${esc(specialMc.photo || "/images/placeholders/mc.svg")}" alt="SPECIAL_MC_IMAGE — ${esc(specialMc.name)}" loading="lazy" decoding="async" width="1254" height="1254" />
         <figcaption class="mc__badge">${esc(specialMc.roleJa)}</figcaption>
       </figure>
 
