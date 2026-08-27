@@ -693,8 +693,9 @@ body.nav-open { overflow: hidden; }
 .mc__bio p { color: var(--c-ink-soft); font-size: 0.9rem; margin-top: 0.4rem; }
 
 @media (min-width: 640px) {
-  .mc__card { grid-template-columns: 130px 1fr; gap: 1.6rem; }
-  .mc__photo { margin-inline: 0; }
+  .mc__card { grid-template-columns: 1fr 130px; gap: 1.6rem; }
+  .mc__photo { margin-inline: 0; order: 2; }
+  .mc__copy { order: 1; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -720,11 +721,18 @@ body.nav-open { overflow: hidden; }
 }
 .prize-card__badge--green { background: var(--c-green-tint); color: var(--c-green-deep); }
 
-.prize-card__hero { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1.2rem; }
-.prize-card__laurel { width: 46px; height: 24px; color: var(--c-gold); flex-shrink: 0; }
-.prize-card__hero-text { display: flex; flex-direction: column; }
-.prize-card__hero-label { font-size: 0.72rem; color: var(--c-ink-soft); }
-.prize-card__hero-amount { font-family: var(--f-display); font-weight: 700; font-size: 1.9rem; color: var(--c-gold-deep); line-height: 1.15; }
+.prize-card__hero { display: flex; flex-direction: column; margin-bottom: 1.2rem; width: 100%; }
+.prize-card__hero-label { font-size: 0.78rem; color: var(--c-ink-soft); }
+.prize-card__hero-amount {
+  display: block;
+  width: 100%;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.6rem, 8vw, 3.4rem);
+  color: var(--c-gold-deep);
+  line-height: 1.05;
+  margin-top: 0.2rem;
+}
 
 .prize-card__details { margin-top: auto; }
 .prize-card__details summary { font-family: var(--f-heading); font-weight: 700; font-size: 0.85rem; color: var(--c-green-deep); cursor: pointer; }

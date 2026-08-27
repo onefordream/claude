@@ -1,6 +1,5 @@
 import { proFormat, proPrizes, proWinnerAmountLabel, amateurFormat, amateurPrizes, participationGift } from "../../data/prizes.mjs";
 import { esc } from "../../lib/render.mjs";
-import { laurelIcon } from "../../lib/icons.mjs";
 
 function prizeRow(p) {
   return `
@@ -23,11 +22,8 @@ export function renderPrize() {
         <p class="prize-card__subtitle">賞金・賞品</p>
         <span class="prize-card__badge">${esc(proFormat.title)}（${esc(proFormat.competition)}）</span>
         <div class="prize-card__hero">
-          ${laurelIcon("prize-card__laurel")}
-          <span class="prize-card__hero-text">
-            <span class="prize-card__hero-label">優勝賞金</span>
-            <span class="prize-card__hero-amount">${esc(proWinnerAmountLabel)}</span>
-          </span>
+          <span class="prize-card__hero-label">優勝賞金</span>
+          <span class="prize-card__hero-amount">${esc(proWinnerAmountLabel)}</span>
         </div>
         <details class="prize-card__details">
           <summary>全順位の賞金を見る</summary>
