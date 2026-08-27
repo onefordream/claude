@@ -7,10 +7,9 @@ export const specialMc = {
   name: "シャドウ岩橋",
   role: "SPECIAL MC",
   roleJa: "スペシャルMC",
-  // 本人確認済みの紹介文が確定するまでは、大会側の役割紹介のみを記載する。
   bio: [
-    "第2回 SHADOW LADIES PRO-AM TOURNAMENT を盛り上げるスペシャルMC。",
-    "プロフィール詳細は準備中です。追って公開いたします。",
+    "お笑い芸人・YouTuberとして大人気！",
+    "明るいトークと圧倒的なキャラクターで、大会を最高に盛り上げます！",
   ],
   photo: "/images/mc/shadow-iwahashi.webp",
 };
