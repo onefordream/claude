@@ -3,8 +3,8 @@ import { esc } from "../../lib/render.mjs";
 
 export function renderSpecialMc() {
   return `
-<section class="section" id="mc">
-  <div class="container">
+<section class="section section--mc" id="mc">
+  <div class="container section--narrow">
     <div class="mc__card">
       <figure class="mc__photo reveal" data-reveal>
         <img src="${esc(specialMc.photo || "/images/placeholders/mc.svg")}" alt="SPECIAL_MC_IMAGE — ${esc(specialMc.name)}" loading="lazy" decoding="async" width="640" height="800" />
@@ -13,7 +13,7 @@ export function renderSpecialMc() {
 
       <div class="mc__copy">
         <p class="eyebrow reveal" data-reveal>SPECIAL MC</p>
-        <h2 class="h2 reveal" data-reveal data-reveal-delay="1">${esc(specialMc.name)}</h2>
+        <h3 class="h3 reveal" data-reveal data-reveal-delay="1">${esc(specialMc.name)}</h3>
         <div class="mc__bio reveal" data-reveal data-reveal-delay="2">
           ${specialMc.bio.map((line) => `<p>${esc(line)}</p>`).join("")}
         </div>

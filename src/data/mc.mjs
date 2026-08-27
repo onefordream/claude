@@ -4,7 +4,7 @@
 // ============================================================================
 
 export const specialMc = {
-  name: "シャドウ イワシ",
+  name: "シャドウ岩橋",
   role: "SPECIAL MC",
   roleJa: "スペシャルMC",
   // 本人確認済みの紹介文が確定するまでは、大会側の役割紹介のみを記載する。
@@ -12,7 +12,7 @@ export const specialMc = {
     "第2回 SHADOW LADIES PRO-AM TOURNAMENT を盛り上げるスペシャルMC。",
     "プロフィール詳細は準備中です。追って公開いたします。",
   ],
-  photo: null, // /images/mc/shadow-iwashi.jpg などに差し替え
+  photo: null, // /images/mc/shadow-iwahashi.jpg などに差し替え
 };
 
 export default specialMc;
