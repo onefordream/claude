@@ -448,6 +448,7 @@ body.nav-open { overflow: hidden; }
 .about__media { position: relative; max-width: 380px; margin-inline: auto; }
 .about__photo { overflow: hidden; box-shadow: var(--shadow-card); }
 .about__photo--main img { aspect-ratio: 4/5; object-fit: cover; }
+.about__photo--wide img { aspect-ratio: 3/2; object-position: center 35%; }
 .about__photo--small {
   width: 40%;
   position: absolute;

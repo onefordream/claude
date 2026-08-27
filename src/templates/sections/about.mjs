@@ -21,8 +21,8 @@ export function renderAbout() {
     </div>
 
     <div class="about__media" data-reveal data-reveal-delay="2" data-parallax data-parallax-speed="0.05">
-      <figure class="about__photo about__photo--main">
-        <img src="/images/placeholders/about-1.svg" alt="HERO_IMAGE — 女子プロとアマチュアがラウンドする様子（差し替え予定）" loading="lazy" decoding="async" width="560" height="700" />
+      <figure class="about__photo about__photo--main about__photo--wide">
+        <img src="/images/about/about-1.jpg" alt="第1回大会に参加した女子プロ・アマチュア・スタッフの集合写真" loading="lazy" decoding="async" width="1567" height="1045" />
       </figure>
       <figure class="about__photo about__photo--small">
         <img src="/images/placeholders/about-2.svg" alt="PRO_PLAYER_IMAGE（差し替え予定）" loading="lazy" decoding="async" width="360" height="360" />
