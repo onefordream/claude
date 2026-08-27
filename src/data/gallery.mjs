@@ -6,15 +6,15 @@
 //   （大会前は空配列のままでOK。自動的に「公開予定」表示になります）
 // ============================================================================
 
-/** @typedef {{ id: string, src: string, alt: string, size?: "large"|"normal" }} GalleryImage */
+/** @typedef {{ id: string, src: string, alt: string, size?: "large"|"normal", width: number, height: number }} GalleryImage */
 
 /** @type {GalleryImage[]} */
 export const firstTournamentGallery = [
-  { id: "1st-01", src: "/images/placeholders/first-tournament-1.svg", alt: "第1回大会の様子", size: "large" },
-  { id: "1st-02", src: "/images/placeholders/first-tournament-2.svg", alt: "第1回大会の様子" },
-  { id: "1st-03", src: "/images/placeholders/first-tournament-3.svg", alt: "第1回大会の様子" },
-  { id: "1st-04", src: "/images/placeholders/first-tournament-4.svg", alt: "第1回大会の様子" },
-  { id: "1st-05", src: "/images/placeholders/first-tournament-5.svg", alt: "第1回大会の様子" },
+  { id: "1st-01", src: "/images/first-tournament/first-tournament-1.jpg", alt: "参加者・スタッフの集合写真", size: "large", width: 1567, height: 1045 },
+  { id: "1st-02", src: "/images/first-tournament/first-tournament-2.jpg", alt: "優勝チームの表彰式", width: 1567, height: 1045 },
+  { id: "1st-03", src: "/images/first-tournament/first-tournament-3.jpg", alt: "コース脇での記念撮影", width: 1500, height: 2000 },
+  { id: "1st-04", src: "/images/placeholders/first-tournament-4.svg", alt: "第1回大会の様子", width: 600, height: 450 },
+  { id: "1st-05", src: "/images/placeholders/first-tournament-5.svg", alt: "第1回大会の様子", width: 600, height: 450 },
 ];
 
 /** @type {GalleryImage[]} */
