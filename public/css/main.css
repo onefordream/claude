@@ -445,7 +445,7 @@ body.nav-open { overflow: hidden; }
    --------------------------------------------------------------------------- */
 .about__grid { display: grid; gap: 3rem; align-items: center; }
 .about__copy .btn { margin-top: 1.8rem; }
-.about__media { position: relative; max-width: 100%; }
+.about__media { position: relative; max-width: 380px; margin-inline: auto; }
 .about__photo { overflow: hidden; box-shadow: var(--shadow-card); }
 .about__photo--main img { aspect-ratio: 4/5; object-fit: cover; }
 .about__photo--small {
@@ -471,7 +471,7 @@ body.nav-open { overflow: hidden; }
 }
 
 @media (min-width: 900px) {
-  .about__grid { grid-template-columns: 1fr 1fr; gap: 4.5rem; }
+  .about__grid { grid-template-columns: 1.2fr 1fr; gap: 4.5rem; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -569,7 +569,7 @@ body.nav-open { overflow: hidden; }
 .player-card {
   position: relative;
   flex: 0 0 auto;
-  width: min(66vw, 240px);
+  width: min(52vw, 190px);
   scroll-snap-align: start;
   background: rgba(255,255,255,0.04);
   border: 1px solid rgba(255,255,255,0.14);
@@ -642,8 +642,8 @@ body.nav-open { overflow: hidden; }
 .player-modal__achievements li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 6px; height: 6px; border-radius: 50%; background: var(--c-gold); }
 .player-modal__sns { margin-top: 1.3rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--c-green-deep); }
 
-@media (min-width: 640px) { .player-card { width: 260px; } }
-@media (min-width: 960px) { .player-card { width: 264px; } .player-slider__track { gap: 1.5rem; } }
+@media (min-width: 640px) { .player-card { width: 200px; } }
+@media (min-width: 960px) { .player-card { width: 208px; } .player-slider__track { gap: 1.5rem; } }
 
 /* ---------------------------------------------------------------------------
    11. Special MC
@@ -659,6 +659,8 @@ body.nav-open { overflow: hidden; }
 .mc__photo {
   position: relative;
   overflow: hidden;
+  max-width: 220px;
+  margin-inline: auto;
   box-shadow: var(--shadow-card);
   background: linear-gradient(135deg, #B93862, #93743E);
   border: 1px solid rgba(255,255,255,0.5);
@@ -675,7 +677,8 @@ body.nav-open { overflow: hidden; }
 .mc__bio p { color: var(--c-ink-soft); margin-top: 0.8rem; }
 
 @media (min-width: 900px) {
-  .mc__card { grid-template-columns: 0.9fr 1.1fr; gap: 4rem; }
+  .mc__card { grid-template-columns: 0.6fr 1.4fr; gap: 3rem; }
+  .mc__photo { margin-inline: 0; }
 }
 
 /* ---------------------------------------------------------------------------
@@ -899,12 +902,12 @@ body.nav-open { overflow: hidden; }
    17. Organizer message
    --------------------------------------------------------------------------- */
 .organizer__grid { display: grid; gap: 2rem; align-items: center; }
-.organizer__photo { border-radius: var(--radius-l); overflow: hidden; max-width: 320px; box-shadow: var(--shadow-soft); }
+.organizer__photo { border-radius: var(--radius-l); overflow: hidden; max-width: 220px; box-shadow: var(--shadow-soft); }
 .organizer__photo img { aspect-ratio: 1/1; object-fit: cover; }
 .organizer__body p { color: var(--c-ink-soft); margin-top: 0.7rem; }
 .organizer__sign { margin-top: 1.4rem; font-family: var(--f-heading); font-weight: 700; }
 
-@media (min-width: 760px) { .organizer__grid { grid-template-columns: 280px 1fr; gap: 3.5rem; } }
+@media (min-width: 760px) { .organizer__grid { grid-template-columns: 220px 1fr; gap: 3rem; } }
 
 /* ---------------------------------------------------------------------------
    18. Masonry gallery + lightbox
@@ -919,7 +922,7 @@ body.nav-open { overflow: hidden; }
 .first-stats__item dd { font-family: var(--f-heading); font-weight: 900; font-size: 1.15rem; margin-top: 0.3rem; }
 
 .masonry {
-  columns: 2; column-gap: 0.9rem;
+  columns: 3; column-gap: 0.7rem;
 }
 .masonry__item { break-inside: avoid; margin-bottom: 0.9rem; border-radius: var(--radius-m); overflow: hidden; box-shadow: var(--shadow-soft); }
 .masonry__item--large { }
@@ -951,7 +954,7 @@ body.nav-open { overflow: hidden; }
 .lightbox__prev { left: 1.2rem; top: 50%; transform: translateY(-50%); }
 .lightbox__next { right: 1.2rem; top: 50%; transform: translateY(-50%); }
 
-@media (min-width: 640px) { .masonry { columns: 3; } }
+@media (min-width: 640px) { .masonry { columns: 4; } }
 
 /* ---------------------------------------------------------------------------
    19. FAQ
@@ -973,10 +976,13 @@ body.nav-open { overflow: hidden; }
 .access__facts dt { font-family: var(--f-heading); font-weight: 700; min-width: 3.4rem; color: var(--c-ink-soft); }
 .access__map-pending { color: var(--c-ink-soft); font-size: 0.9rem; }
 .access__note { margin-top: 1.2rem; font-size: 0.82rem; color: var(--c-ink-soft); }
-.access__photo { border-radius: var(--radius-l); overflow: hidden; box-shadow: var(--shadow-soft); }
+.access__photo { max-width: 360px; margin-inline: auto; border-radius: var(--radius-l); overflow: hidden; box-shadow: var(--shadow-soft); }
 .access__photo img { aspect-ratio: 4/3; object-fit: cover; }
 
-@media (min-width: 860px) { .access__grid { grid-template-columns: 1fr 1fr; gap: 3.5rem; } }
+@media (min-width: 860px) {
+  .access__grid { grid-template-columns: 1.3fr 1fr; gap: 3rem; }
+  .access__photo { margin-inline: 0; }
+}
 
 /* ---------------------------------------------------------------------------
    21. Contact
