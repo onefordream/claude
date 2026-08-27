@@ -444,17 +444,6 @@ body.nav-open { overflow: hidden; }
    8. About
    --------------------------------------------------------------------------- */
 .about__grid { display: grid; gap: 3rem; align-items: center; }
-.about__pillars { display: flex; flex-direction: column; gap: 0.9rem; margin-top: 1.6rem; }
-.about__pillars li {
-  display: flex; align-items: center; gap: 0.9rem;
-  font-family: var(--f-heading); font-weight: 700; font-size: 1.02rem;
-}
-.about__pillar-num {
-  font-family: var(--f-display);
-  font-size: 1.3rem;
-  color: var(--c-rose-deep);
-  width: 2.4rem;
-}
 .about__copy .btn { margin-top: 1.8rem; }
 .about__media { position: relative; max-width: 100%; }
 .about__photo { overflow: hidden; box-shadow: var(--shadow-card); }

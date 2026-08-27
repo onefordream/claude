@@ -17,12 +17,7 @@ export function renderAbout() {
         初心者から上級者まで、ゴルフ経験を問わずご参加いただけます。
         「本格的な大会」と「特別な一日」——その両方を叶える舞台です。
       </p>
-      <ul class="about__pillars reveal" data-reveal data-reveal-delay="4">
-        <li><span class="about__pillar-num">01</span>女子プロとの交流</li>
-        <li><span class="about__pillar-num">02</span>本格プロアマ競技</li>
-        <li><span class="about__pillar-num">03</span>特別なエンターテインメント</li>
-      </ul>
-      <a href="#info" class="btn btn--ghost reveal" data-reveal data-reveal-delay="5">詳しく見る</a>
+      <a href="#info" class="btn btn--ghost reveal" data-reveal data-reveal-delay="4">詳しく見る</a>
     </div>
 
     <div class="about__media" data-reveal data-reveal-delay="2" data-parallax data-parallax-speed="0.05">
