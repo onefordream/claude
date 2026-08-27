@@ -726,13 +726,33 @@ body.nav-open { overflow: hidden; }
 .prize-card__hero-amount {
   display: block;
   width: 100%;
-  font-family: var(--f-display);
-  font-weight: 700;
-  font-size: clamp(2.6rem, 8vw, 3.4rem);
-  color: var(--c-gold-deep);
-  line-height: 1.05;
-  margin-top: 0.2rem;
+  font-family: var(--f-heading);
+  font-weight: 900;
+  font-size: clamp(2.2rem, 6.5vw, 3.7rem);
+  white-space: nowrap;
+  color: var(--c-gold);
+  background: var(--g-gold);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-top: 0.3rem;
+  letter-spacing: -0.01em;
 }
+
+.prize-card--pro {
+  background: var(--g-green);
+  border: 1px solid rgba(200,169,106,0.35);
+  box-shadow: var(--shadow-card);
+  color: rgba(255,255,255,0.92);
+}
+.prize-card--pro .prize-card__title { color: var(--c-white); }
+.prize-card--pro .prize-card__subtitle { color: rgba(255,255,255,0.65); }
+.prize-card--pro .prize-card__hero-label { color: var(--c-gold-light); }
+.prize-card--pro .prize-card__details summary { color: var(--c-gold-light); }
+.prize-card--pro .prize-row { border-bottom-color: rgba(255,255,255,0.16); }
+.prize-card--pro .prize-row__rank { color: rgba(255,255,255,0.65); }
+.prize-card--pro .prize-row__amount { color: var(--c-white); }
 
 .prize-card__details { margin-top: auto; }
 .prize-card__details summary { font-family: var(--f-heading); font-weight: 700; font-size: 0.85rem; color: var(--c-green-deep); cursor: pointer; }
