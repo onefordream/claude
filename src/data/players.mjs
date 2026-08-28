@@ -76,8 +76,16 @@ export const players = [
     nameRomaji: "Kanematsu Ai",
     photo: "/images/players/kanematsu-ai.webp",
   },
+  {
+    id: "player-05",
+    status: "announced",
+    name: "新田紗弓",
+    nameKana: "にった さゆみ",
+    nameRomaji: "Nitta Sayumi",
+    photo: "/images/players/nitta-sayumi.webp",
+  },
 
-  ...Array.from({ length: 8 }, (_, i) => ({
+  ...Array.from({ length: 7 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
     status: "comingSoon",
   })),
