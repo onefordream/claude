@@ -6,6 +6,8 @@
 // ・GET  /news/            NEWS一覧ページ
 // ・GET  /admin/entries    エントリー一覧（Basic認証で保護。ADMIN_USER / ADMIN_PASSWORD が必要）
 // ・GET  /admin/entries.csv  エントリー一覧CSVダウンロード（同上）
+// ・GET  /admin/contacts   お問い合わせ一覧（同上）
+// ・POST /admin/broadcast  選択した参加者への案内メール一斉送信（同上）
 // ・GET  /api/capacity     プロ／アマチュアの残り枠を返す
 // ・POST /api/entry        エントリー登録（定員超過で自動キャンセル待ち）
 // ・POST /api/contact      お問い合わせ登録
@@ -28,8 +30,9 @@ import { renderRules } from "./src/templates/pages/rules.mjs";
 import { renderNews } from "./src/templates/pages/news.mjs";
 import { renderNotFound } from "./src/templates/pages/not-found.mjs";
 import { renderAdminEntries, renderEntriesCsv } from "./src/templates/pages/admin-entries.mjs";
-import { getCapacityStatus, submitEntry, submitContact, readEntries } from "./src/lib/store.mjs";
-import { sendAutoReply } from "./src/lib/mail-hook.mjs";
+import { renderAdminContacts } from "./src/templates/pages/admin-contacts.mjs";
+import { getCapacityStatus, submitEntry, submitContact, readEntries, readContacts } from "./src/lib/store.mjs";
+import { sendAutoReply, sendBroadcast } from "./src/lib/mail-hook.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -292,6 +295,31 @@ async function handleStatic(req, res, pathname) {
   }
 }
 
+async function handleAdminBroadcast(req, res) {
+  if (!requireAdminAuth(req, res)) return;
+
+  const raw = await readBody(req);
+  const params = new URLSearchParams(raw);
+  const ids = params.getAll("ids");
+  const subject = clean(params.get("subject") || "", 200);
+  const body = clean(params.get("body") || "", 5000);
+
+  if (!subject || !body || ids.length === 0) {
+    res.writeHead(303, { Location: "/admin/entries?sent=0&failed=0" });
+    return res.end();
+  }
+
+  const entries = readEntries();
+  const recipients = entries.filter((e) => ids.includes(e.id)).map((e) => ({ email: e.email, name: e.name }));
+
+  const result = await sendBroadcast({ recipients, subject, bodyText: body });
+
+  const qs = new URLSearchParams({ sent: String(result.sent), failed: String(result.failed) });
+  if (result.reason) qs.set("reason", result.reason);
+  res.writeHead(303, { Location: `/admin/entries?${qs.toString()}` });
+  return res.end();
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
@@ -299,6 +327,10 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname.startsWith("/api/")) {
       return await handleApi(req, res, pathname);
+    }
+
+    if (pathname === "/admin/broadcast" && req.method === "POST") {
+      return await handleAdminBroadcast(req, res);
     }
 
     if (req.method !== "GET" && req.method !== "HEAD") {
@@ -322,7 +354,7 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === "/admin" || pathname === "/admin/" || pathname === "/admin/entries") {
       if (!requireAdminAuth(req, res)) return;
-      const html = renderAdminEntries({ entries: readEntries(), capacity: getCapacityStatus() });
+      const html = renderAdminEntries({ entries: readEntries(), capacity: getCapacityStatus(), query: url.searchParams });
       return sendHtml(res, 200, html);
     }
 
@@ -332,6 +364,12 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, Buffer.from(csv, "utf8"), "text/csv; charset=utf-8", "no-store", {
         "Content-Disposition": 'attachment; filename="entries.csv"',
       });
+    }
+
+    if (pathname === "/admin/contacts") {
+      if (!requireAdminAuth(req, res)) return;
+      const html = renderAdminContacts({ contacts: readContacts() });
+      return sendHtml(res, 200, html);
     }
 
     return await handleStatic(req, res, pathname);

@@ -112,3 +112,33 @@ export async function sendAutoReply({ to, kind, payload }) {
 
   return { applicant, admin };
 }
+
+/**
+ * 参加者への一斉・個別案内メール送信
+ * @param {{recipients:{email:string, name:string}[], subject:string, bodyText:string}} params
+ */
+export async function sendBroadcast({ recipients, subject, bodyText }) {
+  if (!process.env.RESEND_API_KEY) return { sent: 0, failed: 0, total: recipients.length, reason: "not-configured" };
+
+  const bodyHtml = esc(bodyText).replace(/\n/g, "<br />");
+  const CHUNK_SIZE = 10;
+  const results = [];
+
+  for (let i = 0; i < recipients.length; i += CHUNK_SIZE) {
+    const chunk = recipients.slice(i, i + CHUNK_SIZE);
+    const chunkResults = await Promise.all(
+      chunk.map((r) =>
+        send({
+          to: r.email,
+          subject,
+          html: `<p>${esc(r.name)} 様</p><p>${bodyHtml}</p>`,
+          replyTo: ADMIN_EMAIL,
+        }).then((res) => ({ email: r.email, ...res }))
+      )
+    );
+    results.push(...chunkResults);
+  }
+
+  const sent = results.filter((r) => r.sent).length;
+  return { sent, failed: results.length - sent, total: recipients.length, results };
+}

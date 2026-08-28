@@ -103,6 +103,10 @@ export function submitEntry(input) {
 
 // --- Contacts ------------------------------------------------------------
 
+export function readContacts() {
+  return readJson(CONTACTS_FILE, []);
+}
+
 export function submitContact(input) {
   const contacts = readJson(CONTACTS_FILE, []);
   const record = {
