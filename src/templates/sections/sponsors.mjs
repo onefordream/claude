@@ -13,8 +13,23 @@ function sponsorTile(sponsor) {
     : `<li class="sponsor-tile"><span class="sponsor-tile__static">${inner}</span></li>`;
 }
 
+function mainSponsorBlock(sponsor) {
+  const inner = `
+    <span class="sponsor-main__badge">MAIN SPONSOR</span>
+    <span class="sponsor-main__logo">
+      <img src="${esc(sponsor.logo || "/images/placeholders/sponsor-logo.svg")}" alt="MAIN_SPONSOR_LOGO — ${esc(sponsor.name)}" loading="lazy" decoding="async" width="400" height="200" />
+    </span>
+    <span class="sponsor-main__name">${esc(sponsor.name)}</span>`;
+
+  return sponsor.url
+    ? `<a class="sponsor-main reveal" data-reveal href="${esc(sponsor.url)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
+    : `<div class="sponsor-main reveal" data-reveal>${inner}</div>`;
+}
+
 export function renderSponsors() {
-  const hasSponsors = sponsors.length > 0;
+  const mainSponsor = sponsors.find((s) => s.isMain);
+  const otherSponsors = sponsors.filter((s) => !s.isMain);
+  const hasOtherSponsors = otherSponsors.length > 0;
 
   return `
 <section class="section section--alt" id="sponsors">
@@ -22,10 +37,14 @@ export function renderSponsors() {
     <p class="eyebrow reveal" data-reveal>SPONSORS</p>
     <h2 class="h2 reveal" data-reveal data-reveal-delay="1">スポンサー企業</h2>
 
+    ${mainSponsor ? mainSponsorBlock(mainSponsor) : ""}
+
     ${
-      hasSponsors
-        ? `<ul class="sponsor-grid reveal" data-reveal data-reveal-delay="2">${sponsors.map(sponsorTile).join("")}</ul>`
-        : `<p class="sponsor-grid__empty reveal" data-reveal data-reveal-delay="2">募集中</p>`
+      hasOtherSponsors
+        ? `<ul class="sponsor-grid reveal" data-reveal data-reveal-delay="2">${otherSponsors.map(sponsorTile).join("")}</ul>`
+        : !mainSponsor
+          ? `<p class="sponsor-grid__empty reveal" data-reveal data-reveal-delay="2">募集中</p>`
+          : ""
     }
 
     <div class="sponsor-cta reveal" data-reveal>
