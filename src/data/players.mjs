@@ -52,8 +52,16 @@ export const players = [
     nameRomaji: "Tamura Yuri",
     photo: "/images/players/tamura-yuri.webp",
   },
+  {
+    id: "player-02",
+    status: "announced",
+    name: "田中佑季",
+    nameKana: "たなか ゆき",
+    nameRomaji: "Tanaka Yuki",
+    photo: "/images/players/tanaka-yuki.png",
+  },
 
-  ...Array.from({ length: 11 }, (_, i) => ({
+  ...Array.from({ length: 10 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
     status: "comingSoon",
   })),
