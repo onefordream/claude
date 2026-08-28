@@ -42,7 +42,15 @@ export const players = [
   //   photo: "/images/players/player-01.jpg",
   // },
 
-  ...Array.from({ length: 12 }, (_, i) => ({
+  {
+    id: "player-01",
+    status: "announced",
+    name: "田村祐里",
+    nameKana: "たむら ゆり",
+    photo: "/images/players/tamura-yuri.webp",
+  },
+
+  ...Array.from({ length: 11 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
     status: "comingSoon",
   })),
