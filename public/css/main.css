@@ -462,20 +462,6 @@ body.nav-open { overflow: hidden; }
   -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 22%, black 100%);
   mask-image: linear-gradient(to bottom, transparent 0%, black 22%, black 100%);
 }
-.about__photo--accent {
-  width: 30%;
-  position: absolute;
-  left: -4%;
-  top: 12%;
-  border: 4px solid var(--c-ivory);
-  display: none;
-}
-.about__photo--accent img { aspect-ratio: 1/1; object-fit: cover; }
-
-@media (min-width: 640px) {
-  .about__photo--accent { display: block; }
-}
-
 @media (min-width: 900px) {
   .about__grid { grid-template-columns: 1.2fr 1fr; gap: 4.5rem; }
 }

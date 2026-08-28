@@ -25,9 +25,6 @@ export function renderAbout() {
       <figure class="about__photo about__photo--main about__photo--wide">
         <img src="/images/about/about-1.jpg" alt="第1回大会に参加した女子プロ・アマチュア・スタッフの集合写真" loading="lazy" decoding="async" width="1567" height="1045" />
       </figure>
-      <figure class="about__photo about__photo--accent">
-        <img src="/images/placeholders/about-3.svg" alt="VENUE_IMAGE（差し替え予定）" loading="lazy" decoding="async" width="280" height="280" />
-      </figure>
     </div>
   </div>
 </section>`;
