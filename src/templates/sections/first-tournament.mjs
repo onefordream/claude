@@ -26,7 +26,7 @@ export function renderFirstTournament() {
       ${firstTournamentGallery
         .map(
           (img, i) => `
-      <li class="masonry__item ${img.size === "large" ? "masonry__item--large" : ""}">
+      <li class="masonry__item">
         <button type="button" class="masonry__trigger" data-lightbox-trigger data-lightbox-index="${i}">
           <img src="${esc(img.src)}" alt="${esc(img.alt)}" loading="lazy" decoding="async" width="${img.width}" height="${img.height}" />
         </button>
