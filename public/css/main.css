@@ -570,11 +570,11 @@ body.nav-open { overflow: hidden; }
 .player-card__trigger:hover .player-card__photo img { transform: scale(1.06); }
 .player-card__body { display: block; padding: 0.55rem 0.6rem 0.7rem; }
 .player-card__name { display: block; font-family: var(--f-heading); font-weight: 700; font-size: 0.74rem; color: var(--c-ink); }
-.player-card__affiliation { display: block; font-size: 0.6rem; color: var(--c-ink-soft); margin-top: 0.15rem; }
-.player-card__more {
-  display: inline-block; margin-top: 0.4rem; font-size: 0.6rem; letter-spacing: 0.06em;
-  color: var(--c-rose-deep); border-bottom: 1px solid rgba(185,56,98,0.35); padding-bottom: 1px;
+.player-card__romaji {
+  display: block; margin-top: 0.15rem; font-size: 0.58rem; letter-spacing: 0.05em;
+  color: var(--c-ink-soft); text-transform: uppercase;
 }
+.player-card__affiliation { display: block; font-size: 0.6rem; color: var(--c-ink-soft); margin-top: 0.15rem; }
 
 .player-card--soon { background: rgba(217,77,120,0.05); }
 .player-card__photo--soon {

@@ -21,8 +21,8 @@ function playerCard(p) {
         </span>
         <span class="player-card__body">
           <span class="player-card__name">${esc(p.name)}</span>
+          ${p.nameRomaji ? `<span class="player-card__romaji">${esc(p.nameRomaji)}</span>` : ""}
           ${p.affiliation ? `<span class="player-card__affiliation">${esc(p.affiliation)}</span>` : ""}
-          <span class="player-card__more">詳細を見る</span>
         </span>
       </button>
       ${p.instagram ? `<a href="${esc(p.instagram)}" target="_blank" rel="noopener noreferrer" class="player-card__insta" aria-label="${esc(p.name)}のInstagram">${INSTAGRAM_ICON}</a>` : ""}

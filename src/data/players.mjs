@@ -19,6 +19,7 @@
  *   status: "announced" | "comingSoon",
  *   name: string,
  *   nameKana?: string,
+ *   nameRomaji?: string,
  *   affiliation?: string,
  *   instagram?: string,
  *   profile?: string,
@@ -35,6 +36,7 @@ export const players = [
   //   status: "announced",
   //   name: "〇〇 〇〇",
   //   nameKana: "〇〇 〇〇",
+  //   nameRomaji: "Xx Xx",
   //   affiliation: "〇〇ゴルフ倶楽部",
   //   instagram: "https://www.instagram.com/xxxxx/",
   //   profile: "プロフィール文章をここに入力します。",
@@ -47,6 +49,7 @@ export const players = [
     status: "announced",
     name: "田村祐里",
     nameKana: "たむら ゆり",
+    nameRomaji: "Tamura Yuri",
     photo: "/images/players/tamura-yuri.webp",
   },
 
