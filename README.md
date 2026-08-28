@@ -84,7 +84,9 @@ node scripts/gen-images.mjs         # favicon / OGP画像（PNG）
 
 ### 自動返信メールについて
 
-`src/lib/mail-hook.mjs` に送信フックの雛形を用意していますが、メール送信サービスの資格情報が未設定のため実送信は行っていません。SMTPやメールAPIの契約後、この関数を実装してください。
+`src/lib/mail-hook.mjs` で [Resend](https://resend.com) のAPIを使って送信しています。環境変数 `RESEND_API_KEY` を設定すると、①応募者本人への自動返信、②管理者（`ADMIN_NOTIFY_EMAIL`、未設定時は `onefordream72@gmail.com`）への新規エントリー・お問い合わせ通知、の両方が有効になります。`RESEND_API_KEY` 未設定時は何も送信せず静かにno-opします。
+
+送信元アドレスは環境変数 `RESEND_FROM_EMAIL` で変更可能です（未設定時は Resend のテスト用アドレス `onboarding@resend.dev` を使用）。独自ドメインのメールアドレスから送りたい場合は、Resend側でドメインを検証してから設定してください。
 
 ### 定員・締切の変更
 
@@ -95,7 +97,6 @@ node scripts/gen-images.mjs         # favicon / OGP画像（PNG）
 - [ ] `src/data/site.mjs` の `venue.address` / `venue.mapUrl` を正式なアクセス情報に更新
 - [ ] `src/data/site.mjs` の `seo.siteUrl` を実際の公開ドメインに変更（`public/robots.txt` / `public/sitemap.xml` も合わせて更新）
 - [ ] 出場プロ・スポンサー・写真素材を本番データに差し替え
-- [ ] `src/lib/mail-hook.mjs` に自動返信メール送信を実装
 - [ ] `data/store/` を定期バックアップする運用を用意（もしくはDBへの移行を検討）
 - [ ] HTTPS配信（リバースプロキシ等）の設定
 
