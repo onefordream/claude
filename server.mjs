@@ -282,7 +282,9 @@ async function handleStatic(req, res, pathname) {
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME[ext] || "application/octet-stream";
     const isHashed = /\.[a-f0-9]{8}\./.test(filePath);
-    const cacheControl = ext === ".html" ? "no-cache" : isHashed ? "public, max-age=31536000, immutable" : "public, max-age=3600";
+    // ハッシュ付きファイル名（例: logo.a1b2c3d4.webp）以外はキャッシュさせない。
+    // 差し替え後の画像・CSS・JSがブラウザに古いまま残る事故を避けるため。
+    const cacheControl = isHashed ? "public, max-age=31536000, immutable" : "no-cache";
     const buffer = fs.readFileSync(filePath);
     return sendCompressible(req, res, 200, buffer, contentType, cacheControl);
   } catch {
