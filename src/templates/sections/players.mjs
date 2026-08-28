@@ -1,6 +1,5 @@
 import { players, playerCapacity } from "../../data/players.mjs";
 import { esc } from "../../lib/render.mjs";
-import { INSTAGRAM_ICON } from "../../lib/icons.mjs";
 
 function playerCard(p) {
   if (p.status === "comingSoon") {
@@ -25,7 +24,6 @@ function playerCard(p) {
           ${p.affiliation ? `<span class="player-card__affiliation">${esc(p.affiliation)}</span>` : ""}
         </span>
       </button>
-      ${p.instagram ? `<a href="${esc(p.instagram)}" target="_blank" rel="noopener noreferrer" class="player-card__insta" aria-label="${esc(p.name)}のInstagram">${INSTAGRAM_ICON}</a>` : ""}
     </li>`;
 }
 

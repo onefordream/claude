@@ -560,15 +560,6 @@ body.nav-open { overflow: hidden; }
   border: 1px solid rgba(185,56,98,0.12);
   box-shadow: var(--shadow-soft);
 }
-.player-card__insta {
-  position: absolute; top: 0.4rem; right: 0.4rem; z-index: 2;
-  width: 22px; height: 22px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,0.85); backdrop-filter: blur(4px);
-  color: var(--c-rose-deep); transition: background var(--dur-s), color var(--dur-s);
-}
-.player-card__insta:hover { background: var(--c-rose); color: var(--c-white); }
-.player-card__insta svg { width: 11px; height: 11px; }
 .player-card__trigger { display: block; width: 100%; text-align: left; }
 .player-card__photo { display: block; aspect-ratio: 1/1; overflow: hidden; background: var(--c-rose-tint); }
 .player-card__photo img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease-out); }
@@ -627,6 +618,8 @@ body.nav-open { overflow: hidden; }
 .player-modal__achievements li { position: relative; padding-left: 1.1rem; font-size: 0.92rem; margin-top: 0.4rem; }
 .player-modal__achievements li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 6px; height: 6px; border-radius: 50%; background: var(--c-gold); }
 .player-modal__sns { margin-top: 1.3rem; display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--c-green-deep); }
+.player-modal__sns-icon { display: flex; flex-shrink: 0; }
+.player-modal__sns-icon svg { width: 16px; height: 16px; }
 
 .roster-modal__content { padding: 1.6rem 1.8rem 1.8rem; }
 .roster-modal__title { font-family: var(--f-heading); font-weight: 900; font-size: 1.15rem; }

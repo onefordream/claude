@@ -36,6 +36,8 @@ function esc(str) {
   return div.innerHTML;
 }
 
+const INSTAGRAM_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></svg>`;
+
 function renderPlayerDetail(p) {
   return `
     <img class="player-modal__photo" src="${esc(p.photo)}" alt="PRO_PLAYER_IMAGE — ${esc(p.name)}" loading="lazy" />
@@ -51,7 +53,7 @@ function renderPlayerDetail(p) {
       }
       ${
         p.instagram
-          ? `<a class="player-modal__sns" href="${esc(p.instagram)}" target="_blank" rel="noopener noreferrer">Instagram を見る</a>`
+          ? `<a class="player-modal__sns" href="${esc(p.instagram)}" target="_blank" rel="noopener noreferrer"><span class="player-modal__sns-icon">${INSTAGRAM_ICON}</span>${esc(p.name)}のInstagram</a>`
           : ""
       }
     </div>`;

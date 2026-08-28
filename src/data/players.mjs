@@ -50,6 +50,7 @@ export const players = [
     name: "田村祐里",
     nameKana: "たむら ゆり",
     nameRomaji: "Tamura Yuri",
+    instagram: "https://www.instagram.com/yuriyuri9319?igsi=bmxzNTRod2Y0Ynl3",
     photo: "/images/players/tamura-yuri.webp",
   },
   {
@@ -58,6 +59,7 @@ export const players = [
     name: "田中佑季",
     nameKana: "たなか ゆき",
     nameRomaji: "Tanaka Yuki",
+    instagram: "https://www.instagram.com/yukkki__i?igsi=MWNrbzYyaWVmM202",
     photo: "/images/players/tanaka-yuki.png",
   },
   {
@@ -66,6 +68,7 @@ export const players = [
     name: "木村綾杏",
     nameKana: "きむら あやか",
     nameRomaji: "Kimura Ayaka",
+    instagram: "https://www.instagram.com/ayaka_orbitmakelab?igsi=cWJsY240djdmOGIw",
     photo: "/images/players/kimura-ayaka.webp",
   },
   {
@@ -74,6 +77,7 @@ export const players = [
     name: "兼松亜衣",
     nameKana: "かねまつ あい",
     nameRomaji: "Kanematsu Ai",
+    instagram: "https://www.instagram.com/kanematsuai?igsi=ZDRvcXZic3BtdHVh",
     photo: "/images/players/kanematsu-ai.webp",
   },
   {
@@ -82,6 +86,7 @@ export const players = [
     name: "新田紗弓",
     nameKana: "にった さゆみ",
     nameRomaji: "Nitta Sayumi",
+    instagram: "https://www.instagram.com/sayu_golf_?igsi=N202MjY4ZW02M2Ny",
     photo: "/images/players/nitta-sayumi.webp",
   },
 
