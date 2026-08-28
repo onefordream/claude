@@ -291,6 +291,11 @@ body.page-home .site-header:not(.is-scrolled)::before {
 
 .brand { display: flex; align-items: center; flex-shrink: 0; }
 .brand__logo { height: 56px; width: auto; }
+.brand__text {
+  display: none; margin-left: 0.6rem; font-family: var(--f-heading); font-weight: 700;
+  font-size: 0.68rem; letter-spacing: 0.04em; line-height: 1.35; color: var(--c-ink); white-space: nowrap;
+}
+@media (min-width: 560px) { .brand__text { display: block; } }
 .site-header__actions { flex-shrink: 0; }
 
 .nav-desktop { display: none; min-width: 0; }

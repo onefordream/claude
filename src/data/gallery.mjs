@@ -19,6 +19,7 @@ export const firstTournamentGallery = [
   { id: "1st-07", src: "/images/first-tournament/first-tournament-7.jpg", alt: "ティーグラウンドでの一コマ", width: 1567, height: 1045 },
   { id: "1st-08", src: "/images/first-tournament/first-tournament-8.jpg", alt: "コース内でプレーする参加者", width: 1567, height: 1045 },
   { id: "1st-09", src: "/images/first-tournament/first-tournament-9.jpg", alt: "参加者同士の記念撮影", width: 1567, height: 1045 },
+  { id: "1st-10", src: "/images/first-tournament/first-tournament-10.jpg", alt: "大会看板とコースの風景", width: 1500, height: 2000 },
 ];
 
 /** @type {GalleryImage[]} */

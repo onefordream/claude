@@ -103,6 +103,7 @@ export function renderHeader(path = "/") {
   <div class="site-header__inner container">
     <a href="/" class="brand" aria-label="${esc(site.shortName)} トップへ">
       <img class="brand__logo" src="/images/brand/logo.webp" alt="${esc(site.shortName)}" width="1285" height="1224" decoding="async" />
+      <span class="brand__text">SHADOW LADIES<br />PRO-AM TOURNAMENT</span>
     </a>
 
     <nav class="nav-desktop" aria-label="メインナビゲーション">
