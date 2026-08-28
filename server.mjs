@@ -4,6 +4,8 @@
 // ・GET  /                 トップページ（全セクションをSSRで描画）
 // ・GET  /rules/           競技規則ページ
 // ・GET  /news/            NEWS一覧ページ
+// ・GET  /admin/entries    エントリー一覧（Basic認証で保護。ADMIN_USER / ADMIN_PASSWORD が必要）
+// ・GET  /admin/entries.csv  エントリー一覧CSVダウンロード（同上）
 // ・GET  /api/capacity     プロ／アマチュアの残り枠を返す
 // ・POST /api/entry        エントリー登録（定員超過で自動キャンセル待ち）
 // ・POST /api/contact      お問い合わせ登録
@@ -18,13 +20,15 @@ import http from "node:http";
 import fs from "node:fs";
 import path from "node:path";
 import zlib from "node:zlib";
+import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 
 import { renderHome } from "./src/templates/pages/home.mjs";
 import { renderRules } from "./src/templates/pages/rules.mjs";
 import { renderNews } from "./src/templates/pages/news.mjs";
 import { renderNotFound } from "./src/templates/pages/not-found.mjs";
-import { getCapacityStatus, submitEntry, submitContact } from "./src/lib/store.mjs";
+import { renderAdminEntries, renderEntriesCsv } from "./src/templates/pages/admin-entries.mjs";
+import { getCapacityStatus, submitEntry, submitContact, readEntries } from "./src/lib/store.mjs";
 import { sendAutoReply } from "./src/lib/mail-hook.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -227,6 +231,39 @@ async function handleApi(req, res, pathname) {
   return sendJson(res, 404, { ok: false, error: "not-found" });
 }
 
+// --- 管理者認証（Basic認証） -------------------------------------------------
+function timingSafeStringEqual(a, b) {
+  const bufA = Buffer.from(String(a));
+  const bufB = Buffer.from(String(b));
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+function isAdminAuthorized(req) {
+  const user = process.env.ADMIN_USER;
+  const pass = process.env.ADMIN_PASSWORD;
+  if (!user || !pass) return false;
+
+  const header = req.headers.authorization || "";
+  if (!header.startsWith("Basic ")) return false;
+  const decoded = Buffer.from(header.slice(6), "base64").toString("utf8");
+  const sep = decoded.indexOf(":");
+  if (sep === -1) return false;
+  const [reqUser, reqPass] = [decoded.slice(0, sep), decoded.slice(sep + 1)];
+  return timingSafeStringEqual(reqUser, user) && timingSafeStringEqual(reqPass, pass);
+}
+
+function requireAdminAuth(req, res) {
+  if (isAdminAuthorized(req)) return true;
+  res.writeHead(401, {
+    "WWW-Authenticate": 'Basic realm="Admin", charset="UTF-8"',
+    "Content-Type": "text/plain; charset=utf-8",
+    ...SECURITY_HEADERS,
+  });
+  res.end("Authentication required");
+  return false;
+}
+
 function safeStaticPath(pathname) {
   const decoded = decodeURIComponent(pathname);
   const normalized = path.normalize(decoded).replace(/^([.][.][/\\])+/, "");
@@ -279,6 +316,20 @@ const server = http.createServer(async (req, res) => {
     if (pathname === "/news" || pathname === "/news/") {
       const html = renderNews();
       return sendCompressible(req, res, 200, Buffer.from(html, "utf8"), MIME[".html"], "no-cache");
+    }
+
+    if (pathname === "/admin" || pathname === "/admin/" || pathname === "/admin/entries") {
+      if (!requireAdminAuth(req, res)) return;
+      const html = renderAdminEntries({ entries: readEntries(), capacity: getCapacityStatus() });
+      return sendHtml(res, 200, html);
+    }
+
+    if (pathname === "/admin/entries.csv") {
+      if (!requireAdminAuth(req, res)) return;
+      const csv = renderEntriesCsv(readEntries());
+      return send(res, 200, Buffer.from(csv, "utf8"), "text/csv; charset=utf-8", "no-store", {
+        "Content-Disposition": 'attachment; filename="entries.csv"',
+      });
     }
 
     return await handleStatic(req, res, pathname);
