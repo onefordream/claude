@@ -106,7 +106,7 @@ export async function sendAutoReply({ to, kind, payload }) {
   const { subject, html } = applicantTemplate(payload);
 
   const [applicant, admin] = await Promise.all([
-    send({ to, subject, html }),
+    send({ to, subject, html, replyTo: ADMIN_EMAIL }),
     send({ to: ADMIN_EMAIL, subject: `[管理者通知] ${subject}`, html: adminBodyFn(payload), replyTo: payload.email }),
   ]);
 
