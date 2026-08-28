@@ -4,6 +4,7 @@
 
 import { site } from "../data/site.mjs";
 import { esc } from "../lib/render.mjs";
+import { LOCK_ICON } from "../lib/icons.mjs";
 
 const NAV_LINKS = [
   { href: "/#about", en: "ABOUT", ja: "大会について" },
@@ -158,6 +159,7 @@ export function renderFooter(path = "/") {
   </div>
   <div class="site-footer__bottom container">
     <p>&copy; ${year} ${esc(site.organizer.name)}</p>
+    <a href="/admin/entries" class="site-footer__admin" aria-label="管理者ページ">${LOCK_ICON}</a>
   </div>
 </footer>`;
 }

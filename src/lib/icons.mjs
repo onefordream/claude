@@ -8,6 +8,8 @@ export const PIN_ICON = `<svg viewBox="0 0 20 20" fill="none" xmlns="http://www.
 
 export const INSTAGRAM_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/></svg>`;
 
+export const LOCK_ICON = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.6"/></svg>`;
+
 function laurelBranch() {
   return [4, 9, 14, 19, 24]
     .map((y, i) => `<ellipse cx="${9 - i * 0.6}" cy="${y}" rx="3.2" ry="1.5" transform="rotate(${-40 + i * 8} ${9 - i * 0.6} ${y})" fill="currentColor"/>`)

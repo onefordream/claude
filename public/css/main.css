@@ -1033,7 +1033,17 @@ body.nav-open { overflow: hidden; }
 .site-footer__nav a { font-size: 0.88rem; color: rgba(255,255,255,0.75); }
 .site-footer__contact p:first-child { font-size: 0.8rem; color: rgba(255,255,255,0.55); }
 .site-footer__phone { font-family: var(--f-heading); font-weight: 900; font-size: 1.2rem; color: var(--c-rose); }
-.site-footer__bottom { border-top: 1px solid rgba(255,255,255,0.12); padding-block: 1.4rem; font-size: 0.78rem; color: rgba(255,255,255,0.5); }
+.site-footer__bottom {
+  border-top: 1px solid rgba(255,255,255,0.12); padding-block: 1.4rem; font-size: 0.78rem; color: rgba(255,255,255,0.5);
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+}
+.site-footer__admin {
+  display: flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; flex-shrink: 0;
+  color: rgba(255,255,255,0.22); transition: color var(--dur-s);
+}
+.site-footer__admin:hover, .site-footer__admin:focus-visible { color: rgba(255,255,255,0.6); }
+.site-footer__admin svg { width: 13px; height: 13px; }
 
 @media (min-width: 860px) { .site-footer__grid { grid-template-columns: 1.4fr 1.6fr 1fr; } }
 
