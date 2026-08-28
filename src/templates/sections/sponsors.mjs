@@ -15,11 +15,13 @@ function sponsorTile(sponsor) {
 
 function mainSponsorBlock(sponsor) {
   const inner = `
-    <span class="sponsor-main__badge">MAIN SPONSOR</span>
     <span class="sponsor-main__logo">
       <img src="${esc(sponsor.logo || "/images/placeholders/sponsor-logo.svg")}" alt="MAIN_SPONSOR_LOGO — ${esc(sponsor.name)}" loading="lazy" decoding="async" width="400" height="200" />
     </span>
-    <span class="sponsor-main__name">${esc(sponsor.name)}</span>`;
+    <span class="sponsor-main__info">
+      <span class="sponsor-main__badge">MAIN SPONSOR</span>
+      <span class="sponsor-main__name">${esc(sponsor.name)}</span>
+    </span>`;
 
   return sponsor.url
     ? `<a class="sponsor-main reveal" data-reveal href="${esc(sponsor.url)}" target="_blank" rel="noopener noreferrer">${inner}</a>`
