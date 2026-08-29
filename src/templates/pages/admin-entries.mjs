@@ -17,6 +17,13 @@ function renderFlash(query) {
   if (query.get("reason") === "not-configured") {
     return `<div class="flash flash--warn">メール送信が設定されていません（RESEND_API_KEY 未設定）。管理者にご確認ください。</div>`;
   }
+  if (query.has("deleted")) {
+    if (query.get("deleted") === "0") return `<div class="flash flash--warn">削除できませんでした（対象が見つかりません）。</div>`;
+    const promoted = query.get("promoted");
+    return promoted
+      ? `<div class="flash flash--ok">削除しました。キャンセル待ちから ${esc(promoted)} 様を繰り上げ当選とし、通知メールを送信しました。</div>`
+      : `<div class="flash flash--ok">削除しました。</div>`;
+  }
   if (!query.has("sent")) return "";
   const sent = Number(query.get("sent") || 0);
   const failed = Number(query.get("failed") || 0);
@@ -42,6 +49,12 @@ export function renderAdminEntries({ entries, capacity, query = new URLSearchPar
         <td>${esc(e.phone)}</td>
         <td>${esc(e.companion || "-")}</td>
         <td>${esc(formatDate(e.createdAt))}</td>
+        <td>
+          <form method="POST" action="/admin/entries/delete" onsubmit="return confirm('${esc(e.name)}さんのエントリーを削除しますか？')">
+            <input type="hidden" name="id" value="${esc(e.id)}" />
+            <button type="submit" class="delete-btn">削除</button>
+          </form>
+        </td>
       </tr>`
     )
     .join("");
@@ -79,7 +92,7 @@ export function renderAdminEntries({ entries, capacity, query = new URLSearchPar
       <thead>
         <tr>
           <th class="checkbox-col"><input type="checkbox" id="select-all" /></th>
-          <th>#</th><th>区分</th><th>状態</th><th>氏名</th><th>フリガナ</th><th>メール</th><th>電話</th><th>同伴者</th><th>受付日時</th>
+          <th>#</th><th>区分</th><th>状態</th><th>氏名</th><th>フリガナ</th><th>メール</th><th>電話</th><th>同伴者</th><th>受付日時</th><th>操作</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>

@@ -43,6 +43,11 @@ export const ADMIN_STYLES = `
   }
   .broadcast button:hover { background: #a12e54; }
   .checkbox-col { width: 2rem; }
+  .delete-btn {
+    background: none; border: 1px solid #ddd; border-radius: 6px; padding: 0.3rem 0.7rem;
+    font-size: 0.75rem; color: #a13a3a; cursor: pointer;
+  }
+  .delete-btn:hover { background: #f6e0e0; border-color: #a13a3a; }
 `;
 
 export function renderAdminNav(active) {

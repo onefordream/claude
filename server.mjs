@@ -8,6 +8,7 @@
 // ・GET  /admin/entries.csv  エントリー一覧CSVダウンロード（同上）
 // ・GET  /admin/contacts   お問い合わせ一覧（同上）
 // ・POST /admin/broadcast  選択した参加者への案内メール一斉送信（同上）
+// ・POST /admin/entries/delete  エントリー削除（キャンセル待ちがあれば自動繰り上げ。同上）
 // ・GET  /api/capacity     プロ／アマチュアの残り枠を返す
 // ・POST /api/entry        エントリー登録（定員超過で自動キャンセル待ち）
 // ・POST /api/contact      お問い合わせ登録
@@ -31,7 +32,7 @@ import { renderNews } from "./src/templates/pages/news.mjs";
 import { renderNotFound } from "./src/templates/pages/not-found.mjs";
 import { renderAdminEntries, renderEntriesCsv } from "./src/templates/pages/admin-entries.mjs";
 import { renderAdminContacts } from "./src/templates/pages/admin-contacts.mjs";
-import { getCapacityStatus, submitEntry, submitContact, readEntries, readContacts } from "./src/lib/store.mjs";
+import { getCapacityStatus, submitEntry, submitContact, readEntries, readContacts, deleteEntry } from "./src/lib/store.mjs";
 import { sendAutoReply, sendBroadcast } from "./src/lib/mail-hook.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -321,6 +322,24 @@ async function handleAdminBroadcast(req, res) {
   return res.end();
 }
 
+async function handleAdminDeleteEntry(req, res) {
+  if (!requireAdminAuth(req, res)) return;
+
+  const raw = await readBody(req);
+  const params = new URLSearchParams(raw);
+  const id = params.get("id") || "";
+
+  const result = deleteEntry(id);
+
+  const qs = new URLSearchParams({ deleted: result.ok ? "1" : "0" });
+  if (result.ok && result.promoted) {
+    qs.set("promoted", result.promoted.name);
+    sendAutoReply({ to: result.promoted.email, kind: "entry-promoted", payload: result.promoted }).catch(() => {});
+  }
+  res.writeHead(303, { Location: `/admin/entries?${qs.toString()}` });
+  return res.end();
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
@@ -332,6 +351,10 @@ const server = http.createServer(async (req, res) => {
 
     if (pathname === "/admin/broadcast" && req.method === "POST") {
       return await handleAdminBroadcast(req, res);
+    }
+
+    if (pathname === "/admin/entries/delete" && req.method === "POST") {
+      return await handleAdminDeleteEntry(req, res);
     }
 
     if (req.method !== "GET" && req.method !== "HEAD") {

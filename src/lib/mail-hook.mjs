@@ -72,6 +72,17 @@ const APPLICANT_TEMPLATES = {
       <p>${esc(site.nameJa)} へのお申し込みありがとうございます。</p>
       <p>大変申し訳ございませんが、現在定員に達しているためキャンセル待ちとしての受付となります。繰り上がりが発生した場合、改めてご連絡いたします。</p>`,
   }),
+  "entry-promoted": (p) => ({
+    subject: `【${site.shortName}】キャンセル待ちから繰り上げ当選のご連絡`,
+    html: `
+      <p>${esc(p.name)} 様</p>
+      <p>キャンセルが発生したため、キャンセル待ちから繰り上げでのご参加が確定いたしました。</p>
+      <table cellpadding="6" style="border-collapse:collapse">
+        <tr><td style="color:#888">開催日</td><td>${esc(site.eventDateLabelJa)}</td></tr>
+        <tr><td style="color:#888">会場</td><td>${esc(site.venue.name)}</td></tr>
+      </table>
+      <p>当日を楽しみにお待ちしております。</p>`,
+  }),
   contact: (p) => ({
     subject: `【${site.shortName}】お問い合わせを受け付けました`,
     html: `
@@ -84,6 +95,7 @@ const APPLICANT_TEMPLATES = {
 const ADMIN_TEMPLATES = {
   "entry-confirmed": (p) => `<p>新規エントリーがありました。</p>${entryTable(p)}`,
   "entry-waitlist": (p) => `<p>新規エントリー（キャンセル待ち）がありました。</p>${entryTable(p)}`,
+  "entry-promoted": (p) => `<p>キャンセル待ちから繰り上げ当選としました。</p>${entryTable(p)}`,
   contact: (p) => `
     <p>新しいお問い合わせが届きました。</p>
     <table cellpadding="6" style="border-collapse:collapse">

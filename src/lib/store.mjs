@@ -101,6 +101,31 @@ export function submitEntry(input) {
   return { ok: true, status: record.status, id: record.id };
 }
 
+/**
+ * エントリーを削除する。削除したのが「確定」枠だった場合、同じ区分の
+ * キャンセル待ちのうち最も早い1名を自動で「確定」へ繰り上げる。
+ * @param {string} id
+ */
+export function deleteEntry(id) {
+  const entries = readEntries();
+  const idx = entries.findIndex((e) => e.id === id);
+  if (idx === -1) return { ok: false, reason: "not-found" };
+
+  const [removed] = entries.splice(idx, 1);
+
+  let promoted = null;
+  if (removed.status === "confirmed") {
+    const waitIdx = entries.findIndex((e) => e.category === removed.category && e.status === "waitlist");
+    if (waitIdx !== -1) {
+      entries[waitIdx] = { ...entries[waitIdx], status: "confirmed" };
+      promoted = entries[waitIdx];
+    }
+  }
+
+  writeJson(ENTRIES_FILE, entries);
+  return { ok: true, removed, promoted };
+}
+
 // --- Contacts ------------------------------------------------------------
 
 export function readContacts() {
