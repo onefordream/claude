@@ -895,6 +895,8 @@ body.nav-open { overflow: hidden; }
 }
 .first-video__frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 
+.first-results { margin-top: 1.4rem; }
+
 .masonry {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem;
 }

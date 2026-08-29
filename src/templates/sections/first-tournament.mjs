@@ -35,7 +35,11 @@ export function renderFirstTournament() {
       </div>
     </div>
 
-    <ul class="masonry reveal" data-reveal data-reveal-delay="4" data-lightbox-group="first">
+    <div class="first-results reveal" data-reveal data-reveal-delay="4">
+      <a href="/documents/first-tournament-results.pdf" target="_blank" rel="noopener noreferrer" class="btn btn--secondary">前回大会の結果を見る</a>
+    </div>
+
+    <ul class="masonry reveal" data-reveal data-reveal-delay="5" data-lightbox-group="first">
       ${firstTournamentGallery
         .map(
           (img, i) => `
