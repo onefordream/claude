@@ -886,6 +886,15 @@ body.nav-open { overflow: hidden; }
 .first-stats__item dt { font-size: 0.75rem; color: var(--c-ink-soft); letter-spacing: 0.06em; }
 .first-stats__item dd { font-family: var(--f-heading); font-weight: 900; font-size: 1.15rem; margin-top: 0.3rem; }
 
+.first-video { margin-top: 2.4rem; }
+.first-video__label { font-family: var(--f-heading); font-weight: 700; font-size: 0.95rem; margin-bottom: 0.8rem; }
+.first-video__frame {
+  position: relative; width: 100%; aspect-ratio: 16 / 9;
+  overflow: hidden; border-radius: var(--radius-l); box-shadow: var(--shadow-card);
+  background: #000;
+}
+.first-video__frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
 .masonry {
   display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem;
 }

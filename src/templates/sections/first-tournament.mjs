@@ -22,7 +22,20 @@ export function renderFirstTournament() {
         .join("")}
     </dl>
 
-    <ul class="masonry reveal" data-reveal data-reveal-delay="3" data-lightbox-group="first">
+    <div class="first-video reveal" data-reveal data-reveal-delay="3">
+      <p class="first-video__label">第1回大会の試合の様子</p>
+      <div class="first-video__frame">
+        <iframe
+          src="https://www.youtube-nocookie.com/embed/tV_6rk86sVo"
+          title="SHADOW LADIES PRO-AM TOURNAMENT 第1回大会の様子"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen
+        ></iframe>
+      </div>
+    </div>
+
+    <ul class="masonry reveal" data-reveal data-reveal-delay="4" data-lightbox-group="first">
       ${firstTournamentGallery
         .map(
           (img, i) => `

@@ -81,7 +81,7 @@ const SECURITY_HEADERS = {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data:",
     "connect-src 'self'",
-    "frame-src https://www.google.com",
+    "frame-src https://www.google.com https://www.youtube-nocookie.com",
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
