@@ -107,8 +107,17 @@ export const players = [
     instagram: "https://www.instagram.com/jorrplus_ayaka22?igsi=MWE5cWoyYW10Yjl2MQ==",
     photo: "/images/players/wako-ayaka.png",
   },
+  {
+    id: "player-08",
+    status: "announced",
+    name: "江河鈴",
+    nameKana: "えがわ りん",
+    nameRomaji: "Egawa Rin",
+    instagram: "https://www.instagram.com/rinegawa_golf_1029?igsi=cjk1amg3a21sajFk",
+    photo: "/images/players/egawa-rin.png",
+  },
 
-  ...Array.from({ length: 5 }, (_, i) => ({
+  ...Array.from({ length: 4 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
     status: "comingSoon",
   })),
