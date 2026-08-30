@@ -116,8 +116,17 @@ export const players = [
     instagram: "https://www.instagram.com/rinegawa_golf_1029?igsi=cjk1amg3a21sajFk",
     photo: "/images/players/egawa-rin.png",
   },
+  {
+    id: "player-09",
+    status: "announced",
+    name: "大谷菜々子",
+    nameKana: "おおたに ななこ",
+    nameRomaji: "Otani Nanako",
+    instagram: "https://www.instagram.com/_nana_golf?igsi=cWx1ZHNsd2EzbGpt",
+    photo: "/images/players/otani-nanako.png",
+  },
 
-  ...Array.from({ length: 4 }, (_, i) => ({
+  ...Array.from({ length: 3 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
     status: "comingSoon",
   })),
