@@ -89,8 +89,17 @@ export const players = [
     instagram: "https://www.instagram.com/sayu_golf_?igsi=N202MjY4ZW02M2Ny",
     photo: "/images/players/nitta-sayumi.webp",
   },
+  {
+    id: "player-06",
+    status: "announced",
+    name: "唐木田妃菜",
+    nameKana: "からきだ ひな",
+    nameRomaji: "Karakida Hina",
+    instagram: "https://www.instagram.com/hi_chi_y?igsi=MXRwcjl1YWxnaTR0OA==",
+    photo: "/images/players/karakida-hina.png",
+  },
 
-  ...Array.from({ length: 7 }, (_, i) => ({
+  ...Array.from({ length: 6 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
     status: "comingSoon",
   })),
