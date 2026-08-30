@@ -5,8 +5,7 @@ function sponsorTile(sponsor) {
   const inner = `
       <span class="sponsor-tile__logo">
         <img src="${esc(sponsor.logo || "/images/placeholders/sponsor-logo.svg")}" alt="SPONSOR_LOGO — ${esc(sponsor.name)}" loading="lazy" decoding="async" width="240" height="120" />
-      </span>
-      <span class="sponsor-tile__name">${esc(sponsor.name)}</span>`;
+      </span>`;
 
   return sponsor.url
     ? `<li class="sponsor-tile"><a href="${esc(sponsor.url)}" target="_blank" rel="noopener noreferrer">${inner}</a></li>`
