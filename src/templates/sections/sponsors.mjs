@@ -14,6 +14,7 @@ function sponsorTile(sponsor) {
 
 function mainSponsorBlock(sponsor) {
   const inner = `
+    <span class="sponsor-main__badge">MAIN SPONSOR</span>
     <span class="sponsor-main__logo">
       <img src="${esc(sponsor.logo || "/images/placeholders/sponsor-logo.svg")}" alt="MAIN_SPONSOR_LOGO — ${esc(sponsor.name)}" loading="lazy" decoding="async" width="400" height="200" />
     </span>`;
