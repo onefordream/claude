@@ -152,6 +152,15 @@ export const players = [
     instagram: "https://www.instagram.com/ernmed1018?igsi=MXZsOWo5YW1xa2tyNQ==",
     photo: "/images/players/maeda-erina.png",
   },
+  {
+    id: "player-13",
+    status: "announced",
+    name: "岡田梨沙",
+    nameKana: "おかだ りさ",
+    nameRomaji: "Okada Risa",
+    instagram: "https://www.instagram.com/risa___114?igsi=b3BiYXBrNm41OXFx",
+    photo: "/images/players/okada-risa.png",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
