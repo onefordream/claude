@@ -161,6 +161,15 @@ export const players = [
     instagram: "https://www.instagram.com/risa___114?igsi=b3BiYXBrNm41OXFx",
     photo: "/images/players/okada-risa.png",
   },
+  {
+    id: "player-14",
+    status: "announced",
+    name: "長田莉子",
+    nameKana: "ながた りこ",
+    nameRomaji: "Nagata Riko",
+    instagram: "https://www.instagram.com/_rico_cha?igsi=MTcwOTBtZ3dnYW9ubQ==",
+    photo: "/images/players/nagata-riko.png",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
