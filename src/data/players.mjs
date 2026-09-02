@@ -134,8 +134,17 @@ export const players = [
     instagram: "https://www.instagram.com/keito.1214?igsi=d2t1ZDduOWYyd3Vz",
     photo: "/images/players/shimokawa-keito.png",
   },
+  {
+    id: "player-11",
+    status: "announced",
+    name: "下田沙幸",
+    nameKana: "しもだ さゆき",
+    nameRomaji: "Shimoda Sayuki",
+    instagram: "https://www.instagram.com/s_sayuki1014?igsi=cTdhd3htcnNhMzds",
+    photo: "/images/players/shimoda-sayuki.png",
+  },
 
-  ...Array.from({ length: 2 }, (_, i) => ({
+  ...Array.from({ length: 1 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
     status: "comingSoon",
   })),
