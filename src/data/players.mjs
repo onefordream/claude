@@ -143,8 +143,17 @@ export const players = [
     instagram: "https://www.instagram.com/s_sayuki1014?igsi=cTdhd3htcnNhMzds",
     photo: "/images/players/shimoda-sayuki.png",
   },
+  {
+    id: "player-12",
+    status: "announced",
+    name: "前田衣里奈",
+    nameKana: "まえだ えりな",
+    nameRomaji: "Maeda Erina",
+    instagram: "https://www.instagram.com/ernmed1018?igsi=MXZsOWo5YW1xa2tyNQ==",
+    photo: "/images/players/maeda-erina.png",
+  },
 
-  ...Array.from({ length: 1 }, (_, i) => ({
+  ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
     status: "comingSoon",
   })),
