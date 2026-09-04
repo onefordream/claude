@@ -158,7 +158,7 @@ export function dashboardPage({ user, flash, stats, goal, recentRecords, recentP
       <div class="grid-2">
         <div class="card">
           <div class="card-header">
-            <h2>最近のレッスンカルテ</h2>
+            <h2>最近のゴルフ成長ノート</h2>
             <a href="/records">すべて見る</a>
           </div>
           <ul class="list">${recordsHtml}</ul>
@@ -200,13 +200,13 @@ export function recordsListPage({ user, flash, records }) {
     : `<li class="empty">まだレッスン記録がありません。</li>`;
 
   return layout({
-    title: 'レッスンカルテ',
+    title: 'ゴルフ成長ノート',
     user,
     active: 'records',
     flash,
     body: `
       <div class="page-header">
-        <h1>レッスンカルテ一覧</h1>
+        <h1>ゴルフ成長ノート</h1>
         <a href="/records/new" class="btn btn-primary">＋ 新しい記録</a>
       </div>
       <div class="card"><ul class="list">${rows}</ul></div>
@@ -217,7 +217,7 @@ export function recordsListPage({ user, flash, records }) {
 export function newRecordPage({ user, flash, values = {} }) {
   const today = new Date().toISOString().slice(0, 10);
   return layout({
-    title: '新しいレッスンカルテ',
+    title: 'ゴルフ成長ノートに記録する',
     user,
     active: 'records',
     flash,
@@ -347,7 +347,7 @@ export function recordDetailPage({ user, flash, record, videos, readOnly = false
   if (record.ball_count) metaLine.push(`打球数: ${record.ball_count}球`);
 
   return layout({
-    title: `${fmtDate(record.record_date)} のカルテ`,
+    title: `${fmtDate(record.record_date)} の記録`,
     user,
     active: isPractice ? 'practice' : 'records',
     flash,

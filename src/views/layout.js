@@ -56,7 +56,7 @@ export function layout({ title, user, active, body, flash }) {
           ${user.role === 'student'
             ? `
               <a href="/dashboard" class="${active === 'dashboard' ? 'active' : ''}">ホーム</a>
-              <a href="/records" class="${active === 'records' ? 'active' : ''}">レッスンカルテ</a>
+              <a href="/records" class="${active === 'records' ? 'active' : ''}">ゴルフ成長ノート</a>
               <a href="/practice" class="${active === 'practice' ? 'active' : ''}">自主練記録</a>
               <a href="/rounds" class="${active === 'rounds' ? 'active' : ''}">ラウンド記録</a>
             `

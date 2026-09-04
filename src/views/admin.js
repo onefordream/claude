@@ -95,7 +95,7 @@ export function studentDetailPage({ user, flash, student, records, practiceRecor
 
       <div class="grid-2">
         <div class="card">
-          <h2>レッスンカルテ</h2>
+          <h2>ゴルフ成長ノート</h2>
           <ul class="list">${recordsHtml}</ul>
         </div>
         <div class="card">
