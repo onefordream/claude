@@ -8,7 +8,7 @@ export function loginPage({ flash } = {}) {
     body: `
       <div class="auth-card">
         <div class="logo-wrap">${logoLockup()}</div>
-        <p class="subtitle">成長AI記録ノート・AI伴走システム</p>
+        <p class="subtitle">ゴルフ成長AI記録ノート</p>
         <form method="post" action="/login" class="form">
           <label>メールアドレス
             <input type="email" name="email" required autofocus>
