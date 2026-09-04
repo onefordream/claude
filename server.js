@@ -762,7 +762,7 @@ const server = http.createServer(async (req, res) => {
 ensureOwnerSeed();
 
 server.listen(PORT, () => {
-  console.log(`GOLF STUDIO SHADOW 成長記録ノート: http://localhost:${PORT}`);
+  console.log(`GOLF STUDIO SHADOW 成長AI記録ノート: http://localhost:${PORT}`);
   if (!isAiConfigured()) {
     console.log('[info] ANTHROPIC_API_KEY is not set — AI要約・提案機能は無効化されています。');
   }

@@ -78,7 +78,7 @@ export function layout({ title, user, active, body, flash }) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(title)} | GOLF STUDIO SHADOW 成長記録ノート</title>
+<title>${escapeHtml(title)} | GOLF STUDIO SHADOW 成長AI記録ノート</title>
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>

@@ -1,7 +1,7 @@
 {
   "name": "shadow-golf-karte",
   "version": "0.1.0",
-  "description": "GOLF STUDIO SHADOW向け 成長記録ノート・AI伴走システム",
+  "description": "GOLF STUDIO SHADOW向け 成長AI記録ノート・AI伴走システム",
   "type": "module",
   "engines": {
     "node": ">=22"
