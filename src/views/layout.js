@@ -24,29 +24,6 @@ export function logoIcon(size = 28) {
   `;
 }
 
-// Full badge lockup (arc text + icon + wordmark) for the auth pages, standing
-// in for the studio's real logo image (only viewable in chat, not accessible
-// as a file to build from directly — this is a faithful recreation of it).
-export function logoLockup() {
-  return `
-    <svg viewBox="0 0 420 250" class="logo-lockup" role="img" aria-label="GOLF STUDIO SHADOW">
-      <defs>
-        <path id="logo-arc" d="M 55,110 A 600,600 0 0 1 365,110" fill="none" />
-      </defs>
-      <text class="logo-arc-text" text-anchor="middle">
-        <textPath href="#logo-arc" startOffset="50%">GOLF STUDIO SHADOW</textPath>
-      </text>
-      <g transform="translate(210, 145)">
-        <ellipse cx="0" cy="28" rx="30" ry="11" fill="currentColor" />
-        <ellipse cx="0" cy="28" rx="5" ry="2.4" fill="#fff" />
-        <line x1="0" y1="28" x2="0" y2="-14" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-        <path d="M1,-14 C16,-14 24,-10 24,-7 C24,-4 16,-4 1,0 Z" fill="#c0392b" />
-      </g>
-      <text x="210" y="235" text-anchor="middle" class="logo-wordmark">SHADOW</text>
-    </svg>
-  `;
-}
-
 export function layout({ title, user, active, body, flash }) {
   const nav = user
     ? `

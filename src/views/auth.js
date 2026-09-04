@@ -1,4 +1,4 @@
-import { layout, escapeHtml, logoLockup } from './layout.js';
+import { layout, escapeHtml } from './layout.js';
 
 export function loginPage({ flash } = {}) {
   return layout({
@@ -7,7 +7,7 @@ export function loginPage({ flash } = {}) {
     flash,
     body: `
       <div class="auth-card">
-        <div class="logo-wrap">${logoLockup()}</div>
+        <div class="logo-wrap"><img src="/static/shadow-logo.png" alt="GOLF STUDIO SHADOW" class="logo-lockup-img"></div>
         <p class="subtitle">ゴルフ成長AI記録ノート</p>
         <form method="post" action="/login" class="form">
           <label>メールアドレス

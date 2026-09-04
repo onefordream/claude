@@ -38,10 +38,8 @@ a:hover { text-decoration: underline; }
 }
 .nav .brand { color: white; font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 0.5rem; letter-spacing: 0.03em; }
 .logo-icon { color: white; flex-shrink: 0; }
-.logo-wrap { color: var(--green-900); margin-bottom: 0.5rem; }
-.logo-lockup { width: 100%; max-width: 280px; height: auto; color: var(--green-900); }
-.logo-arc-text { font-size: 14px; letter-spacing: 2.5px; fill: var(--green-900); font-family: inherit; }
-.logo-wordmark { font-size: 58px; font-weight: 800; letter-spacing: 2px; fill: var(--green-900); font-family: inherit; }
+.logo-wrap { margin-bottom: 0.5rem; }
+.logo-lockup-img { width: 100%; max-width: 260px; height: auto; }
 .nav-links { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
 .nav-links a { color: #dfe9e3; }
 .nav-links a.active { color: white; font-weight: 700; border-bottom: 2px solid var(--green-500); }
