@@ -1,0 +1,15 @@
+{
+  "name": "shadow-golf-karte",
+  "version": "0.1.0",
+  "description": "GOLF STUDIO SHADOW向け ゴルフ成長AI記録ノート",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node scripts/seed.js"
+  },
+  "license": "UNLICENSED"
+}

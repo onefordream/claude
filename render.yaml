@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: shadow-golf-karte
+    runtime: node
+    plan: free
+    branch: claude/golf-lesson-ai-system-yb0k0m
+    startCommand: npm start
+    envVars:
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: OWNER_NAME
+        value: シャドー代表
+      - key: OWNER_EMAIL
+        sync: false
+      - key: OWNER_PASSWORD
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5
