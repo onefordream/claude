@@ -36,9 +36,11 @@ export function layout({ title, user, active, body, flash }) {
               <a href="/records" class="${active === 'records' ? 'active' : ''}">ゴルフ成長ノート</a>
               <a href="/practice" class="${active === 'practice' ? 'active' : ''}">自主練記録</a>
               <a href="/rounds" class="${active === 'rounds' ? 'active' : ''}">ラウンド記録</a>
+              <a href="/videos" class="${active === 'videos' ? 'active' : ''}">レッスン動画</a>
             `
             : `
               <a href="/admin" class="${active === 'admin' ? 'active' : ''}">生徒一覧</a>
+              <a href="/videos" class="${active === 'videos' ? 'active' : ''}">レッスン動画</a>
             `}
           <span class="nav-user">${escapeHtml(user.name)}さん${user.role === 'instructor' ? '（指導者）' : ''}</span>
           <form method="post" action="/logout" class="inline-form">

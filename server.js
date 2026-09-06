@@ -2,7 +2,7 @@ import { loadEnv } from './src/lib/env.js';
 loadEnv();
 
 import http from 'node:http';
-import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync, unlinkSync } from 'node:fs';
 import { extname, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
@@ -43,6 +43,7 @@ import {
   newGoalPage,
 } from './src/views/student.js';
 import { studentListPage, studentDetailPage } from './src/views/admin.js';
+import { videoLibraryPage } from './src/views/videos.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(__dirname, 'public');
@@ -98,28 +99,8 @@ function serveStatic(req, res, pathname) {
   createReadStream(filePath).pipe(res);
 }
 
-function serveMedia(req, res, filename, user) {
-  const video = get(`SELECT * FROM videos WHERE filename = ?`, [filename]);
-  if (!video) {
-    res.writeHead(404);
-    res.end('Not found');
-    return;
-  }
-  const record = get(`SELECT * FROM lesson_records WHERE id = ?`, [video.lesson_record_id]);
-  if (!record) {
-    res.writeHead(404);
-    res.end('Not found');
-    return;
-  }
-  const isOwner = user && user.role === 'student' && user.id === record.user_id;
-  const isInstructor = user && user.role === 'instructor';
-  if (!isOwner && !isInstructor) {
-    res.writeHead(403);
-    res.end('Forbidden');
-    return;
-  }
-
-  const filePath = join(UPLOADS_DIR, video.filename);
+function streamVideoFile(req, res, filename, mimeType) {
+  const filePath = join(UPLOADS_DIR, filename);
   if (!existsSync(filePath)) {
     res.writeHead(404);
     res.end('Not found');
@@ -127,7 +108,7 @@ function serveMedia(req, res, filename, user) {
   }
   const stat = statSync(filePath);
   const range = req.headers.range;
-  const type = video.mime_type || 'application/octet-stream';
+  const type = mimeType || 'application/octet-stream';
 
   if (range) {
     const match = /bytes=(\d*)-(\d*)/.exec(range);
@@ -148,6 +129,43 @@ function serveMedia(req, res, filename, user) {
     });
     createReadStream(filePath).pipe(res);
   }
+}
+
+// A student's personal practice/lesson video, restricted to its owner and instructors.
+function servePersonalVideo(req, res, video, user) {
+  const record = get(`SELECT * FROM lesson_records WHERE id = ?`, [video.lesson_record_id]);
+  if (!record) {
+    res.writeHead(404);
+    res.end('Not found');
+    return;
+  }
+  const isOwner = user && user.role === 'student' && user.id === record.user_id;
+  const isInstructor = user && user.role === 'instructor';
+  if (!isOwner && !isInstructor) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return;
+  }
+  streamVideoFile(req, res, video.filename, video.mime_type);
+}
+
+function serveMedia(req, res, filename, user) {
+  if (!user) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return;
+  }
+
+  const video = get(`SELECT * FROM videos WHERE filename = ?`, [filename]);
+  if (video) return servePersonalVideo(req, res, video, user);
+
+  // Library videos (instructor-provided teaching material) are viewable by
+  // any logged-in student or instructor, not just the uploader.
+  const libraryVideo = get(`SELECT * FROM library_videos WHERE filename = ?`, [filename]);
+  if (libraryVideo) return streamVideoFile(req, res, libraryVideo.filename, libraryVideo.mime_type);
+
+  res.writeHead(404);
+  res.end('Not found');
 }
 
 function studentStats(userId) {
@@ -264,6 +282,13 @@ const routes = [
   { method: 'POST', pattern: /^\/goals$/, handler: requireStudent(handleCreateGoal) },
   { method: 'POST', pattern: /^\/goals\/(?<id>\d+)\/achieve$/, handler: requireStudent(handleAchieveGoal) },
   { method: 'POST', pattern: /^\/ai\/suggest$/, handler: requireStudent(handleAiSuggest) },
+  { method: 'GET', pattern: /^\/videos$/, handler: requireAuth(handleVideoLibrary) },
+  { method: 'POST', pattern: /^\/videos$/, handler: requireInstructor(handleUploadLibraryVideo) },
+  {
+    method: 'POST',
+    pattern: /^\/videos\/(?<id>\d+)\/delete$/,
+    handler: requireInstructor(handleDeleteLibraryVideo),
+  },
   { method: 'GET', pattern: /^\/admin$/, handler: requireInstructor(handleStudentList) },
   {
     method: 'GET',
@@ -369,7 +394,7 @@ function getActiveGoal(userId) {
 
 function handleDashboard(ctx) {
   if (ctx.user.role === 'instructor') return redirect(ctx.res, '/admin');
-  const stats = studentStats(ctx.user.id);
+  const stats = { ...studentStats(ctx.user.id), bestScore: roundStats(ctx.user.id).bestScore };
   const goal = getActiveGoal(ctx.user.id);
   const recentRecords = all(
     `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'lesson' ORDER BY record_date DESC, id DESC LIMIT 5`,
@@ -675,6 +700,68 @@ async function handleAiSuggest(ctx) {
     console.error('AI suggestion failed:', err.message);
     sendJson(ctx.res, 200, { ok: false, message: 'AIコーチへの問い合わせに失敗しました。時間をおいて再度お試しください。' });
   }
+}
+
+function handleVideoLibrary(ctx) {
+  const videos = all(`SELECT * FROM library_videos ORDER BY created_at DESC, id DESC`);
+  sendHtml(ctx.res, 200, videoLibraryPage({ user: ctx.user, flash: ctx.flash, videos }), [clearFlashCookie()]);
+}
+
+async function handleUploadLibraryVideo(ctx) {
+  let fields, files;
+  try {
+    ({ fields, files } = await parseRequestBody(ctx.req, { maxBytes: MAX_UPLOAD_BODY_BYTES }));
+  } catch (err) {
+    if (err.code === 'BODY_TOO_LARGE') {
+      const videos = all(`SELECT * FROM library_videos ORDER BY created_at DESC, id DESC`);
+      return sendHtml(
+        ctx.res,
+        413,
+        videoLibraryPage({
+          user: ctx.user,
+          flash: { type: 'error', message: '動画ファイルが大きすぎます(合計70MBまで)。' },
+          videos,
+        })
+      );
+    }
+    throw err;
+  }
+
+  const title = (fields.title || '').trim();
+  const description = (fields.description || '').trim();
+  const videoFile = files.find((f) => f.fieldName === 'video');
+
+  if (!title || !videoFile) {
+    const videos = all(`SELECT * FROM library_videos ORDER BY created_at DESC, id DESC`);
+    return sendHtml(
+      ctx.res,
+      400,
+      videoLibraryPage({
+        user: ctx.user,
+        flash: { type: 'error', message: 'タイトルと動画ファイルを指定してください。' },
+        videos,
+        values: fields,
+      })
+    );
+  }
+
+  const storedName = saveVideoFile(videoFile);
+  run(
+    `INSERT INTO library_videos (title, description, filename, original_name, mime_type, size_bytes, uploaded_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [title, description || null, storedName, videoFile.filename, videoFile.mimeType, videoFile.data.length, ctx.user.id]
+  );
+  redirect(ctx.res, '/videos', [encodeFlash('success', '動画をアップロードしました。')]);
+}
+
+function handleDeleteLibraryVideo(ctx) {
+  const video = get(`SELECT * FROM library_videos WHERE id = ?`, [ctx.params.id]);
+  if (video) {
+    run(`DELETE FROM library_videos WHERE id = ?`, [video.id]);
+    const filePath = join(UPLOADS_DIR, video.filename);
+    if (existsSync(filePath)) unlinkSync(filePath);
+  }
+  redirect(ctx.res, '/videos', [encodeFlash('success', '動画を削除しました。')]);
 }
 
 function handleStudentList(ctx) {

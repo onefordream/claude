@@ -142,6 +142,7 @@ export function dashboardPage({ user, flash, stats, goal, recentRecords, recentP
       ${goalCard(goal)}
 
       <div class="stat-row">
+        <div class="stat-card"><div class="stat-num">${stats.bestScore ?? '-'}</div><div class="stat-label">ベストスコア</div></div>
         <div class="stat-card"><div class="stat-num">${stats.recordCount}</div><div class="stat-label">レッスン記録</div></div>
         <div class="stat-card"><div class="stat-num">${stats.practiceCount}</div><div class="stat-label">自主練記録</div></div>
         <div class="stat-card"><div class="stat-num">${stats.roundCount}</div><div class="stat-label">ラウンド記録</div></div>

@@ -76,6 +76,18 @@ db.exec(`
     achieved_at TEXT
   );
 
+  CREATE TABLE IF NOT EXISTS library_videos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    filename TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    uploaded_by INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE INDEX IF NOT EXISTS idx_lesson_records_user ON lesson_records(user_id, record_date);
   CREATE INDEX IF NOT EXISTS idx_round_records_user ON round_records(user_id, round_date);
   CREATE INDEX IF NOT EXISTS idx_videos_record ON videos(lesson_record_id);
