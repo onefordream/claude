@@ -188,6 +188,15 @@ export const players = [
     instagram: "https://www.instagram.com/golfmidori?stkn=cmF0YzR0dzFmYmNk",
     photo: "/images/players/aoyama-midori.png",
   },
+  {
+    id: "player-17",
+    status: "announced",
+    name: "澤田知佳",
+    nameKana: "さわだ ちか",
+    nameRomaji: "Sawada Chika",
+    instagram: "https://www.instagram.com/_____chikasawada?stkn=MTE2c3dwOGwxdWNhbw==",
+    photo: "/images/players/sawada-chika.png",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
