@@ -213,6 +213,14 @@ export const players = [
     nameRomaji: "Oouchi Mizuki",
     instagram: "https://www.instagram.com/mizuki15821?stkn=a2JjcWkyaW52ZnN1",
   },
+  {
+    id: "player-20",
+    status: "announced",
+    name: "小林京加",
+    nameKana: "こばやし きょうか",
+    nameRomaji: "Kobayashi Kyouka",
+    instagram: "https://www.instagram.com/kyokagolf_0725?stkn=MWdkbW0zeTYydXo5ZA==",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
