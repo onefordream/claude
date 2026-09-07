@@ -179,6 +179,15 @@ export const players = [
     instagram: "https://www.instagram.com/ea91ri_golf?igsi=MXhncWU0YTJkeW5taQ==",
     photo: "/images/players/ide-eari.png",
   },
+  {
+    id: "player-16",
+    status: "announced",
+    name: "青山緑",
+    nameKana: "あおやま みどり",
+    nameRomaji: "Aoyama Midori",
+    instagram: "https://www.instagram.com/golfmidori?stkn=cmF0YzR0dzFmYmNk",
+    photo: "/images/players/aoyama-midori.png",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
