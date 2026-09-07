@@ -221,6 +221,14 @@ export const players = [
     nameRomaji: "Kobayashi Kyouka",
     instagram: "https://www.instagram.com/kyokagolf_0725?stkn=MWdkbW0zeTYydXo5ZA==",
   },
+  {
+    id: "player-21",
+    status: "announced",
+    name: "有森可琳",
+    nameKana: "ありもり かりん",
+    nameRomaji: "Arimori Karin",
+    instagram: "https://www.instagram.com/karin_arimori_0103?stkn=MTdlbXd6ZmZrajhtYg==",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
