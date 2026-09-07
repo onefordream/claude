@@ -197,6 +197,14 @@ export const players = [
     instagram: "https://www.instagram.com/_____chikasawada?stkn=MTE2c3dwOGwxdWNhbw==",
     photo: "/images/players/sawada-chika.png",
   },
+  {
+    id: "player-18",
+    status: "announced",
+    name: "山下真生",
+    nameKana: "やました まい",
+    nameRomaji: "Yamashita Mai",
+    instagram: "https://www.instagram.com/_mai_yamashita?stkn=cWpxN2l3d285aDVn",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
