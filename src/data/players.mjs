@@ -205,6 +205,14 @@ export const players = [
     nameRomaji: "Yamashita Mai",
     instagram: "https://www.instagram.com/_mai_yamashita?stkn=cWpxN2l3d285aDVn",
   },
+  {
+    id: "player-19",
+    status: "announced",
+    name: "大内瑞喜",
+    nameKana: "おおうち みずき",
+    nameRomaji: "Oouchi Mizuki",
+    instagram: "https://www.instagram.com/mizuki15821?stkn=a2JjcWkyaW52ZnN1",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
