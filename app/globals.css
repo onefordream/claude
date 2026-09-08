@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #FAFAF8;
+  color: #111114;
+}
+
+@layer components {
+  .section-label {
+    @apply inline-block text-xs tracking-[0.2em] font-semibold text-accent uppercase mb-4;
+  }
+
+  .section-pad {
+    @apply px-6 sm:px-8 py-20 sm:py-28;
+  }
+
+  .container-narrow {
+    @apply max-w-content mx-auto;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center rounded-full bg-ink text-paper font-semibold px-7 py-4 text-[15px] transition-transform active:scale-[0.98] hover:opacity-90;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-full border border-ink/20 text-ink font-semibold px-7 py-4 text-[15px] transition-colors hover:bg-ink/5;
+  }
+
+  .card {
+    @apply bg-white border border-line rounded-card shadow-card;
+  }
+}
+
+/* Phone mockup screen scrollbar hide */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
