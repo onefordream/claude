@@ -9,10 +9,6 @@ export default function Hero() {
     <section className="hero section band-white">
       <div className="wrap pt-14 sm:pt-20 pb-8">
         <div className="hero-copy max-w-[720px] mx-auto text-center">
-          <p className="for">
-            <Icon name="users" size={14} />
-            ORIGINAL AI GROWTH NOTE ／ スクール・コーチ・インストラクター向け
-          </p>
           <h1 className="h1">
             先生が書くカルテから、
             <br />
