@@ -1,52 +1,58 @@
 import PhoneFrame from "../ui/PhoneFrame";
-import { HomeScreen } from "../ui/screens";
+import BrowserFrame, { StudentRow } from "../ui/BrowserFrame";
+import Icon from "../ui/Icon";
+import Divider from "../ui/Divider";
+import { ScrSub, ScrGoal, Bubble } from "../ui/ScreenParts";
 
 export default function Hero() {
   return (
-    <section className="section-pad pt-14 sm:pt-20 overflow-hidden">
-      <div className="container-narrow grid lg:grid-cols-2 gap-14 lg:gap-8 items-center">
-        <div className="animate-fadeUp">
-          <p className="text-xs tracking-[0.25em] font-semibold text-muted mb-5">
-            FOR SCHOOL / COACH / INSTRUCTOR
+    <section className="hero section band-white">
+      <div className="wrap pt-14 sm:pt-20 pb-8">
+        <div className="hero-copy max-w-[720px] mx-auto text-center">
+          <p className="for">
+            <Icon name="users" size={14} />
+            ORIGINAL AI GROWTH NOTE ／ スクール・コーチ・インストラクター向け
           </p>
-          <h1 className="text-[30px] sm:text-[40px] lg:text-[44px] font-bold leading-[1.35] text-ink tracking-tight">
-            「先生が書くカルテ」から、
+          <h1 className="h1">
+            先生が書くカルテから、
             <br />
-            「生徒が育つ成長ノート」へ。
+            「<span className="accent-text">生徒が育つ成長ノート</span>」へ。
           </h1>
-          <p className="mt-6 text-[15px] sm:text-base text-muted leading-relaxed">
-            レッスン、練習、目標、成果。
-            <br />
-            生徒自身が成長を記録し、AIと一緒に振り返る。
-            <br />
-            あなたのスクール専用の
-            <span className="text-ink font-semibold">
-              「オリジナルAI成長ノート」
-            </span>
-            をつくります。
+          <p className="lead mx-auto max-w-[480px]">
+            レッスン、練習、目標、成果。生徒自身が記録し、AIと一緒に成長を振り返る。
+            あなたのスクール専用の成長ノートをつくります。
           </p>
-
-          <div className="mt-9 flex flex-col sm:flex-row gap-3">
-            <a href="#contact" className="btn-primary">
-              デモを見てみる
-            </a>
-            <a href="#contact" className="btn-secondary">
-              導入について相談する
-            </a>
+          <div className="cta-row center">
+            <a href="#contact" className="btn btn-primary">無料デモを見る</a>
+            <a href="#contact" className="btn btn-secondary">導入について相談する</a>
           </div>
-
-          <p className="mt-8 text-[11px] tracking-[0.15em] text-muted/70 font-semibold">
-            Powered by CRAFTORY
-          </p>
+          <p className="powered">POWERED BY CRAFTORY</p>
         </div>
 
-        <div className="relative flex justify-center lg:justify-end">
-          <div className="absolute -inset-8 bg-gradient-to-b from-offwhite to-transparent rounded-[60px] -z-10" />
-          <PhoneFrame>
-            <HomeScreen />
+        <div className="hero-stage">
+          <BrowserFrame className="stage-browser" title="生徒の記録">
+            <StudentRow initial="Y" name="Yuto K." note="レッスン記録・今日" />
+            <StudentRow initial="M" name="Mao S." note="自主練習・昨日" />
+            <StudentRow initial="R" name="Ren T." note="目標を更新" />
+          </BrowserFrame>
+
+          <PhoneFrame className="stage-phone-a">
+            <ScrSub>HOME</ScrSub>
+            <ScrGoal label="GOAL" text="スイングの再現性を上げる" color="var(--accent-main)" />
           </PhoneFrame>
+
+          <PhoneFrame className="stage-phone-b">
+            <ScrSub>AI COACH</ScrSub>
+            <Bubble from="me">今日は何を練習すればいい？</Bubble>
+            <Bubble from="ai">30ヤード地点の反復から始めましょう。</Bubble>
+          </PhoneFrame>
+
+          <span className="chip"><Icon name="target" size={14} className="!text-[var(--accent-main)]" />目標</span>
+          <span className="chip"><Icon name="notebook" size={14} className="!text-[var(--accent-main)]" />レッスン</span>
+          <span className="chip"><Icon name="refresh" size={14} className="!text-[var(--accent-main)]" />自主練習</span>
         </div>
       </div>
+      <Divider fill="var(--accent-verylight)" />
     </section>
   );
 }

@@ -1,10 +1,31 @@
 import type { Metadata } from "next";
+import { Zen_Kaku_Gothic_New, Noto_Sans_JP, IBM_Plex_Mono } from "next/font/google";
+import IconSprite from "@/components/ui/IconSprite";
 import "./globals.css";
 
 const SITE_URL = "https://ai-growth-note.example.com";
 const TITLE = "オリジナルAI成長ノート | 先生が書くカルテから、生徒が育つ成長ノートへ";
 const DESCRIPTION =
   "スクール・コーチ専用にカスタマイズできる「オリジナルAI成長ノート」。生徒自身がレッスン・自主練習・成長を記録し、AIと一緒に振り返る仕組みを、あなたのスクール専用に構築します。開発・提供：CRAFTORY。";
+
+const zenKaku = Zen_Kaku_Gothic_New({
+  subsets: ["latin"],
+  weight: ["500", "700", "900"],
+  variable: "--font-display",
+  display: "swap",
+});
+const notoSans = Noto_Sans_JP({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-body",
+  display: "swap",
+});
+const plexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["500", "600"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -57,8 +78,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja">
-      <body className="font-sans antialiased">{children}</body>
+    <html lang="ja" className={`${zenKaku.variable} ${notoSans.variable} ${plexMono.variable}`}>
+      <body className="antialiased" style={{ fontFamily: "var(--font-body)" }}>
+        <IconSprite />
+        {children}
+      </body>
     </html>
   );
 }

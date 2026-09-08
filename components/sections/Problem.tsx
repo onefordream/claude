@@ -1,50 +1,45 @@
-const counts = ["10人", "30人", "50人", "100人"];
+import Icon, { IconName } from "../ui/Icon";
+import Divider from "../ui/Divider";
+
+const items: { no: string; icon: IconName; title: string; text: string }[] = [
+  { no: "01", icon: "pencil", title: "レッスン内容を先生が毎回記録している", text: "生徒が増えるほど、記録する時間も増えていく。" },
+  { no: "02", icon: "help", title: "前回教えたことを生徒が忘れてしまう", text: "次のレッスンは、思い出すところから始まる。" },
+  { no: "03", icon: "search", title: "自主練習で何をしているか分からない", text: "レッスンの外での取り組みが見えない。" },
+  { no: "04", icon: "trend-flat", title: "生徒自身が成長を実感しにくい", text: "何がどれだけ変わったのか、残っていない。" },
+  { no: "05", icon: "unlink", title: "レッスンとレッスンの間に接点がなくなる", text: "週1回の指導が、単発で終わってしまう。" },
+];
 
 export default function Problem() {
   return (
-    <section className="section-pad bg-offwhite">
-      <div className="container-narrow">
-        <h2 className="text-[24px] sm:text-3xl font-bold text-ink leading-snug max-w-2xl">
-          レッスンカルテ、
+    <section className="section band-accent-verylight" id="problem">
+      <div className="wrap">
+        <p className="eyebrow justify-center">PROBLEM</p>
+        <h2 className="h2 center">
+          こんなこと、
           <br />
-          先生が毎回書いていませんか？
+          ありませんか？
         </h2>
 
-        <div className="mt-10 flex flex-wrap gap-3">
-          {counts.map((c, i) => (
-            <div
-              key={c}
-              className="card px-5 py-4 flex items-center gap-3"
-              style={{ opacity: 0.55 + i * 0.15 }}
-            >
-              <span className="text-lg font-bold text-ink">{c}</span>
-              {i === counts.length - 1 && (
-                <span className="text-xs text-muted">記録する仕事も増えていく</span>
-              )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 mt-11">
+          {items.map((it) => (
+            <div key={it.no} className="card problem-item">
+              <div className="badge">
+                <Icon name={it.icon} />
+              </div>
+              <div>
+                <div className="no">{it.no}</div>
+                <h3>{it.title}</h3>
+                <p>{it.text}</p>
+              </div>
             </div>
           ))}
         </div>
 
-        <p className="mt-6 text-[15px] text-muted leading-relaxed max-w-xl">
-          生徒が増えるほど、記録する仕事も増えていく。
-        </p>
-
-        <div className="mt-14 grid sm:grid-cols-3 gap-4">
-          {[
-            "せっかく先生が書いても、生徒が見返していない。",
-            "次のレッスンまでに内容を忘れてしまう。",
-            "自主練習につながっていない。",
-          ].map((t) => (
-            <div key={t} className="card p-5">
-              <p className="text-[14px] text-ink leading-relaxed">{t}</p>
-            </div>
-          ))}
+        <div className="cta-row center" style={{ marginTop: 52 }}>
+          <a href="#situation" className="btn btn-secondary btn-sm">続きを見る ↓</a>
         </div>
-
-        <p className="mt-14 text-lg sm:text-xl font-bold text-ink text-center">
-          そこで、「誰が記録するのか？」という考え方を変えます。
-        </p>
       </div>
+      <Divider fill="var(--lightgray)" d="M0,40 C 480,-10 960,70 1440,20 L1440,60 L0,60 Z" />
     </section>
   );
 }

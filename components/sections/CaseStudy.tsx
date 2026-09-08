@@ -1,58 +1,60 @@
 import PhoneFrame from "../ui/PhoneFrame";
-import { HomeScreen } from "../ui/screens";
-
-const rows = [
-  { label: "GOAL", text: "ラウンドスコアの安定化" },
-  { label: "LESSON", text: "週1回のレッスンを記録・蓄積" },
-  { label: "PRACTICE", text: "自主練習内容を自分で記録" },
-  { label: "ROUND", text: "ラウンド結果と課題を記録" },
-  { label: "CHALLENGE", text: "ショートゲームの精度" },
-  { label: "AI COACH", text: "記録をもとに次の練習内容を相談" },
-];
+import Divider from "../ui/Divider";
+import { ScrSub, ScrGoal, ScrField, Bubble } from "../ui/ScreenParts";
 
 export default function CaseStudy() {
   return (
-    <section className="section-pad">
-      <div className="container-narrow">
-        <p className="section-label">CASE STUDY</p>
-        <h2 className="text-[26px] sm:text-3xl font-bold text-ink leading-snug">
-          GOLF STUDIO SHADOW
-        </h2>
-        <p className="mt-4 text-[14px] text-muted leading-relaxed max-w-xl">
+    <section className="section band-dark" id="casestudy">
+      <div className="wrap">
+        <p className="eyebrow justify-center">CASE STUDY — 導入イメージ</p>
+        <h2 className="h2 center">GOLF STUDIO SHADOW</h2>
+        <p className="lead center">
           {/* TODO: 実際の導入スクリーンショット・素材に差し替え */}
-          ゴルフスクールでの活用イメージです。指導方針に合わせて、
-          記録項目やAIコーチの設計をカスタマイズしています。
+          ゴルフスクールでの活用イメージです。指導方針に合わせて、記録項目やAIコーチの設計をカスタマイズしています。
         </p>
 
-        <div className="mt-12 grid lg:grid-cols-2 gap-10 items-center">
-          <div className="flex justify-center">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-5 mt-13" style={{ marginTop: 52 }}>
+          <div>
             <PhoneFrame>
-              <HomeScreen
-                schoolName="GOLF STUDIO SHADOW"
-                goal="ラウンドスコアの安定化"
-                task="ショートゲーム練習 30分"
-              />
+              <ScrSub>HOME</ScrSub>
+              <ScrGoal label="GOAL" text="ラウンドスコアの安定化" color="var(--accent-main)" />
+              <ScrField label="NEXT ACTION" text="ショートゲーム練習 30分" />
             </PhoneFrame>
+            <p className="cs-cap">GOAL</p>
           </div>
-
-          <div className="grid sm:grid-cols-2 gap-4">
-            {rows.map((r) => (
-              <div key={r.label} className="card p-5">
-                <p className="text-[10px] font-bold tracking-[0.1em] text-accent mb-1">
-                  {r.label}
-                </p>
-                <p className="text-[13px] text-ink leading-relaxed">{r.text}</p>
-              </div>
-            ))}
+          <div>
+            <PhoneFrame>
+              <ScrSub>LESSON</ScrSub>
+              <ScrField label="TODAY'S LESSON" text="ショートゲームの距離感" />
+              <ScrField label="NEXT ACTION" text="30y地点を反復" />
+            </PhoneFrame>
+            <p className="cs-cap">LESSON</p>
+          </div>
+          <div>
+            <PhoneFrame>
+              <ScrSub>RESULT</ScrSub>
+              <ScrGoal label="ROUND" text="89" color="var(--ink)" size={20} />
+            </PhoneFrame>
+            <p className="cs-cap">ROUND</p>
+          </div>
+          <div>
+            <PhoneFrame>
+              <ScrSub>AI COACH</ScrSub>
+              <Bubble from="me">次のラウンドまで何をすればいい？</Bubble>
+              <Bubble from="ai">ショートパットの精度を重点的に。</Bubble>
+            </PhoneFrame>
+            <p className="cs-cap">AI COACH</p>
           </div>
         </div>
+        <p className="text-[12.5px] text-center mt-5" style={{ color: "var(--muted-on-dark)" }}>
+          ※実際の導入スクリーンショットに順次差し替え予定です。実証済みの成果数値は今後掲載します。
+        </p>
 
-        <div className="mt-10">
-          <a href="#contact" className="btn-primary">
-            実際のデモを見る
-          </a>
+        <div className="cta-row center" style={{ marginTop: 36 }}>
+          <a href="#contact" className="btn btn-primary">実際の利用イメージを見る</a>
         </div>
       </div>
+      <Divider fill="var(--white)" d="M0,35 C 480,-5 960,65 1440,15 L1440,60 L0,60 Z" />
     </section>
   );
 }
