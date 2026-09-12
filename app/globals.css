@@ -27,51 +27,13 @@
   --radius-card: 22px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --white: #12160f;
-    --offwhite: #0c0f0a;
-    --lightgray: #141a16;
-    --ink: #f0f2f0;
-    --muted: #9ba6a0;
-    --line: #242c27;
-    --accent-main: #11be72;
-    --accent-light: #5ed39a;
-    --accent-verylight: #0f2b1c;
-    --accent-dark: #08ad6f;
-    --on-accent: #f6fbf8;
-    --dark: #1e2b25;
-    --on-dark: #f0f2f0;
-    --muted-on-dark: rgba(240, 242, 240, 0.62);
-    --line-on-dark: rgba(240, 242, 240, 0.14);
-    --shadow-card: 0 2px 24px rgba(0, 0, 0, 0.5);
-    --shadow-phone: 0 26px 54px -18px rgba(0, 0, 0, 0.7);
-    --shadow-browser: 0 30px 70px -24px rgba(0, 0, 0, 0.6);
-  }
-}
-:root[data-theme='dark'] {
-  --white: #12160f;
-  --offwhite: #0c0f0a;
-  --lightgray: #141a16;
-  --ink: #f0f2f0;
-  --muted: #9ba6a0;
-  --line: #242c27;
-  --accent-main: #11be72;
-  --accent-light: #5ed39a;
-  --accent-verylight: #0f2b1c;
-  --accent-dark: #08ad6f;
-  --on-accent: #f6fbf8;
-  --dark: #1e2b25;
-  --on-dark: #f0f2f0;
-  --muted-on-dark: rgba(240, 242, 240, 0.62);
-  --line-on-dark: rgba(240, 242, 240, 0.14);
-  --shadow-card: 0 2px 24px rgba(0, 0, 0, 0.5);
-  --shadow-phone: 0 26px 54px -18px rgba(0, 0, 0, 0.7);
-  --shadow-browser: 0 30px 70px -24px rgba(0, 0, 0, 0.6);
-}
+/* This LP uses a single fixed brand palette — it intentionally does not
+   adapt to the viewer's OS/browser dark mode setting, so the specified
+   brand colors always render the same regardless of viewer preference. */
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
 }
 * {
   box-sizing: border-box;
