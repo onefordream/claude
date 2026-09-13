@@ -7,6 +7,7 @@ import { extname, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
 
+import { brand } from './src/config.js';
 import { run, get, all } from './src/db.js';
 import {
   createUser,
@@ -849,7 +850,7 @@ const server = http.createServer(async (req, res) => {
 ensureOwnerSeed();
 
 server.listen(PORT, () => {
-  console.log(`GOLF STUDIO SHADOW ゴルフ成長AI記録ノート: http://localhost:${PORT}`);
+  console.log(`${brand.studioName} ${brand.tagline}: http://localhost:${PORT}`);
   if (!isAiConfigured()) {
     console.log('[info] ANTHROPIC_API_KEY is not set — AI要約・提案機能は無効化されています。');
   }

@@ -8,6 +8,12 @@ services:
     envVars:
       - key: SESSION_SECRET
         generateValue: true
+      - key: STUDIO_NAME
+        value: GOLF STUDIO SHADOW
+      - key: APP_TAGLINE
+        value: ゴルフ成長AI記録ノート
+      - key: BRAND_COLOR
+        value: '#1b6b4f'
       - key: OWNER_NAME
         value: シャドー代表
       - key: OWNER_EMAIL

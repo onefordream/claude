@@ -1,6 +1,8 @@
 // Thin wrapper around the Anthropic Messages API using the built-in fetch (Node 22+).
 // No SDK dependency, since this environment has no npm registry access.
 
+import { brand } from '../config.js';
+
 const API_URL = 'https://api.anthropic.com/v1/messages';
 
 function getConfig() {
@@ -91,7 +93,7 @@ export async function summarizeLessonRecord({ content, notes }) {
 // Suggest what to practice today, based on recent lesson records and round history.
 export async function suggestPractice({ studentName, records, rounds }) {
   const system =
-    'あなたはインドアゴルフスクール「GOLF STUDIO SHADOW」に伴走するAIゴルフコーチです。' +
+    `あなたはインドアゴルフスクール「${brand.studioName}」に伴走するAIゴルフコーチです。` +
     '生徒の直近のレッスン記録とラウンド記録の履歴をもとに、' +
     '今日一人で練習する際に取り組むべき具体的な練習メニューを日本語で提案してください。' +
     '過去の課題の積み重ねを踏まえ、優先順位をつけて3つ程度、実践しやすい形で提示してください。' +

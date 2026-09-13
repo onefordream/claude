@@ -1,3 +1,5 @@
+import { brand } from '../config.js';
+
 export function escapeHtml(value) {
   if (value === null || value === undefined) return '';
   return String(value)
@@ -28,7 +30,7 @@ export function layout({ title, user, active, body, flash }) {
   const nav = user
     ? `
       <nav class="nav">
-        <a href="/dashboard" class="brand">${logoIcon(26)}<span>GOLF STUDIO SHADOW</span></a>
+        <a href="/dashboard" class="brand">${logoIcon(26)}<span>${escapeHtml(brand.studioName)}</span></a>
         <div class="nav-links">
           ${user.role === 'student'
             ? `
@@ -57,8 +59,16 @@ export function layout({ title, user, active, body, flash }) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${escapeHtml(title)} | GOLF STUDIO SHADOW ゴルフ成長AI記録ノート</title>
+<title>${escapeHtml(title)} | ${escapeHtml(brand.studioName)} ${escapeHtml(brand.tagline)}</title>
 <link rel="stylesheet" href="/static/style.css">
+<style>
+  :root {
+    --green-900: ${brand.colors.dark};
+    --green-700: ${brand.colors.base};
+    --green-500: ${brand.colors.mid};
+    --green-100: ${brand.colors.light};
+  }
+</style>
 </head>
 <body>
 ${nav}

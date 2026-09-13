@@ -1,4 +1,5 @@
 import { layout, escapeHtml } from './layout.js';
+import { brand } from '../config.js';
 
 export function loginPage({ flash } = {}) {
   return layout({
@@ -7,8 +8,8 @@ export function loginPage({ flash } = {}) {
     flash,
     body: `
       <div class="auth-card">
-        <div class="logo-wrap"><img src="/static/shadow-logo.png" alt="GOLF STUDIO SHADOW" class="logo-lockup-img"></div>
-        <p class="subtitle">ゴルフ成長AI記録ノート</p>
+        <div class="logo-wrap"><img src="/static/logo.png" alt="${escapeHtml(brand.studioName)}" class="logo-lockup-img"></div>
+        <p class="subtitle">${escapeHtml(brand.tagline)}</p>
         <form method="post" action="/login" class="form">
           <label>メールアドレス
             <input type="email" name="email" required autofocus>
