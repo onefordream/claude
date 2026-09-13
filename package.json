@@ -1,0 +1,15 @@
+{
+  "name": "shadow-golf-karte",
+  "version": "0.1.0",
+  "description": "ゴルフスクール向け 成長AI記録ノート・テンプレート(店舗名/ロゴ/色は.envで設定)",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node scripts/seed.js"
+  },
+  "license": "UNLICENSED"
+}
