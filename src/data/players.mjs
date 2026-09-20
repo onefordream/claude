@@ -247,6 +247,15 @@ export const players = [
     instagram: "https://www.instagram.com/yabuuchi.yui?stkn=eXBmcGF3Z3h0N3d5",
     photo: "/images/players/yabuuchi-yui.png",
   },
+  {
+    id: "player-24",
+    status: "announced",
+    name: "内山愛梨",
+    nameKana: "うちやま あいり",
+    nameRomaji: "Uchiyama Airi",
+    instagram: "https://www.instagram.com/airi.ugolf?stkn=MWowcjdyNTdxbnI5dQ==",
+    photo: "/images/players/uchiyama-airi.png",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
