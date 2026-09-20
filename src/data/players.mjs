@@ -238,6 +238,15 @@ export const players = [
     instagram: "https://www.instagram.com/kaikaihinao?stkn=MjlqY3plMnA3MDVm",
     photo: "/images/players/mizoguchi-hina.png",
   },
+  {
+    id: "player-23",
+    status: "announced",
+    name: "籔内優衣",
+    nameKana: "やぶうち ゆい",
+    nameRomaji: "Yabuuchi Yui",
+    instagram: "https://www.instagram.com/yabuuchi.yui?stkn=eXBmcGF3Z3h0N3d5",
+    photo: "/images/players/yabuuchi-yui.png",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
