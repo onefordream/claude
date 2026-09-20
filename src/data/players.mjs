@@ -229,6 +229,15 @@ export const players = [
     nameRomaji: "Arimori Karin",
     instagram: "https://www.instagram.com/karin_arimori_0103?stkn=MTdlbXd6ZmZrajhtYg==",
   },
+  {
+    id: "player-22",
+    status: "announced",
+    name: "@溝口雛",
+    nameKana: "みぞぐち ひな",
+    nameRomaji: "Mizoguchi Hina",
+    instagram: "https://www.instagram.com/kaikaihinao?stkn=MjlqY3plMnA3MDVm",
+    photo: "/images/players/mizoguchi-hina.png",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
