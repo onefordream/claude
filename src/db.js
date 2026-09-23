@@ -4,7 +4,10 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const dataDir = join(__dirname, '..', 'data');
+// When DATA_DIR is set (e.g. a Render persistent disk mounted at /var/data),
+// the database lives there so it survives redeploys. Falls back to a local
+// folder for development, where losing it on redeploy doesn't matter.
+const dataDir = process.env.DATA_DIR ? join(process.env.DATA_DIR, 'db') : join(__dirname, '..', 'data');
 mkdirSync(dataDir, { recursive: true });
 
 export const db = new DatabaseSync(join(dataDir, 'app.sqlite'));

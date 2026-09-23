@@ -49,7 +49,9 @@ import { videoLibraryPage } from './src/views/videos.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(__dirname, 'public');
-const UPLOADS_DIR = join(__dirname, 'uploads');
+// Same DATA_DIR convention as src/db.js — persistent-disk-backed in
+// production, a local folder for development.
+const UPLOADS_DIR = process.env.DATA_DIR ? join(process.env.DATA_DIR, 'uploads') : join(__dirname, 'uploads');
 mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const PORT = Number(process.env.PORT || 3000);
