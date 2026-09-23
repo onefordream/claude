@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
 
 import { brand } from './src/config.js';
+import { jstToday, jstHour, addDays } from './src/lib/date.js';
 import { run, get, all } from './src/db.js';
 import {
   createUser,
@@ -207,6 +208,69 @@ function roundStats(userId) {
   };
 }
 
+// This app is used in Japan regardless of which timezone the server itself
+// runs in (Render defaults to UTC), so "today" for streaks/greetings is
+// always computed in JST rather than the server's local time — see
+// src/lib/date.js (also used by the view layer for date-input defaults, so
+// both sides agree on what day it is).
+
+// Consecutive days (lesson or self-practice) ending today or yesterday —
+// "alive" through yesterday so the streak doesn't vanish before the user
+// has had a chance to record today.
+function computeStreak(userId) {
+  const rows = all(`SELECT DISTINCT record_date FROM lesson_records WHERE user_id = ?`, [userId]);
+  if (!rows.length) return { streak: 0, recordedToday: false };
+  const dates = new Set(rows.map((r) => r.record_date));
+  const today = jstToday();
+  const recordedToday = dates.has(today);
+  let cursor = recordedToday ? today : addDays(today, -1);
+  let streak = 0;
+  while (dates.has(cursor)) {
+    streak++;
+    cursor = addDays(cursor, -1);
+  }
+  return { streak, recordedToday };
+}
+
+const WEEKDAY_LABELS_JA = ['日', '月', '火', '水', '木', '金', '土'];
+
+// Last 7 days of lesson+practice activity for the small bar chart, and the
+// week's total count.
+function weeklyActivity(userId) {
+  const today = jstToday();
+  const days = [];
+  for (let i = 6; i >= 0; i--) days.push(addDays(today, -i));
+  const rows = all(
+    `SELECT record_date, COUNT(*) AS c FROM lesson_records WHERE user_id = ? AND record_date >= ? GROUP BY record_date`,
+    [userId, days[0]]
+  );
+  const counts = new Map(rows.map((r) => [r.record_date, r.c]));
+  const activity = days.map((dateStr) => ({
+    date: dateStr,
+    count: counts.get(dateStr) || 0,
+    weekday: WEEKDAY_LABELS_JA[new Date(`${dateStr}T00:00:00Z`).getUTCDay()],
+    isToday: dateStr === today,
+  }));
+  return { activity, weeklyCount: activity.reduce((sum, d) => sum + d.count, 0) };
+}
+
+function pickTodayMessage({ streak, recordedToday, weeklyCount, hasGoal }) {
+  if (recordedToday && streak >= 7) return `🔥 ${streak}日連続!今日も記録できました。すばらしい継続力です`;
+  if (recordedToday) return '今日の記録、お疲れさまでした。積み重ねが力になります';
+  if (streak >= 2) return `🔥 ${streak}日連続更新中。今日も記録して続けましょう`;
+  if (weeklyCount > 0) return `今週はすでに${weeklyCount}件記録しています。この調子で`;
+  if (hasGoal) return '目標に向けて、今日の一歩を記録してみましょう';
+  return '今日から始めましょう。小さな記録も、積み重なれば成長の資産になります';
+}
+
+function jstGreeting() {
+  const h = jstHour();
+  if (h < 5) return 'こんばんは';
+  if (h < 11) return 'おはようございます';
+  if (h < 17) return 'こんにちは';
+  return 'こんばんは';
+}
+
 async function generateAiSummaryInBackground(recordId, content, notes) {
   if (!isAiConfigured()) {
     run(`UPDATE lesson_records SET ai_status = 'unavailable' WHERE id = ?`, [recordId]);
@@ -397,22 +461,35 @@ function handleDashboard(ctx) {
   if (ctx.user.role === 'instructor') return redirect(ctx.res, '/admin');
   const stats = { ...studentStats(ctx.user.id), bestScore: roundStats(ctx.user.id).bestScore };
   const goal = getActiveGoal(ctx.user.id);
-  const recentRecords = all(
-    `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'lesson' ORDER BY record_date DESC, id DESC LIMIT 5`,
-    [ctx.user.id]
-  );
-  const recentPractice = all(
-    `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'self_practice' ORDER BY record_date DESC, id DESC LIMIT 5`,
-    [ctx.user.id]
-  );
-  const recentRounds = all(
-    `SELECT * FROM round_records WHERE user_id = ? ORDER BY round_date DESC, id DESC LIMIT 5`,
+  const { streak, recordedToday } = computeStreak(ctx.user.id);
+  const { activity, weeklyCount } = weeklyActivity(ctx.user.id);
+  const todayMessage = pickTodayMessage({ streak, recordedToday, weeklyCount, hasGoal: Boolean(goal) });
+  const recentCombined = all(
+    `SELECT lr.*, (SELECT COUNT(*) FROM videos v WHERE v.lesson_record_id = lr.id) AS video_count
+     FROM lesson_records lr WHERE lr.user_id = ? ORDER BY lr.record_date DESC, lr.id DESC LIMIT 6`,
     [ctx.user.id]
   );
   sendHtml(
     ctx.res,
     200,
-    dashboardPage({ user: ctx.user, flash: ctx.flash, stats, goal, recentRecords, recentPractice, recentRounds }),
+    dashboardPage({
+      user: ctx.user,
+      flash: ctx.flash,
+      stats,
+      goal,
+      streak,
+      activity,
+      weeklyCount,
+      todayMessage,
+      greeting: jstGreeting(),
+      todayLabel: new Date().toLocaleDateString('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'short',
+      }),
+      recentCombined,
+    }),
     [clearFlashCookie()]
   );
 }
@@ -447,7 +524,7 @@ async function handleCreateRecord(ctx) {
     throw err;
   }
 
-  const recordDate = fields.record_date || new Date().toISOString().slice(0, 10);
+  const recordDate = fields.record_date || jstToday();
   const content = (fields.content || '').trim();
   const notes = (fields.notes || '').trim();
 
@@ -516,7 +593,7 @@ async function handleCreatePractice(ctx) {
     throw err;
   }
 
-  const recordDate = fields.record_date || new Date().toISOString().slice(0, 10);
+  const recordDate = fields.record_date || jstToday();
   const content = (fields.content || '').trim();
   const notes = (fields.notes || '').trim();
   const durationMinutes = fields.duration_minutes ? parseInt(fields.duration_minutes, 10) : null;
@@ -600,7 +677,7 @@ function handleRoundsPage(ctx) {
 
 async function handleCreateRound(ctx) {
   const { fields } = await parseRequestBody(ctx.req);
-  const roundDate = fields.round_date || new Date().toISOString().slice(0, 10);
+  const roundDate = fields.round_date || jstToday();
   const courseName = (fields.course_name || '').trim();
   const score = fields.score ? parseInt(fields.score, 10) : null;
   const putts = fields.putts ? parseInt(fields.putts, 10) : null;

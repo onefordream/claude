@@ -1,8 +1,48 @@
 import { layout, escapeHtml, nl2br } from './layout.js';
 import { renderScoreChart } from './chart.js';
+import { jstToday, addDays } from '../lib/date.js';
 
 function fmtDate(d) {
   return d || '';
+}
+
+// "今日" / "昨日" / "9/20" — used in the recent-records feed on the home screen.
+function formatRelativeDate(dateStr) {
+  const today = jstToday();
+  const yesterday = addDays(today, -1);
+  if (dateStr === today) return '今日';
+  if (dateStr === yesterday) return '昨日';
+  const [, m, d] = dateStr.split('-');
+  return `${Number(m)}/${Number(d)}`;
+}
+
+// Small inline SVG bar chart for the last 7 days of activity on the home
+// screen — decorative-but-informative, so it skips a hover layer (single
+// week-glance, not a chart meant for close inspection).
+function renderWeekActivity(activity) {
+  const width = 320;
+  const height = 64;
+  const barW = 26;
+  const gap = (width - barW * 7) / 8;
+  const maxCount = Math.max(3, ...activity.map((d) => d.count));
+  const baseline = height - 16;
+  const maxBarH = baseline - 6;
+
+  const bars = activity
+    .map((d, i) => {
+      const x = gap + i * (barW + gap);
+      const h = Math.max(6, Math.round((d.count / maxCount) * maxBarH));
+      const y = baseline - h;
+      const cls = d.isToday ? 'week-bar week-bar-today' : d.count > 0 ? 'week-bar week-bar-active' : 'week-bar';
+      return `
+        <rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="6" class="${cls}">
+          <title>${escapeHtml(d.weekday)}曜日: ${d.count}件</title>
+        </rect>
+        <text x="${x + barW / 2}" y="${height}" text-anchor="middle" class="week-bar-label ${d.isToday ? 'week-bar-label-today' : ''}">${escapeHtml(d.weekday)}</text>`;
+    })
+    .join('');
+
+  return `<svg viewBox="0 0 ${width} ${height}" class="week-activity-chart" role="img" aria-label="直近7日間の記録数">${bars}</svg>`;
 }
 
 function aiStatusBadge(record) {
@@ -28,27 +68,39 @@ function practiceMeta(record) {
 export function goalCard(goal, { readOnly = false } = {}) {
   if (!goal) {
     return readOnly
-      ? `<div class="card goal-card goal-card-empty"><h2>🎯 現在の目標</h2><p class="muted">まだ目標が設定されていません。</p></div>`
+      ? `<div class="card goal-card goal-card-empty"><h2><span class="card-icon card-icon-goal">🎯</span>現在の目標</h2><p class="muted">まだ目標が設定されていません。</p></div>`
       : `
         <div class="card goal-card goal-card-empty">
-          <h2>🎯 目標を設定しましょう</h2>
-          <p class="muted">「1年以内に100切り」「飛距離+30ヤード」など、達成したい目標と期限を決めておくと、練習のモチベーションが続きやすくなります。</p>
+          <h2><span class="card-icon card-icon-goal">🎯</span>目標を設定しましょう</h2>
+          <p class="muted">「発表会で失敗しない」「毎週3回練習する」など、達成したい目標と期限を決めておくと、日々の記録にも目的が生まれます。</p>
           <a href="/goals/new" class="btn btn-primary">＋ 目標を設定する</a>
         </div>`;
   }
 
   let dueLine = '';
+  let progressBar = '';
   if (goal.target_date) {
-    const days = Math.ceil((new Date(goal.target_date) - new Date(new Date().toISOString().slice(0, 10))) / 86400000);
-    if (days > 0) dueLine = `<span class="goal-due">期限: ${escapeHtml(goal.target_date)}（あと${days}日）</span>`;
-    else if (days === 0) dueLine = `<span class="goal-due goal-due-today">期限: ${escapeHtml(goal.target_date)}（本日まで）</span>`;
-    else dueLine = `<span class="goal-due goal-due-over">期限: ${escapeHtml(goal.target_date)}（${-days}日超過）</span>`;
+    const todayStr = jstToday();
+    const days = Math.ceil((new Date(goal.target_date) - new Date(todayStr)) / 86400000);
+    if (days > 0) dueLine = `<span class="goal-due">期限まであと${days}日（${escapeHtml(goal.target_date)}）</span>`;
+    else if (days === 0) dueLine = `<span class="goal-due goal-due-today">本日が期限です</span>`;
+    else dueLine = `<span class="goal-due goal-due-over">期限を${-days}日超過しています</span>`;
+
+    const createdStr = (goal.created_at || '').slice(0, 10) || todayStr;
+    const total = new Date(goal.target_date) - new Date(createdStr);
+    const elapsed = new Date(todayStr) - new Date(createdStr);
+    const pct = total > 0 ? Math.max(2, Math.min(100, Math.round((elapsed / total) * 100))) : 100;
+    progressBar = `
+      <div class="goal-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+        <div class="goal-progress-fill" style="width:${pct}%"></div>
+      </div>`;
   }
 
   return `
     <div class="card goal-card">
-      <h2>🎯 現在の目標</h2>
+      <h2><span class="card-icon card-icon-goal">🎯</span>現在の目標</h2>
       <p class="goal-content">${escapeHtml(goal.content)}</p>
+      ${progressBar}
       ${dueLine}
       ${
         readOnly
@@ -82,48 +134,55 @@ export function newGoalPage({ user, flash, values = {} }) {
   });
 }
 
-export function dashboardPage({ user, flash, stats, goal, recentRecords, recentPractice, recentRounds }) {
-  const recordsHtml = recentRecords.length
-    ? recentRecords
-        .map(
-          (r) => `
-        <li class="list-item">
-          <a href="/records/${r.id}">
-            <span class="list-date">${fmtDate(r.record_date)}</span>
-            <span class="list-title">${escapeHtml(r.content.slice(0, 40))}${r.content.length > 40 ? '…' : ''}</span>
-            ${aiStatusBadge(r)}
-          </a>
-        </li>`
-        )
-        .join('')
-    : `<li class="empty">まだレッスン記録がありません。最初の記録を書いてみましょう。</li>`;
+const RECORD_KIND = {
+  lesson: { label: 'レッスン', icon: '📘', cls: 'kind-lesson' },
+  self_practice: { label: '自主練・自習', icon: '✍️', cls: 'kind-practice' },
+};
 
-  const practiceHtml = recentPractice.length
-    ? recentPractice
-        .map(
-          (r) => `
-        <li class="list-item">
-          <a href="/records/${r.id}">
-            <span class="list-date">${fmtDate(r.record_date)}</span>
-            <span class="list-title">${escapeHtml(r.content.slice(0, 40))}${r.content.length > 40 ? '…' : ''}</span>
-            ${practiceMeta(r)}
-          </a>
-        </li>`
-        )
-        .join('')
-    : `<li class="empty">まだ自主練の記録がありません。</li>`;
+function recentRecordCard(r) {
+  const kind = RECORD_KIND[r.record_type] || RECORD_KIND.lesson;
+  const snippet = r.content.length > 56 ? `${r.content.slice(0, 56)}…` : r.content;
+  const meta = [];
+  if (r.duration_minutes) meta.push(`⏱ ${r.duration_minutes}分`);
+  if (r.ball_count) meta.push(`🎯 ${r.ball_count}球`);
+  if (r.video_count > 0) meta.push(`🎬 動画${r.video_count > 1 ? ` ×${r.video_count}` : ''}`);
 
-  const roundsHtml = recentRounds.length
-    ? recentRounds
-        .map(
-          (r) => `
-        <li class="list-item">
-          <span class="list-date">${fmtDate(r.round_date)}</span>
-          <span class="list-title">${escapeHtml(r.course_name)}${r.score ? ' / スコア ' + r.score : ''}</span>
-        </li>`
-        )
-        .join('')
-    : `<li class="empty">まだラウンド記録がありません。</li>`;
+  return `
+    <a href="/records/${r.id}" class="record-card ${kind.cls}">
+      <div class="record-card-top">
+        <span class="record-kind-tag"><span aria-hidden="true">${kind.icon}</span>${kind.label}</span>
+        <span class="record-card-date">${formatRelativeDate(r.record_date)}</span>
+      </div>
+      <p class="record-card-snippet">${escapeHtml(snippet)}</p>
+      <div class="record-card-bottom">
+        ${meta.length ? `<span class="record-card-meta">${meta.map(escapeHtml).join(' ・ ')}</span>` : '<span></span>'}
+        ${r.record_type === 'lesson' ? aiStatusBadge(r) : ''}
+      </div>
+    </a>`;
+}
+
+export function dashboardPage({
+  user,
+  flash,
+  stats,
+  goal,
+  streak,
+  activity,
+  weeklyCount,
+  todayMessage,
+  greeting,
+  todayLabel,
+  recentCombined,
+}) {
+  const recentHtml = recentCombined.length
+    ? `<div class="record-card-grid">${recentCombined.map(recentRecordCard).join('')}</div>`
+    : `
+      <div class="empty-state">
+        <div class="empty-state-icon">📔</div>
+        <p class="empty-state-title">まだ記録がありません</p>
+        <p class="muted">今日教わったこと、気づいたことを一言だけでも残してみましょう。<br>積み重ねが、あとで見返せる自分の資産になります。</p>
+        <a href="/records/new" class="btn btn-primary">＋ 最初の記録を書く</a>
+      </div>`;
 
   return layout({
     title: 'ホーム',
@@ -131,55 +190,79 @@ export function dashboardPage({ user, flash, stats, goal, recentRecords, recentP
     active: 'dashboard',
     flash,
     body: `
-      <div class="page-header">
-        <h1>${escapeHtml(user.name)}さんのゴルフライフ</h1>
-        <div class="header-actions">
-          <a href="/records/new" class="btn btn-primary">＋ レッスンを記録する</a>
-          <a href="/practice/new" class="btn btn-secondary">＋ 自主練を記録する</a>
+      <section class="hero">
+        <div class="hero-main">
+          <p class="hero-date">${escapeHtml(todayLabel)}</p>
+          <h1 class="hero-greeting">${escapeHtml(greeting)}、${escapeHtml(user.name)}さん</h1>
+          <p class="hero-message">${escapeHtml(todayMessage)}</p>
         </div>
-      </div>
+        <div class="hero-streak">
+          <div class="hero-streak-flame" aria-hidden="true">🔥</div>
+          <div class="hero-streak-num">${streak}</div>
+          <div class="hero-streak-label">日連続</div>
+        </div>
+      </section>
+
+      <section class="week-strip">
+        <div class="week-strip-header">
+          <span class="week-strip-title">今週の記録</span>
+          <span class="week-strip-count">${weeklyCount}件</span>
+        </div>
+        ${renderWeekActivity(activity)}
+      </section>
+
+      <section class="action-grid">
+        <a href="/records/new" class="action-card action-card-lesson">
+          <div class="action-icon">📘</div>
+          <div class="action-body">
+            <div class="action-title">レッスンを記録する</div>
+            <div class="action-desc">教わったことをメモ・写真・動画で残す</div>
+          </div>
+          <div class="action-arrow" aria-hidden="true">›</div>
+        </a>
+        <a href="/practice/new" class="action-card action-card-practice">
+          <div class="action-icon">✍️</div>
+          <div class="action-body">
+            <div class="action-title">自主練・自習を記録する</div>
+            <div class="action-desc">一人で取り組んだ内容を書き留める</div>
+          </div>
+          <div class="action-arrow" aria-hidden="true">›</div>
+        </a>
+      </section>
 
       ${goalCard(goal)}
 
-      <div class="stat-row">
-        <div class="stat-card"><div class="stat-num">${stats.bestScore ?? '-'}</div><div class="stat-label">ベストスコア</div></div>
-        <div class="stat-card"><div class="stat-num">${stats.recordCount}</div><div class="stat-label">レッスン記録</div></div>
-        <div class="stat-card"><div class="stat-num">${stats.practiceCount}</div><div class="stat-label">自主練記録</div></div>
-        <div class="stat-card"><div class="stat-num">${stats.roundCount}</div><div class="stat-label">ラウンド記録</div></div>
-        <div class="stat-card"><div class="stat-num">${stats.lastDate || '-'}</div><div class="stat-label">直近の記録日</div></div>
-      </div>
-
-      <div class="card ai-card">
-        <h2>🤖 AIコーチに相談する</h2>
-        <p class="muted">これまでのレッスン内容とラウンド記録をもとに、今日一人で練習するときのメニューを提案します。</p>
-        <button id="ask-ai-btn" class="btn btn-secondary">今日の練習メニューを聞く</button>
+      <div class="card ai-coach-card">
+        <div class="ai-coach-head">
+          <div class="ai-coach-avatar" aria-hidden="true">🤖</div>
+          <div>
+            <h2>AIコーチに相談する</h2>
+            <p class="muted">これまでの記録を踏まえて、今日やるべきことを一緒に考えます</p>
+          </div>
+        </div>
+        <div class="ai-coach-prompts">
+          <span class="ai-chip">今日は何をすればいい？</span>
+          <span class="ai-chip">最近の課題を整理して</span>
+          <span class="ai-chip">次の目標のヒントが欲しい</span>
+        </div>
+        <button id="ask-ai-btn" class="btn btn-primary">今日のおすすめを聞く</button>
         <div id="ai-result" class="ai-result" hidden></div>
       </div>
 
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-header">
-            <h2>最近のゴルフ成長ノート</h2>
-            <a href="/records">すべて見る</a>
-          </div>
-          <ul class="list">${recordsHtml}</ul>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <h2>最近の自主練</h2>
-            <a href="/practice">すべて見る</a>
-          </div>
-          <ul class="list">${practiceHtml}</ul>
-        </div>
-      </div>
+      <section class="stat-strip">
+        <div class="stat-pill"><span class="stat-pill-num">${stats.recordCount}</span><span class="stat-pill-label">レッスン記録</span></div>
+        <div class="stat-pill"><span class="stat-pill-num">${stats.practiceCount}</span><span class="stat-pill-label">自主練記録</span></div>
+        <div class="stat-pill"><span class="stat-pill-num">${weeklyCount}</span><span class="stat-pill-label">今週の記録</span></div>
+        <div class="stat-pill"><span class="stat-pill-num">${streak}</span><span class="stat-pill-label">連続記録日数</span></div>
+      </section>
 
-      <div class="card">
-        <div class="card-header">
-          <h2>最近のラウンド記録</h2>
-          <a href="/rounds">すべて見る</a>
+      <section>
+        <div class="section-header">
+          <h2>最近の記録</h2>
+          <a href="/records">すべて見る</a>
         </div>
-        <ul class="list">${roundsHtml}</ul>
-      </div>
+        ${recentHtml}
+      </section>
     `,
   });
 }
@@ -216,7 +299,7 @@ export function recordsListPage({ user, flash, records }) {
 }
 
 export function newRecordPage({ user, flash, values = {} }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = jstToday();
   return layout({
     title: 'ゴルフ成長ノートに記録する',
     user,
@@ -276,7 +359,7 @@ export function practiceListPage({ user, flash, records }) {
 }
 
 export function newPracticePage({ user, flash, values = {} }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = jstToday();
   return layout({
     title: '新しい自主練記録',
     user,
@@ -376,7 +459,7 @@ export function recordDetailPage({ user, flash, record, videos, readOnly = false
 }
 
 export function roundsPage({ user, flash, rounds, stats, values = {} }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = jstToday();
   const rows = rounds.length
     ? rounds
         .map(
