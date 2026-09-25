@@ -18,25 +18,25 @@ window.GOLF_COURSES = [
     name: "デイリー信楽カントリー倶楽部",
     image: "images/daily-shigaraki.webp",
     alt: "デイリー信楽カントリー倶楽部のクラブハウス",
-    url: "AFFILIATE_URL_DAILY_SHIGARAKI"
+    url: "https://ap.dailyshagroup.jp/r/fus"
   },
   {
     name: "名阪ロイヤルゴルフクラブ",
     image: "images/meihan-royal.jpg",
     alt: "名阪ロイヤルゴルフクラブのコース風景",
-    url: "AFFILIATE_URL_MEIHAN_ROYAL"
+    url: "https://ap.dailyshagroup.jp/r/jus"
   },
   {
     name: "京阪カントリー倶楽部",
     image: "images/keihan-country.jpg",
     alt: "京阪カントリー倶楽部のクラブハウスとグリーン",
-    url: "AFFILIATE_URL_KEIHAN_COUNTRY"
+    url: "https://ap.dailyshagroup.jp/r/dus"
   },
   {
     name: "吉川ロイヤルゴルフクラブ",
     image: "images/yokawa-royal.webp",
     alt: "吉川ロイヤルゴルフクラブのコース風景",
-    url: "AFFILIATE_URL_YOKAWA_ROYAL"
+    url: "https://ap.dailyshagroup.jp/r/hus"
   }
 ];
 
