@@ -16,8 +16,8 @@
 window.GOLF_COURSES = [
   {
     name: "デイリー信楽カントリー倶楽部",
-    image: "images/daily-shigaraki.jpg",
-    alt: "デイリー信楽カントリー倶楽部のコース風景",
+    image: "images/daily-shigaraki.webp",
+    alt: "デイリー信楽カントリー倶楽部のクラブハウス",
     url: "AFFILIATE_URL_DAILY_SHIGARAKI"
   },
   {
