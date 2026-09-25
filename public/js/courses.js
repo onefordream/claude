@@ -29,7 +29,7 @@ window.GOLF_COURSES = [
   {
     name: "京阪カントリー倶楽部",
     image: "images/keihan-country.jpg",
-    alt: "京阪カントリー倶楽部のコース風景",
+    alt: "京阪カントリー倶楽部のクラブハウスとグリーン",
     url: "AFFILIATE_URL_KEIHAN_COUNTRY"
   },
   {
