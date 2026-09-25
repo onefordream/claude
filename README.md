@@ -54,6 +54,15 @@ npx serve public
 
 ## 公開
 
+### GitHub Pages（設定済み）
+
+`main` ブランチに push すると `.github/workflows/pages.yml` が `public/` を自動で公開します。
+初回のみ GitHub の Settings → Pages → Build and deployment → Source を **GitHub Actions** にしてください。
+
+公開URL：https://onefordream.github.io/claude/
+
+### その他のホスティング
+
 `public/` を公開ディレクトリとして、任意の静的ホスティングに配置してください。
 
 - Netlify：Publish directory を `public`
