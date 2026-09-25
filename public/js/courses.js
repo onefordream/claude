@@ -34,7 +34,7 @@ window.GOLF_COURSES = [
   },
   {
     name: "吉川ロイヤルゴルフクラブ",
-    image: "images/yokawa-royal.jpg",
+    image: "images/yokawa-royal.webp",
     alt: "吉川ロイヤルゴルフクラブのコース風景",
     url: "AFFILIATE_URL_YOKAWA_ROYAL"
   }
