@@ -1,0 +1,14 @@
+{
+  "name": "Growth Note",
+  "short_name": "Growth Note",
+  "description": "自分の成長を、負担なく記録して資産にする成長記録ノート",
+  "lang": "ja",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F6F4EF",
+  "theme_color": "#F6F4EF",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

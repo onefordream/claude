@@ -1,0 +1,16 @@
+{
+  "name": "growth-note",
+  "version": "0.1.0",
+  "private": true,
+  "description": "個人向け 成長記録ノート（依存パッケージ0 / Node.js 標準機能のみ）",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server.js",
+    "test": "node --disable-warning=ExperimentalWarning --test test/*.test.js",
+    "set-plan": "node --disable-warning=ExperimentalWarning scripts/set-plan.js"
+  }
+}
