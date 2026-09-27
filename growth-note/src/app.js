@@ -60,7 +60,8 @@ export function createApp(config, { log = console } = {}) {
   function clientIp(req) {
     if (config.trustProxy) {
       const fwd = req.headers['x-forwarded-for'];
-      if (fwd) return String(fwd).split(',')[0].trim();
+      // 先頭はクライアントが偽装できるため、信頼するプロキシが付けた末尾の値を使う
+      if (fwd) return String(fwd).split(',').pop().trim();
     }
     return req.socket.remoteAddress || 'unknown';
   }

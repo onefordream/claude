@@ -37,6 +37,15 @@ npm run set-plan -- you@example.com pro
 npm run set-plan -- you@example.com free
 ```
 
+## Render へのデプロイ
+
+リポジトリ直下の `render.yaml`（Blueprint）で設定済みです。
+Render ダッシュボード → **New → Blueprint** → このリポジトリとブランチを選ぶ → **Apply**。
+
+- 無料プランは 15 分アクセスがないとスリープし、再起動するとデータ（SQLite・写真）が消えます。お試し用です。
+- データを残すには `render.yaml` の `plan` を `starter` にし、`disk` と `DATA_DIR=/var/data` を有効にします。
+- AI を使う場合は、サービスの Environment に `ANTHROPIC_API_KEY` を追加します。
+
 ## 構成
 
 ```

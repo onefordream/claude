@@ -1,0 +1,25 @@
+# Render Blueprint: Growth Note（growth-note/ ディレクトリのアプリ）
+# Render ダッシュボード → New → Blueprint でこのリポジトリを選ぶとデプロイされます。
+services:
+  - type: web
+    name: growth-note
+    runtime: node
+    rootDir: growth-note
+    region: singapore        # 日本から近いリージョン
+    plan: free               # 無料枠（15分アクセスがないとスリープ、再起動でデータが消える）
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production    # HTTPS 前提で Secure Cookie を有効化
+      - key: TRUST_PROXY
+        value: "1"
+    # データを残したい場合は、上の plan を starter（有料）にして、次のディスク設定を有効にする
+    # disk:
+    #   name: growth-note-data
+    #   mountPath: /var/data
+    #   sizeGB: 1
+    # あわせて envVars に DATA_DIR=/var/data を追加
