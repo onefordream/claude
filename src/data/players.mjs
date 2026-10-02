@@ -275,6 +275,15 @@ export const players = [
     instagram: "https://www.instagram.com/zorolove0525?stkn=MWx1ZzFidGN6cGo0ZA==",
     photo: "/images/players/takeuchi-rina.png",
   },
+  {
+    id: "player-27",
+    status: "announced",
+    name: "小林芽似",
+    nameKana: "こばやし めい",
+    nameRomaji: "Kobayashi Mei",
+    instagram: "https://www.instagram.com/may._.k0712?stkn=MW1tZHZzcDBsbjRiMQ==",
+    photo: "/images/players/kobayashi-mei.png",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
