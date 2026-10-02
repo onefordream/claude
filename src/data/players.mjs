@@ -265,6 +265,15 @@ export const players = [
     instagram: "https://www.instagram.com/wakanaaa_n?stkn=MTlxeW1iOWdza2thag==",
     photo: "/images/players/nakamura-wakana.png",
   },
+  {
+    id: "player-26",
+    status: "announced",
+    name: "竹内李奈",
+    nameKana: "たけうち りな",
+    nameRomaji: "Takeuchi Rina",
+    instagram: "https://www.instagram.com/zorolove0525?stkn=MWx1ZzFidGN6cGo0ZA==",
+    photo: "/images/players/takeuchi-rina.png",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
