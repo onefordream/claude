@@ -212,6 +212,7 @@ export const players = [
     nameKana: "おおうち みずき",
     nameRomaji: "Oouchi Mizuki",
     instagram: "https://www.instagram.com/mizuki15821?stkn=a2JjcWkyaW52ZnN1",
+    photo: "/images/players/oouchi-mizuki.png",
   },
   {
     id: "player-20",
