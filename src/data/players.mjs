@@ -271,21 +271,29 @@ export const players = [
     id: "player-28",
     status: "announced",
     name: "関口絵万",
+    nameKana: "せきぐち えま",
+    nameRomaji: "Sekiguchi Ema",
   },
   {
     id: "player-29",
     status: "announced",
     name: "山本真生",
+    nameKana: "やまもと まお",
+    nameRomaji: "Yamamoto Mao",
   },
   {
     id: "player-30",
     status: "announced",
     name: "仲野綺良々",
+    nameKana: "なかの きらら",
+    nameRomaji: "Nakano Kirara",
   },
   {
     id: "player-31",
     status: "announced",
     name: "鈴木海咲",
+    nameKana: "すずき みさき",
+    nameRomaji: "Suzuki Misaki",
   },
 
   ...Array.from({ length: 0 }, (_, i) => ({
