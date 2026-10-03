@@ -267,6 +267,26 @@ export const players = [
     instagram: "https://www.instagram.com/may._.k0712?stkn=MW1tZHZzcDBsbjRiMQ==",
     photo: "/images/players/kobayashi-mei.png",
   },
+  {
+    id: "player-28",
+    status: "announced",
+    name: "関口絵万",
+  },
+  {
+    id: "player-29",
+    status: "announced",
+    name: "山本真生",
+  },
+  {
+    id: "player-30",
+    status: "announced",
+    name: "仲野綺良々",
+  },
+  {
+    id: "player-31",
+    status: "announced",
+    name: "鈴木海咲",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
