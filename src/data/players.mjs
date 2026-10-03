@@ -162,15 +162,6 @@ export const players = [
     photo: "/images/players/okada-risa.png",
   },
   {
-    id: "player-14",
-    status: "announced",
-    name: "長田莉子",
-    nameKana: "ながた りこ",
-    nameRomaji: "Nagata Riko",
-    instagram: "https://www.instagram.com/_rico_cha?igsi=MTcwOTBtZ3dnYW9ubQ==",
-    photo: "/images/players/nagata-riko.png",
-  },
-  {
     id: "player-15",
     status: "announced",
     name: "井手絵愛里",
@@ -221,14 +212,6 @@ export const players = [
     nameKana: "こばやし きょうか",
     nameRomaji: "Kobayashi Kyouka",
     instagram: "https://www.instagram.com/kyokagolf_0725?stkn=MWdkbW0zeTYydXo5ZA==",
-  },
-  {
-    id: "player-21",
-    status: "announced",
-    name: "有森可琳",
-    nameKana: "ありもり かりん",
-    nameRomaji: "Arimori Karin",
-    instagram: "https://www.instagram.com/karin_arimori_0103?stkn=MTdlbXd6ZmZrajhtYg==",
   },
   {
     id: "player-22",
