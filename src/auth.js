@@ -9,6 +9,25 @@ export function hashPassword(password) {
   return { salt, hash };
 }
 
+// Excludes visually-ambiguous characters (0/O, 1/I/l) since this is read off
+// a screen and relayed to a student by voice or message, not typed from a
+// password manager.
+const TEMP_PASSWORD_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+
+export function generateTempPassword(length = 10) {
+  const bytes = randomBytes(length);
+  let password = '';
+  for (let i = 0; i < length; i++) {
+    password += TEMP_PASSWORD_CHARS[bytes[i] % TEMP_PASSWORD_CHARS.length];
+  }
+  return password;
+}
+
+export function setUserPassword(userId, password) {
+  const { salt, hash } = hashPassword(password);
+  run(`UPDATE users SET password_hash = ?, password_salt = ? WHERE id = ?`, [hash, salt, userId]);
+}
+
 export function verifyPassword(password, salt, expectedHash) {
   const hash = scryptSync(password, salt, 64);
   const expected = Buffer.from(expectedHash, 'hex');

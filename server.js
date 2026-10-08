@@ -19,6 +19,8 @@ import {
   getSessionUser,
   parseCookies,
   sessionCookieHeader,
+  generateTempPassword,
+  setUserPassword,
 } from './src/auth.js';
 import { verifyPassword } from './src/auth.js';
 import { isAiConfigured, summarizeLessonRecord, suggestPractice } from './src/lib/ai.js';
@@ -384,6 +386,11 @@ const routes = [
     method: 'GET',
     pattern: /^\/admin\/students\/(?<id>\d+)$/,
     handler: requireInstructor(handleStudentDetail),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/students\/(?<id>\d+)\/reset-password$/,
+    handler: requireInstructor(handleResetStudentPassword),
   },
 ];
 
@@ -925,6 +932,26 @@ function handleStudentDetail(ctx) {
     studentDetailPage({ user: ctx.user, flash: ctx.flash, student, records, practiceRecords, rounds, goal }),
     [clearFlashCookie()]
   );
+}
+
+// Students have no email/SMS delivery configured, so there's no self-serve
+// "forgot password" flow — the instructor resets it here and relays the new
+// password to the student directly (in person, by phone, LINE, etc.).
+function handleResetStudentPassword(ctx) {
+  const student = get(`SELECT * FROM users WHERE id = ? AND role = 'student'`, [ctx.params.id]);
+  if (!student) {
+    ctx.res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return ctx.res.end('生徒が見つかりません');
+  }
+  const tempPassword = generateTempPassword();
+  setUserPassword(student.id, tempPassword);
+  run(`DELETE FROM sessions WHERE user_id = ?`, [student.id]);
+  redirect(ctx.res, `/admin/students/${student.id}`, [
+    encodeFlash(
+      'success',
+      `${student.name}さんの新しいパスワードを発行しました：${tempPassword}　このパスワードを生徒本人に伝えてください。`
+    ),
+  ]);
 }
 
 // ---------- server ----------

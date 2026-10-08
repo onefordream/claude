@@ -91,6 +91,14 @@ export function studentDetailPage({ user, flash, student, records, practiceRecor
       </div>
       <p class="muted">${escapeHtml(student.email)}</p>
 
+      <div class="card account-tools">
+        <h2>アカウント管理</h2>
+        <p class="muted">生徒がパスワードを忘れた場合、ここで新しいパスワードを発行できます。発行後、表示されたパスワードを生徒本人に伝えてください。</p>
+        <form method="post" action="/admin/students/${student.id}/reset-password" onsubmit="return confirm('${escapeHtml(student.name)}さんの新しいパスワードを発行しますか？現在のパスワードは使えなくなります。');">
+          <button type="submit" class="btn btn-secondary">パスワードを再発行する</button>
+        </form>
+      </div>
+
       ${goalCard(goal, { readOnly: true })}
 
       <div class="grid-2">
