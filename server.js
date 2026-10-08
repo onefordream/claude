@@ -47,7 +47,7 @@ import {
   roundsPage,
   newGoalPage,
 } from './src/views/student.js';
-import { studentListPage, studentDetailPage } from './src/views/admin.js';
+import { studentListPage, studentDetailPage, instructorListPage } from './src/views/admin.js';
 import { videoLibraryPage } from './src/views/videos.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -391,6 +391,18 @@ const routes = [
     method: 'POST',
     pattern: /^\/admin\/students\/(?<id>\d+)\/reset-password$/,
     handler: requireInstructor(handleResetStudentPassword),
+  },
+  { method: 'GET', pattern: /^\/admin\/instructors$/, handler: requireInstructor(handleInstructorList) },
+  { method: 'POST', pattern: /^\/admin\/instructors$/, handler: requireInstructor(handleCreateInstructor) },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/instructors\/(?<id>\d+)\/reset-password$/,
+    handler: requireInstructor(handleResetInstructorPassword),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/instructors\/(?<id>\d+)\/delete$/,
+    handler: requireInstructor(handleDeleteInstructor),
   },
 ];
 
@@ -952,6 +964,87 @@ function handleResetStudentPassword(ctx) {
       `${student.name}さんの新しいパスワードを発行しました：${tempPassword}　このパスワードを生徒本人に伝えてください。`
     ),
   ]);
+}
+
+function handleInstructorList(ctx) {
+  const instructors = all(`SELECT * FROM users WHERE role = 'instructor' ORDER BY id`);
+  sendHtml(ctx.res, 200, instructorListPage({ user: ctx.user, flash: ctx.flash, instructors }), [clearFlashCookie()]);
+}
+
+async function handleCreateInstructor(ctx) {
+  const { fields } = await parseRequestBody(ctx.req);
+  const name = (fields.name || '').trim();
+  const email = (fields.email || '').trim();
+
+  if (!name || !email) {
+    return sendHtml(
+      ctx.res,
+      400,
+      instructorListPage({
+        user: ctx.user,
+        flash: { type: 'error', message: '名前とメールアドレスを入力してください。' },
+        instructors: all(`SELECT * FROM users WHERE role = 'instructor' ORDER BY id`),
+      })
+    );
+  }
+  if (findUserByEmail(email)) {
+    return sendHtml(
+      ctx.res,
+      400,
+      instructorListPage({
+        user: ctx.user,
+        flash: { type: 'error', message: 'そのメールアドレスは既に登録されています。' },
+        instructors: all(`SELECT * FROM users WHERE role = 'instructor' ORDER BY id`),
+      })
+    );
+  }
+
+  const tempPassword = generateTempPassword();
+  createUser({ name, email, password: tempPassword, role: 'instructor' });
+  redirect(ctx.res, '/admin/instructors', [
+    encodeFlash(
+      'success',
+      `${name}さんを指導者として追加しました。初期パスワード：${tempPassword}　このパスワードを本人に伝えてください。`
+    ),
+  ]);
+}
+
+function handleResetInstructorPassword(ctx) {
+  const instructor = get(`SELECT * FROM users WHERE id = ? AND role = 'instructor'`, [ctx.params.id]);
+  if (!instructor) {
+    ctx.res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return ctx.res.end('指導者が見つかりません');
+  }
+  const tempPassword = generateTempPassword();
+  setUserPassword(instructor.id, tempPassword);
+  run(`DELETE FROM sessions WHERE user_id = ?`, [instructor.id]);
+  redirect(ctx.res, '/admin/instructors', [
+    encodeFlash(
+      'success',
+      `${instructor.name}さんの新しいパスワードを発行しました：${tempPassword}　このパスワードを本人に伝えてください。`
+    ),
+  ]);
+}
+
+function handleDeleteInstructor(ctx) {
+  const instructor = get(`SELECT * FROM users WHERE id = ? AND role = 'instructor'`, [ctx.params.id]);
+  if (!instructor) {
+    ctx.res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return ctx.res.end('指導者が見つかりません');
+  }
+  if (instructor.id === ctx.user.id) {
+    return redirect(ctx.res, '/admin/instructors', [
+      encodeFlash('error', '自分自身を削除することはできません。'),
+    ]);
+  }
+  const instructorCount = get(`SELECT COUNT(*) AS n FROM users WHERE role = 'instructor'`).n;
+  if (instructorCount <= 1) {
+    return redirect(ctx.res, '/admin/instructors', [
+      encodeFlash('error', '最後の指導者アカウントは削除できません。'),
+    ]);
+  }
+  run(`DELETE FROM users WHERE id = ?`, [instructor.id]);
+  redirect(ctx.res, '/admin/instructors', [encodeFlash('success', `${instructor.name}さんを削除しました。`)]);
 }
 
 // ---------- server ----------

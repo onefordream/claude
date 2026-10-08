@@ -1,6 +1,57 @@
 import { layout, escapeHtml, nl2br } from './layout.js';
 import { goalCard } from './student.js';
 
+export function instructorListPage({ user, flash, instructors }) {
+  const rows = instructors
+    .map(
+      (i) => `
+      <li class="list-item">
+        <span class="list-title">${escapeHtml(i.name)}${i.id === user.id ? ' <span class="muted">(自分)</span>' : ''}</span>
+        <span class="muted">${escapeHtml(i.email)}</span>
+        <span class="account-actions">
+          <form method="post" action="/admin/instructors/${i.id}/reset-password" onsubmit="return confirm('${escapeHtml(i.name)}さんの新しいパスワードを発行しますか？現在のパスワードは使えなくなります。');" class="inline-form">
+            <button type="submit" class="link-button">パスワード再発行</button>
+          </form>
+          ${
+            instructors.length > 1 && i.id !== user.id
+              ? `
+          <form method="post" action="/admin/instructors/${i.id}/delete" onsubmit="return confirm('${escapeHtml(i.name)}さんを指導者から削除しますか？');" class="inline-form">
+            <button type="submit" class="link-button link-button-danger">削除</button>
+          </form>`
+              : ''
+          }
+        </span>
+      </li>`
+    )
+    .join('');
+
+  return layout({
+    title: '指導者管理',
+    user,
+    active: 'instructors',
+    flash,
+    body: `
+      <h1>指導者管理</h1>
+      <p class="muted">このスタジオを運営する指導者アカウントを管理します。</p>
+      <div class="card"><ul class="list">${rows}</ul></div>
+
+      <div class="card">
+        <h2>新しい指導者を追加</h2>
+        <form method="post" action="/admin/instructors" class="form">
+          <label>名前
+            <input type="text" name="name" required>
+          </label>
+          <label>メールアドレス
+            <input type="email" name="email" required>
+          </label>
+          <button type="submit" class="btn btn-primary">追加する</button>
+        </form>
+        <p class="muted">追加すると、ログイン用の初期パスワードがその場で表示されます。そのパスワードを本人に伝えてください。</p>
+      </div>
+    `,
+  });
+}
+
 export function studentListPage({ user, flash, students, q = '' }) {
   const rows = students.length
     ? students
