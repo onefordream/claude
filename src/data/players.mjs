@@ -295,6 +295,46 @@ export const players = [
     nameKana: "すずき みさき",
     nameRomaji: "Suzuki Misaki",
   },
+  {
+    id: "player-32",
+    status: "announced",
+    name: "松井雛",
+  },
+  {
+    id: "player-33",
+    status: "announced",
+    name: "山口璃千",
+  },
+  {
+    id: "player-34",
+    status: "announced",
+    name: "松本静",
+  },
+  {
+    id: "player-35",
+    status: "announced",
+    name: "小井手音葉",
+  },
+  {
+    id: "player-36",
+    status: "announced",
+    name: "加藤沙弥",
+  },
+  {
+    id: "player-37",
+    status: "announced",
+    name: "後中美璃",
+  },
+  {
+    id: "player-38",
+    status: "announced",
+    name: "神部芽依",
+  },
+  {
+    id: "player-39",
+    status: "announced",
+    name: "三井優奈",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
