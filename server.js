@@ -37,6 +37,7 @@ import {
 import { getBoundary, parseMultipart } from './src/lib/multipart.js';
 
 import { loginPage, registerPage } from './src/views/auth.js';
+import { termsPage, privacyPage } from './src/views/legal.js';
 import {
   dashboardPage,
   recordsListPage,
@@ -359,6 +360,8 @@ const routes = [
   { method: 'POST', pattern: /^\/login$/, handler: handleLogin },
   { method: 'GET', pattern: /^\/register$/, handler: handleRegisterPage },
   { method: 'POST', pattern: /^\/register$/, handler: handleRegister },
+  { method: 'GET', pattern: /^\/terms$/, handler: (ctx) => sendHtml(ctx.res, 200, termsPage({ user: ctx.user, flash: ctx.flash }), [clearFlashCookie()]) },
+  { method: 'GET', pattern: /^\/privacy$/, handler: (ctx) => sendHtml(ctx.res, 200, privacyPage({ user: ctx.user, flash: ctx.flash }), [clearFlashCookie()]) },
   { method: 'POST', pattern: /^\/logout$/, handler: handleLogout },
   { method: 'GET', pattern: /^\/dashboard$/, handler: requireAuth(handleDashboard) },
   { method: 'GET', pattern: /^\/records$/, handler: requireStudent(handleRecordsList) },

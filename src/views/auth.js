@@ -20,6 +20,7 @@ export function loginPage({ flash } = {}) {
           <button type="submit" class="btn btn-primary">ログイン</button>
         </form>
         <p class="auth-switch">アカウントをお持ちでない生徒の方は <a href="/register">新規登録</a></p>
+        <p class="legal-links muted"><a href="/terms">利用規約</a> ・ <a href="/privacy">プライバシーポリシー</a></p>
       </div>
     `,
   });
@@ -50,6 +51,7 @@ export function registerPage({ flash, values = {} } = {}) {
           <button type="submit" class="btn btn-primary">登録する</button>
         </form>
         <p class="auth-switch">すでにアカウントをお持ちの方は <a href="/login">ログイン</a></p>
+        <p class="legal-links muted">登録することで <a href="/terms">利用規約</a> および <a href="/privacy">プライバシーポリシー</a> に同意したものとみなされます。</p>
       </div>
     `,
   });
