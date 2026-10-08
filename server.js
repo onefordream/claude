@@ -9,6 +9,7 @@ import { randomBytes } from 'node:crypto';
 
 import { brand } from './src/config.js';
 import { jstToday, jstHour, addDays } from './src/lib/date.js';
+import { allowAttempt } from './src/lib/rateLimit.js';
 import { run, get, all } from './src/db.js';
 import {
   createUser,
@@ -64,6 +65,14 @@ const MAX_UPLOAD_BODY_BYTES = 70 * 1024 * 1024;
 
 // ---------- helpers ----------
 
+// Render (and most PaaS) terminate TLS at a proxy and forward plain HTTP to
+// this process, setting X-Forwarded-For with the real client IP.
+function getClientIp(req) {
+  const forwarded = req.headers['x-forwarded-for'];
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return req.socket.remoteAddress || 'unknown';
+}
+
 function ensureOwnerSeed() {
   const email = process.env.OWNER_EMAIL;
   const password = process.env.OWNER_PASSWORD;
@@ -116,15 +125,22 @@ function streamVideoFile(req, res, filename, mimeType) {
 
   if (range) {
     const match = /bytes=(\d*)-(\d*)/.exec(range);
-    const start = match[1] ? parseInt(match[1], 10) : 0;
-    const end = match[2] ? parseInt(match[2], 10) : stat.size - 1;
+    const start = match && match[1] ? parseInt(match[1], 10) : 0;
+    const end = match && match[2] ? parseInt(match[2], 10) : stat.size - 1;
+    const safeStart = Number.isFinite(start) ? Math.max(0, start) : 0;
+    const safeEnd = Number.isFinite(end) ? Math.min(stat.size - 1, end) : stat.size - 1;
+    if (!match || safeStart > safeEnd || safeStart >= stat.size) {
+      res.writeHead(416, { 'Content-Range': `bytes */${stat.size}` });
+      res.end();
+      return;
+    }
     res.writeHead(206, {
-      'Content-Range': `bytes ${start}-${end}/${stat.size}`,
+      'Content-Range': `bytes ${safeStart}-${safeEnd}/${stat.size}`,
       'Accept-Ranges': 'bytes',
-      'Content-Length': end - start + 1,
+      'Content-Length': safeEnd - safeStart + 1,
       'Content-Type': type,
     });
-    createReadStream(filePath, { start, end }).pipe(res);
+    createReadStream(filePath, { start: safeStart, end: safeEnd }).pipe(res);
   } else {
     res.writeHead(200, {
       'Content-Length': stat.size,
@@ -298,7 +314,14 @@ function saveVideoFile(file) {
   return storedName;
 }
 
-async function parseRequestBody(req, { maxBytes } = {}) {
+// Routes that don't take a video (login, register, goal/round text forms) never
+// pass maxBytes explicitly. Without a cap here they'd fall through to
+// readBody's 300MB default — enough for an unauthenticated POST to /login to
+// buffer 300MB per request before any rate limit check runs. 1MB is far more
+// than any text-only form field needs.
+const DEFAULT_BODY_BYTES = 1 * 1024 * 1024;
+
+async function parseRequestBody(req, { maxBytes = DEFAULT_BODY_BYTES } = {}) {
   const contentType = req.headers['content-type'] || '';
 
   // Reject early from the Content-Length header, before buffering anything,
@@ -397,7 +420,19 @@ function handleLoginPage(ctx) {
 
 async function handleLogin(ctx) {
   const { fields } = await parseRequestBody(ctx.req);
-  const user = findUserByEmail(fields.email || '');
+  const email = (fields.email || '').trim().toLowerCase();
+
+  if (!allowAttempt(`login:${email}`, { max: 10, windowMs: 15 * 60 * 1000 })) {
+    return sendHtml(
+      ctx.res,
+      429,
+      loginPage({
+        flash: { type: 'error', message: 'ログイン試行回数が多すぎます。15分ほど待ってから再度お試しください。' },
+      })
+    );
+  }
+
+  const user = findUserByEmail(email);
   if (!user || !verifyPassword(fields.password || '', user.password_salt, user.password_hash)) {
     return sendHtml(
       ctx.res,
@@ -418,6 +453,14 @@ function handleRegisterPage(ctx) {
 }
 
 async function handleRegister(ctx) {
+  if (!allowAttempt(`register:${getClientIp(ctx.req)}`, { max: 10, windowMs: 60 * 60 * 1000 })) {
+    return sendHtml(
+      ctx.res,
+      429,
+      registerPage({ flash: { type: 'error', message: '登録試行回数が多すぎます。しばらく待ってから再度お試しください。' } })
+    );
+  }
+
   const { fields } = await parseRequestBody(ctx.req);
   const name = (fields.name || '').trim();
   const furigana = (fields.furigana || '').trim();

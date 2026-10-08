@@ -70,9 +70,13 @@ export function parseCookies(req) {
 }
 
 export function sessionCookieHeader(token, { clear = false } = {}) {
+  // Render sets RENDER=true for every deployed service; local dev (plain
+  // http://localhost) has no such var. Browsers silently drop a `Secure`
+  // cookie set over plain HTTP, so it must stay off locally or login breaks.
+  const secure = process.env.RENDER ? '; Secure' : '';
   if (clear) {
-    return `session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0`;
+    return `session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0${secure}`;
   }
   const maxAge = Math.floor(SESSION_TTL_MS / 1000);
-  return `session=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${maxAge}`;
+  return `session=${token}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${maxAge}${secure}`;
 }
