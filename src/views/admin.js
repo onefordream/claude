@@ -75,7 +75,10 @@ export function studentListPage({ user, flash, students, q = '' }) {
     active: 'admin',
     flash,
     body: `
-      <h1>生徒一覧</h1>
+      <div class="page-header">
+        <h1>生徒一覧</h1>
+        <a href="/admin/export" class="btn btn-secondary">全データをエクスポート</a>
+      </div>
       <p class="muted">生徒がこれまでどんなレッスン・練習をしてきたかを確認できます。</p>
       <form method="get" action="/admin" class="search-form">
         <input type="text" name="q" placeholder="名前・フリガナで検索" value="${escapeHtml(q)}">

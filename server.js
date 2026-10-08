@@ -382,6 +382,7 @@ const routes = [
     handler: requireInstructor(handleDeleteLibraryVideo),
   },
   { method: 'GET', pattern: /^\/admin$/, handler: requireInstructor(handleStudentList) },
+  { method: 'GET', pattern: /^\/admin\/export$/, handler: requireInstructor(handleExportData) },
   {
     method: 'GET',
     pattern: /^\/admin\/students\/(?<id>\d+)$/,
@@ -904,6 +905,32 @@ function handleDeleteLibraryVideo(ctx) {
     if (existsSync(filePath)) unlinkSync(filePath);
   }
   redirect(ctx.res, '/videos', [encodeFlash('success', '動画を削除しました。')]);
+}
+
+// Full data export for backup/portability. Deliberately excludes
+// password_hash/password_salt and session tokens — this file may be
+// downloaded onto a laptop or emailed, and credentials have no business
+// leaving the server.
+function handleExportData(ctx) {
+  const data = {
+    exported_at: new Date().toISOString(),
+    studio_name: brand.studioName,
+    users: all(`SELECT id, name, email, furigana, role, created_at FROM users ORDER BY id`),
+    lesson_records: all(`SELECT * FROM lesson_records ORDER BY id`),
+    round_records: all(`SELECT * FROM round_records ORDER BY id`),
+    goals: all(`SELECT * FROM goals ORDER BY id`),
+    videos: all(`SELECT id, lesson_record_id, filename, original_name, mime_type, size_bytes, created_at FROM videos ORDER BY id`),
+    library_videos: all(
+      `SELECT id, title, description, filename, original_name, mime_type, size_bytes, uploaded_by, created_at FROM library_videos ORDER BY id`
+    ),
+  };
+  const json = JSON.stringify(data, null, 2);
+  const filename = `${jstToday()}-data-export.json`;
+  ctx.res.writeHead(200, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Content-Disposition': `attachment; filename="${filename}"`,
+  });
+  ctx.res.end(json);
 }
 
 function handleStudentList(ctx) {
