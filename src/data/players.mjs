@@ -324,6 +324,7 @@ export const players = [
     nameKana: "まつもと しず",
     nameRomaji: "Matsumoto Shizu",
     instagram: "https://www.instagram.com/shizu_golf54?mdxt=MW9heDdkOXV4eTh5Mg==",
+    photo: "/images/players/matsumoto-shizu.png",
   },
   {
     id: "player-35",
