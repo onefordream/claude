@@ -315,6 +315,7 @@ export const players = [
     nameKana: "やまぐち りち",
     nameRomaji: "Yamaguchi Richi",
     instagram: "https://www.instagram.com/richi.yamaguchi?rpxt=a3E5dWsxZ21kdHZw",
+    photo: "/images/players/yamaguchi-richi.png",
   },
   {
     id: "player-34",
