@@ -278,8 +278,10 @@ export const players = [
     id: "player-29",
     status: "announced",
     name: "山本真生",
-    nameKana: "やまもと まお",
-    nameRomaji: "Yamamoto Mao",
+    nameKana: "やまもと まさき",
+    nameRomaji: "Yamamoto Masaki",
+    instagram: "https://www.instagram.com/masaking.25?dlrf=OGU2bm0zYnlxanEz",
+    photo: "/images/players/yamamoto-masaki.png",
   },
   {
     id: "player-30",
