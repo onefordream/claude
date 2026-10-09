@@ -366,6 +366,22 @@ export const players = [
     nameRomaji: "Mitsui Yuna",
     instagram: "https://www.instagram.com/yunaaaaa_1723?dlrf=YzAyNXRwaG44Zmh4",
   },
+  {
+    id: "player-40",
+    status: "announced",
+    name: "田中こころ",
+    nameKana: "たなか こころ",
+    nameRomaji: "Tanaka Kokoro",
+    instagram: "https://www.instagram.com/kokoro_tanaka_024?dlrf=MWdzZTZlYjd3aTdtYg==",
+  },
+  {
+    id: "player-41",
+    status: "announced",
+    name: "河村萌波",
+    nameKana: "かわむら もなみ",
+    nameRomaji: "Kawamura Monami",
+    instagram: "https://www.instagram.com/monami_kawamura?xtok=MTh6aG1wc2ZrYWxuag==",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
