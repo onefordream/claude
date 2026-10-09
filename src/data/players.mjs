@@ -314,6 +314,9 @@ export const players = [
     id: "player-35",
     status: "announced",
     name: "小井手音葉",
+    nameKana: "こいで おとは",
+    nameRomaji: "Koide Otoha",
+    instagram: "https://www.instagram.com/otha_golf?rpxt=YjNvb3V0M3BqcGQy",
   },
   {
     id: "player-36",
