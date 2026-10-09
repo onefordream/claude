@@ -330,6 +330,10 @@ export const players = [
     id: "player-37",
     status: "announced",
     name: "後中美璃",
+    nameKana: "うしろなか みり",
+    nameRomaji: "Ushironaka Miri",
+    instagram: "https://www.instagram.com/ushironaka_miri?mdxt=anh4empnZXl5enB4",
+    photo: "/images/players/ushironaka-miri.png",
   },
   {
     id: "player-38",
