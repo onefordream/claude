@@ -1,6 +1,31 @@
 import { layout, escapeHtml, nl2br } from './layout.js';
 import { goalCard } from './student.js';
 
+function usageSummary({ studentCount, videoTotal, dataDirConfigured, diskFree, diskUsedPercent }) {
+  const diskWarning = diskUsedPercent !== null && diskUsedPercent >= 85;
+  return `
+    <section class="stat-strip">
+      <div class="stat-pill"><span class="stat-pill-num">${studentCount}</span><span class="stat-pill-label">生徒数</span></div>
+      <div class="stat-pill"><span class="stat-pill-num">${videoTotal}</span><span class="stat-pill-label">動画保存容量(合計)</span></div>
+      ${
+        diskFree !== null
+          ? `<div class="stat-pill"><span class="stat-pill-num">${diskFree}</span><span class="stat-pill-label">ディスク空き容量</span></div>`
+          : ''
+      }
+    </section>
+    ${
+      !dataDirConfigured
+        ? `<div class="flash flash-error">永続ディスク(DATA_DIR)が設定されていないようです。このままだと、再デプロイのたびにデータと動画が消える可能性があります。Renderの設定を確認してください。</div>`
+        : ''
+    }
+    ${
+      diskWarning
+        ? `<div class="flash flash-error">ディスクの使用率が${diskUsedPercent}%に達しています。動画の整理や、ディスク容量の追加をご検討ください。</div>`
+        : ''
+    }
+  `;
+}
+
 export function instructorListPage({ user, flash, instructors }) {
   const rows = instructors
     .map(
@@ -52,7 +77,7 @@ export function instructorListPage({ user, flash, instructors }) {
   });
 }
 
-export function studentListPage({ user, flash, students, q = '' }) {
+export function studentListPage({ user, flash, students, q = '', usage = null }) {
   const rows = students.length
     ? students
         .map(
@@ -80,6 +105,7 @@ export function studentListPage({ user, flash, students, q = '' }) {
         <a href="/admin/export" class="btn btn-secondary">全データをエクスポート</a>
       </div>
       <p class="muted">生徒がこれまでどんなレッスン・練習をしてきたかを確認できます。</p>
+      ${usage ? usageSummary(usage) : ''}
       <form method="get" action="/admin" class="search-form">
         <input type="text" name="q" placeholder="名前・フリガナで検索" value="${escapeHtml(q)}">
         <button type="submit" class="btn btn-secondary">検索</button>

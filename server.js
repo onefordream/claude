@@ -2,7 +2,7 @@ import { loadEnv } from './src/lib/env.js';
 loadEnv();
 
 import http from 'node:http';
-import { createReadStream, existsSync, mkdirSync, statSync, writeFileSync, unlinkSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, statSync, statfsSync, writeFileSync, unlinkSync } from 'node:fs';
 import { extname, join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomBytes } from 'node:crypto';
@@ -936,6 +936,42 @@ function handleExportData(ctx) {
   ctx.res.end(json);
 }
 
+function formatBytes(bytes) {
+  if (!bytes) return '0 MB';
+  const gb = bytes / (1024 * 1024 * 1024);
+  if (gb >= 1) return `${gb.toFixed(1)} GB`;
+  const mb = bytes / (1024 * 1024);
+  return `${mb.toFixed(1)} MB`;
+}
+
+// Gives the instructor visibility into storage usage so they can catch a
+// disk approaching capacity before it fails an upload, and so the operator
+// (the person deploying this per store) can see at a glance whether a
+// store's video usage warrants moving them to a bigger plan.
+function getStorageUsage() {
+  const videoTotal = get(
+    `SELECT COALESCE(SUM(size_bytes), 0) AS bytes FROM (
+       SELECT size_bytes FROM videos
+       UNION ALL
+       SELECT size_bytes FROM library_videos
+     )`
+  ).bytes;
+  const studentCount = get(`SELECT COUNT(*) AS n FROM users WHERE role = 'student'`).n;
+
+  let disk = null;
+  try {
+    const stat = statfsSync(UPLOADS_DIR);
+    const totalBytes = stat.blocks * stat.bsize;
+    const freeBytes = stat.bavail * stat.bsize;
+    disk = { totalBytes, freeBytes, usedBytes: totalBytes - freeBytes };
+  } catch {
+    // statfs isn't available on every platform/filesystem - the video total
+    // above still works without it.
+  }
+
+  return { videoTotalBytes: videoTotal, studentCount, disk };
+}
+
 function handleStudentList(ctx) {
   const q = (ctx.query.get('q') || '').trim();
   const where = q ? `AND (u.name LIKE ? OR u.furigana LIKE ?)` : '';
@@ -947,7 +983,17 @@ function handleStudentList(ctx) {
      FROM users u WHERE u.role = 'student' ${where} ORDER BY u.name`,
     params
   );
-  sendHtml(ctx.res, 200, studentListPage({ user: ctx.user, flash: ctx.flash, students, q }), [clearFlashCookie()]);
+  const rawUsage = getStorageUsage();
+  const usage = {
+    studentCount: rawUsage.studentCount,
+    videoTotal: formatBytes(rawUsage.videoTotalBytes),
+    dataDirConfigured: Boolean(process.env.DATA_DIR),
+    diskFree: rawUsage.disk ? formatBytes(rawUsage.disk.freeBytes) : null,
+    diskUsedPercent: rawUsage.disk ? Math.round((rawUsage.disk.usedBytes / rawUsage.disk.totalBytes) * 100) : null,
+  };
+  sendHtml(ctx.res, 200, studentListPage({ user: ctx.user, flash: ctx.flash, students, q, usage }), [
+    clearFlashCookie(),
+  ]);
 }
 
 function handleStudentDetail(ctx) {
