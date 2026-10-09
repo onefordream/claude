@@ -291,6 +291,7 @@ export const players = [
     nameKana: "なかの きらら",
     nameRomaji: "Nakano Kirara",
     instagram: "https://www.instagram.com/kiraraaaa__n?srtk=em91ZDF3bXR6bDNq",
+    photo: "/images/players/nakano-kirara.png",
   },
   {
     id: "player-31",
