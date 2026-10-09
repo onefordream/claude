@@ -383,6 +383,7 @@ export const players = [
     nameKana: "かわむら もなみ",
     nameRomaji: "Kawamura Monami",
     instagram: "https://www.instagram.com/monami_kawamura?xtok=MTh6aG1wc2ZrYWxuag==",
+    photo: "/images/players/kawamura-monami.png",
   },
 
   ...Array.from({ length: 0 }, (_, i) => ({
