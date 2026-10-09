@@ -367,6 +367,7 @@ export const players = [
     nameKana: "みつい ゆな",
     nameRomaji: "Mitsui Yuna",
     instagram: "https://www.instagram.com/yunaaaaa_1723?dlrf=YzAyNXRwaG44Zmh4",
+    photo: "/images/players/mitsui-yuna.png",
   },
   {
     id: "player-40",
