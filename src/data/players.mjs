@@ -273,6 +273,7 @@ export const players = [
     name: "関口絵万",
     nameKana: "せきぐち えま",
     nameRomaji: "Sekiguchi Ema",
+    instagram: "https://www.instagram.com/ema_world.0615?xtok=cHhibmFmN2VlczRn",
   },
   {
     id: "player-29",
@@ -289,6 +290,7 @@ export const players = [
     name: "仲野綺良々",
     nameKana: "なかの きらら",
     nameRomaji: "Nakano Kirara",
+    instagram: "https://www.instagram.com/kiraraaaa__n?srtk=em91ZDF3bXR6bDNq",
   },
   {
     id: "player-31",
@@ -301,16 +303,25 @@ export const players = [
     id: "player-32",
     status: "announced",
     name: "松井雛",
+    nameKana: "まつい ひな",
+    nameRomaji: "Matsui Hina",
+    instagram: "https://www.instagram.com/hinagolf54?vrfl=MTdhc2c4ejIxbjRybg==",
   },
   {
     id: "player-33",
     status: "announced",
     name: "山口璃千",
+    nameKana: "やまぐち りち",
+    nameRomaji: "Yamaguchi Richi",
+    instagram: "https://www.instagram.com/richi.yamaguchi?rpxt=a3E5dWsxZ21kdHZw",
   },
   {
     id: "player-34",
     status: "announced",
     name: "松本静",
+    nameKana: "まつもと しず",
+    nameRomaji: "Matsumoto Shizu",
+    instagram: "https://www.instagram.com/shizu_golf54?mdxt=MW9heDdkOXV4eTh5Mg==",
   },
   {
     id: "player-35",
@@ -325,6 +336,9 @@ export const players = [
     id: "player-36",
     status: "announced",
     name: "加藤沙弥",
+    nameKana: "かとう さや",
+    nameRomaji: "Kato Saya",
+    instagram: "https://www.instagram.com/kato_saya_?exln=MWQ1ZGVyY2lzbHg3YQ==",
   },
   {
     id: "player-37",
@@ -339,11 +353,17 @@ export const players = [
     id: "player-38",
     status: "announced",
     name: "神部芽依",
+    nameKana: "かんべ めい",
+    nameRomaji: "Kanbe Mei",
+    instagram: "https://www.instagram.com/mei___0117?psln=MXRsNzI1MGp0YjQzbA==",
   },
   {
     id: "player-39",
     status: "announced",
     name: "三井優奈",
+    nameKana: "みつい ゆな",
+    nameRomaji: "Mitsui Yuna",
+    instagram: "https://www.instagram.com/yunaaaaa_1723?dlrf=YzAyNXRwaG44Zmh4",
   },
 
   ...Array.from({ length: 0 }, (_, i) => ({
