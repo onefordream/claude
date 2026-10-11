@@ -39,7 +39,7 @@ export function renderAdminEntries({ entries, capacity, query = new URLSearchPar
     .map(
       (e, i) => `
       <tr>
-        <td class="checkbox-col"><input type="checkbox" name="ids" value="${esc(e.id)}" form="broadcast-form" /></td>
+        <td class="checkbox-col"><input type="checkbox" name="ids" value="${esc(e.id)}" form="broadcast-form" data-category="${esc(e.category)}" /></td>
         <td>${sorted.length - i}</td>
         <td><span class="badge badge--${e.category}">${esc(CATEGORY_LABEL[e.category] || e.category)}</span></td>
         <td><span class="badge badge--${e.status}">${esc(STATUS_LABEL[e.status] || e.status)}</span></td>
@@ -85,6 +85,13 @@ export function renderAdminEntries({ entries, capacity, query = new URLSearchPar
     <a href="/admin/entries.csv">CSVでダウンロード（Excelで開けます）</a>
   </div>
 
+  <div class="select-toolbar">
+    <button type="button" data-select="all">全員選択</button>
+    <button type="button" data-select="none">選択解除</button>
+    <button type="button" data-select="pro">プロのみ選択</button>
+    <button type="button" data-select="amateur">アマチュアのみ選択</button>
+  </div>
+
   <div class="table-wrap">
     ${
       sorted.length
@@ -103,17 +110,13 @@ export function renderAdminEntries({ entries, capacity, query = new URLSearchPar
 
   <form id="broadcast-form" class="broadcast" method="POST" action="/admin/broadcast">
     <h2>案内メールを送る</h2>
-    <p>上の表でチェックした人にメールを送ります（左上のチェックボックスで全員選択）。</p>
+    <p>上の表でチェックした人にメールを送ります（左上のチェックボックス、または上の一括選択ボタンが使えます）。</p>
     <input type="text" name="subject" placeholder="件名" required />
     <textarea name="body" placeholder="本文" required></textarea>
     <button type="submit">選択した人に送信</button>
   </form>
 
-  <script>
-    document.getElementById('select-all').addEventListener('change', function (e) {
-      document.querySelectorAll('input[name="ids"]').forEach(function (cb) { cb.checked = e.target.checked; });
-    });
-  </script>
+  <script src="/js/admin-entries.js"></script>
 </body>
 </html>`;
 }

@@ -43,6 +43,12 @@ export const ADMIN_STYLES = `
   }
   .broadcast button:hover { background: #a12e54; }
   .checkbox-col { width: 2rem; }
+  .select-toolbar { margin-bottom: 0.8rem; display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .select-toolbar button {
+    background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 0.45rem 0.9rem;
+    font-size: 0.8rem; color: #555; cursor: pointer;
+  }
+  .select-toolbar button:hover { background: #faf5f7; border-color: #b93862; color: #b93862; }
   .delete-btn {
     background: none; border: 1px solid #ddd; border-radius: 6px; padding: 0.3rem 0.7rem;
     font-size: 0.75rem; color: #a13a3a; cursor: pointer;
