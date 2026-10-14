@@ -274,6 +274,7 @@ export const players = [
     nameKana: "せきぐち えま",
     nameRomaji: "Sekiguchi Ema",
     instagram: "https://www.instagram.com/ema_world.0615?xtok=cHhibmFmN2VlczRn",
+    photo: "/images/players/sekiguchi-ema.png",
   },
   {
     id: "player-29",
