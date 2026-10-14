@@ -73,8 +73,12 @@ export async function render(root, { query }, { state, navigate }) {
   const today = jstToday();
   const draft = loadDraft();
   const limits = state.me.plan.limits;
-  const goalsRes = await api('/goals?status=active').catch(() => ({ goals: [] }));
+  const [goalsRes, linksRes] = await Promise.all([
+    api('/goals?status=active').catch(() => ({ goals: [] })),
+    api('/links').catch(() => ({ links: [] })),
+  ]);
   const goals = goalsRes.goals;
+  const activeLinks = linksRes.links.filter((l) => l.status === 'active');
 
   const form = {
     body: draft.body || '',
@@ -82,6 +86,8 @@ export async function render(root, { query }, { state, navigate }) {
     date: draft.date && draft.date >= addDays(today, -6) && draft.date <= today ? draft.date : today,
     goalId: query.get('goal') || draft.goalId || '',
     goalDelta: draft.goalDelta ?? 1,
+    // 共有先: 「すべて共有」にしている店舗は最初から選択しておく
+    storeIds: new Set(activeLinks.filter((l) => l.shareMode === 'all').map((l) => l.store.id)),
   };
   if (form.goalId && !goals.some((g) => g.id === form.goalId)) form.goalId = '';
   /** @type {{key:string, file?:File, kind:string, previewUrl?:string, progress:number, id?:string, error?:string, size:number}[]} */
@@ -148,6 +154,16 @@ export async function render(root, { query }, { state, navigate }) {
           <span class="mood-emoji">${m.emoji}</span><span class="mood-label">${m.label}</span></button>`)}
       </div>
     </section>
+
+    ${activeLinks.length ? html`
+      <section class="card">
+        <h2 class="card-title small">教室・お店に共有する</h2>
+        <div class="share-pick">
+          ${activeLinks.map((l) => html`<button class="chip share-chip ${form.storeIds.has(l.store.id) ? 'on' : ''}" data-action="share" data-id="${l.store.id}" aria-pressed="${form.storeIds.has(l.store.id)}">
+            ${icon('check', { size: 14, stroke: 3 })}${l.store.name}</button>`)}
+        </div>
+        <p class="hint">選んだ店舗の先生がこの記録を見て、コメントできるようになります。</p>
+      </section>` : ''}
 
     ${goals.length ? html`
       <section class="card">
@@ -349,6 +365,7 @@ export async function render(root, { query }, { state, navigate }) {
           date: form.date,
           mediaIds,
           goalId: form.goalId || null,
+          storeIds: [...form.storeIds],
           goalDelta: form.goalId ? Number(form.goalDelta) || 0 : 0,
         },
       });
@@ -383,6 +400,13 @@ export async function render(root, { query }, { state, navigate }) {
         b.setAttribute('aria-pressed', String(on));
       });
       persist();
+    },
+    share: (el) => {
+      const sid = el.dataset.id;
+      if (form.storeIds.has(sid)) form.storeIds.delete(sid);
+      else form.storeIds.add(sid);
+      el.classList.toggle('on', form.storeIds.has(sid));
+      el.setAttribute('aria-pressed', String(form.storeIds.has(sid)));
     },
     goal: (el) => {
       form.goalId = el.dataset.id;

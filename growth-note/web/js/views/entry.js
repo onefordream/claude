@@ -3,6 +3,28 @@ import { html, mount, $, onAction, toast, fmtRelDate, fmtTime, moodEmoji, celebr
 import { icon } from '../icons.js';
 import { takeCelebration } from './write.js';
 
+function commentsBlock(comments) {
+  if (!comments?.length) return '';
+  return html`<section class="card teacher-card">
+    <div class="card-head"><h2 class="card-title">${icon('user', { size: 18 })}先生からのコメント</h2></div>
+    <div class="comments">${comments.map((c) => html`<div class="comment ${c.unread ? 'unread' : ''}">
+      <div class="comment-head"><b>${c.authorName || '先生'}</b><span>${c.storeName} ・ ${fmtRelDate(c.createdAt.slice(0, 10))}</span>
+        ${c.unread ? html`<span class="pill pill-sm">NEW</span>` : ''}</div>
+      <p>${c.body}</p></div>`)}</div>
+  </section>`;
+}
+
+function shareBlock(entry, activeLinks) {
+  if (!activeLinks.length) return '';
+  const shared = new Set(entry.shares.map((x) => x.storeId));
+  return html`<section class="card share-block">
+    <h2 class="card-title small">教室・お店への共有</h2>
+    <div class="share-pick">${activeLinks.map((l) => html`<button class="chip share-chip ${shared.has(l.store.id) ? 'on' : ''}" data-action="share" data-id="${l.store.id}" aria-pressed="${shared.has(l.store.id)}">
+      ${icon('check', { size: 14, stroke: 3 })}${l.store.name}</button>`)}</div>
+    <p class="hint">${shared.size ? '選んだ店舗の先生がこの記録を見られます。タップで共有をやめられます。' : 'タップすると、この記録を先生に共有できます。'}</p>
+  </section>`;
+}
+
 export function insightBlock(insight, { compact = false } = {}) {
   if (!insight) return '';
   if (insight.status === 'pending') {
@@ -66,7 +88,10 @@ function celebrationBlock(c) {
 export async function render(root, { id, query }, { navigate }) {
   const isNew = query.get('new') === '1';
   const celebration = isNew ? takeCelebration() : null;
-  let entry = (await api(`/entries/${id}`)).entry;
+  let [entry, activeLinks] = await Promise.all([
+    api(`/entries/${id}`).then((r) => r.entry),
+    api('/links').then((r) => r.links.filter((l) => l.status === 'active')).catch(() => []),
+  ]);
   let pollTimer = null;
   let stopped = false;
 
@@ -92,7 +117,11 @@ export async function render(root, { id, query }, { navigate }) {
         ${mediaGallery(entry.media)}
       </article>
 
+      ${commentsBlock(entry.comments)}
+
       ${insightBlock(entry.insight)}
+
+      ${shareBlock(entry, activeLinks)}
 
       ${isNew ? html`<div class="after-actions">
         <a class="btn btn-primary btn-block btn-lg" href="#/">ホームへ</a>
@@ -132,6 +161,21 @@ export async function render(root, { id, query }, { navigate }) {
         await api(`/entries/${id}`, { method: 'DELETE' });
         toast('削除しました');
         navigate('/entries', { replace: true });
+      } catch (err) {
+        toast(err.message, { type: 'error' });
+      }
+    },
+    share: async (el) => {
+      const ids = new Set(entry.shares.map((x) => x.storeId));
+      if (ids.has(el.dataset.id)) ids.delete(el.dataset.id);
+      else ids.add(el.dataset.id);
+      try {
+        entry = (await api(`/entries/${id}/shares`, { method: 'PUT', body: { storeIds: [...ids] } })).entry;
+        const box = $('.share-block', root);
+        const tmp = document.createElement('div');
+        mount(tmp, shareBlock(entry, activeLinks));
+        box.replaceWith(tmp.firstElementChild);
+        toast(ids.has(el.dataset.id) ? '共有しました' : '共有をやめました');
       } catch (err) {
         toast(err.message, { type: 'error' });
       }

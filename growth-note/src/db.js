@@ -136,6 +136,69 @@ const MIGRATIONS = [
     entry_id UNINDEXED, user_id UNINDEXED, body, summary, tokenize = 'trigram'
   );
   `,
+  // v2: 店舗（レッスン先）との連携
+  `
+  CREATE TABLE stores (
+    id               TEXT PRIMARY KEY,
+    name             TEXT NOT NULL,
+    category         TEXT NOT NULL DEFAULT '',
+    description      TEXT NOT NULL DEFAULT '',
+    code             TEXT NOT NULL UNIQUE,     -- 生徒が入力する店舗ID（例: K7QM-4XPA）
+    staff_code       TEXT NOT NULL UNIQUE,     -- スタッフ招待用コード
+    require_approval INTEGER NOT NULL DEFAULT 1,
+    plan             TEXT NOT NULL DEFAULT 'free',
+    created_by       TEXT REFERENCES users(id) ON DELETE SET NULL,
+    created_at       TEXT NOT NULL,
+    updated_at       TEXT NOT NULL
+  );
+
+  CREATE TABLE store_staff (
+    store_id   TEXT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    role       TEXT NOT NULL DEFAULT 'staff',  -- owner | staff
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (store_id, user_id)
+  );
+  CREATE INDEX store_staff_user ON store_staff(user_id);
+
+  -- 生徒（個人ユーザー）と店舗のつながり。共有の可否はすべてこの行の status で決まる
+  CREATE TABLE store_links (
+    id          TEXT PRIMARY KEY,
+    store_id    TEXT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    user_id     TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status      TEXT NOT NULL,                 -- pending | active | rejected | ended
+    share_mode  TEXT NOT NULL DEFAULT 'selected', -- selected: 選んだ記録だけ / all: これからの記録すべて
+    created_at  TEXT NOT NULL,
+    approved_at TEXT,
+    ended_at    TEXT,
+    updated_at  TEXT NOT NULL,
+    UNIQUE (store_id, user_id)
+  );
+  CREATE INDEX store_links_user ON store_links(user_id, status);
+  CREATE INDEX store_links_store ON store_links(store_id, status);
+
+  -- どの記録をどの店舗に見せるか（つながりが active の間だけ有効）
+  CREATE TABLE entry_shares (
+    entry_id   TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+    store_id   TEXT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TEXT NOT NULL,
+    PRIMARY KEY (entry_id, store_id)
+  );
+  CREATE INDEX entry_shares_store ON entry_shares(store_id, created_at DESC);
+
+  -- 先生・スタッフから記録へのコメント
+  CREATE TABLE store_comments (
+    id         TEXT PRIMARY KEY,
+    store_id   TEXT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    entry_id   TEXT NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
+    author_id  TEXT REFERENCES users(id) ON DELETE SET NULL,
+    body       TEXT NOT NULL,
+    read_at    TEXT,                           -- 生徒が読んだ時刻
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX store_comments_entry ON store_comments(entry_id, created_at);
+  `,
 ];
 
 export function openDb(file) {

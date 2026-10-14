@@ -47,7 +47,8 @@ export function registerMediaRoutes(router, app) {
 
   /** 配信: 本人のみ。動画・音声のシーク用に Range リクエストに対応 */
   router.get('/api/media/:id', async (ctx) => {
-    const m = repo.media.get(ctx.user.id, ctx.params.id);
+    // 本人のファイル、または自分がスタッフの店舗に共有された記録のファイルだけ見られる
+    const m = repo.media.get(ctx.user.id, ctx.params.id) || repo.visible.mediaForStaff(ctx.user.id, ctx.params.id);
     if (!m) throw new HttpError(404, 'not_found', 'ファイルが見つかりません');
     let stat;
     try {

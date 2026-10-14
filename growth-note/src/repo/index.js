@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { tx } from '../db.js';
 import { nowIso } from '../lib/date.js';
+import { createStoreRepos } from './stores.js';
 
 // データアクセスはすべてここを通す。
 // ユーザーのデータを扱う関数は必ず userId を第1引数に取り、SQL に user_id 条件を含める。
@@ -17,6 +18,7 @@ const parseJson = (s, fallback) => {
 
 export function createRepos(db) {
   const q = (sql) => db.prepare(sql);
+  const storeRepos = createStoreRepos(db, { tx: (fn) => tx(db, fn) });
 
   const users = {
     create({ email, passwordHash, displayName }) {
@@ -298,6 +300,8 @@ export function createRepos(db) {
       const insightRows = insights.forEntries(userId, ids);
       const goalIds = [...new Set(rows.map((r) => r.goal_id).filter(Boolean))];
       const goalMap = new Map(goalIds.map((gid) => [gid, goals.get(userId, gid)]).filter(([, g]) => g));
+      const shareRows = storeRepos.shares.forEntries(userId, ids);
+      const commentRows = storeRepos.comments.forOwnEntries(userId, ids);
       return rows.map((r) => ({
         id: r.id,
         body: r.body,
@@ -310,6 +314,11 @@ export function createRepos(db) {
           : null,
         media: mediaRows.filter((m) => m.entry_id === r.id).map(({ entry_id, ...m }) => ({ ...m, url: `/api/media/${m.id}` })),
         insight: insightRows.find((i) => i.entry_id === r.id) || null,
+        // 共有先は、いまもつながっている店舗だけを表示する
+        shares: shareRows.filter((x) => x.entry_id === r.id && x.status === 'active').map((x) => ({ storeId: x.store_id, storeName: x.store_name })),
+        comments: commentRows.filter((c) => c.entry_id === r.id).map((c) => ({
+          id: c.id, body: c.body, createdAt: c.created_at, unread: !c.read_at, storeName: c.store_name, authorName: c.author_name,
+        })),
       }));
     },
     recent(userId, limit = 5, { excludeId = null } = {}) {
@@ -366,5 +375,5 @@ export function createRepos(db) {
     },
   };
 
-  return { db, users, sessions, billing, media, insights, goals, entries, jobs, tx: (fn) => tx(db, fn) };
+  return { db, users, sessions, billing, media, insights, goals, entries, jobs, ...storeRepos, tx: (fn) => tx(db, fn) };
 }

@@ -64,3 +64,17 @@ export function effectivePlan(sub, now = new Date()) {
   const notExpired = !sub.current_period_end || new Date(sub.current_period_end) > now;
   return activeStatus && notExpired && PLANS[sub.plan] ? sub.plan : DEFAULT_PLAN;
 }
+
+// 店舗（レッスン先）側のプラン。生徒側のプランとは独立して課金できるようにしておく。
+export const STORE_PLANS = {
+  free: { id: 'free', label: 'お試し', limits: { maxMembers: 30, maxStaff: 3 } },
+  standard: { id: 'standard', label: 'スタンダード', limits: { maxMembers: 300, maxStaff: 20 } },
+};
+
+export function storeEntitlements(planId) {
+  const plan = STORE_PLANS[planId] || STORE_PLANS.free;
+  return { plan: plan.id, label: plan.label, limits: { ...plan.limits }, limit: (k) => plan.limits[k] };
+}
+
+/** 1人が作れる店舗の数 */
+export const MAX_OWNED_STORES = 3;

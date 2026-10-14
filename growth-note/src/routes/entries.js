@@ -27,7 +27,10 @@ export function registerEntryRoutes(router, app) {
   });
 
   router.get('/api/entries/:id', async (ctx) => {
-    sendJson(ctx.res, 200, { entry: loadEntry(ctx.user.id, ctx.params.id) });
+    const entry = loadEntry(ctx.user.id, ctx.params.id);
+    // 開いた時点で先生からのコメントを既読にする（返す内容には未読の印を残す）
+    if (entry.comments.some((c) => c.unread)) repo.comments.markRead(ctx.user.id, entry.id);
+    sendJson(ctx.res, 200, { entry });
   });
 
   router.post('/api/entries', async (ctx) => {
@@ -55,6 +58,11 @@ export function registerEntryRoutes(router, app) {
     const { entryId, goalResult } = repo.tx(() => {
       const entryId = repo.entries.create(userId, { body: text, mood, goalId: goal?.id ?? null, localDate });
       repo.media.attach(userId, entryId, mediaIds);
+      // 共有先: 指定がなければ「これからの記録をすべて共有」にしている店舗へ
+      const storeIds = Array.isArray(body.storeIds)
+        ? body.storeIds.filter((x) => typeof x === 'string')
+        : repo.links.activeForUser(userId).filter((l) => l.share_mode === 'all').map((l) => l.store_id);
+      repo.shares.setForEntry(userId, entryId, storeIds);
       const goalResult = goal && goalDelta > 0 ? repo.goals.addProgress(userId, goal.id, { delta: goalDelta, entryId, localDate }) : null;
       const insightId = repo.insights.createPending(userId, { entryId, scope: 'entry' });
       repo.jobs.enqueue(userId, 'entry_insight', { entryId, insightId });

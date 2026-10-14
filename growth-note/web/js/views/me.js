@@ -36,7 +36,9 @@ function weeklyBlock(review, canUse) {
 }
 
 export async function render(root, _params, { state, navigate, refreshMe }) {
-  const [stats, weekly] = await Promise.all([api('/stats'), api('/insights/weekly')]);
+  const [stats, weekly, linksRes, storesRes] = await Promise.all([api('/stats'), api('/insights/weekly'), api('/links'), api('/stores')]);
+  const links = linksRes.links;
+  const myStores = storesRes.stores;
   await refreshMe();
   const me = state.me;
   let review = weekly.review;
@@ -56,6 +58,20 @@ export async function render(root, _params, { state, navigate, refreshMe }) {
       </div>
       <span class="plan-badge ${me.plan.id}">${me.plan.id === 'pro' ? html`${icon('gem', { size: 14 })}` : ''}${me.plan.label}</span>
     </header>
+
+    <section class="card">
+      <div class="card-head"><h2 class="card-title">${icon('target', { size: 18 })}通っている教室・お店</h2></div>
+      ${links.length ? html`<ul class="link-list">${links.map((l) => html`<li>
+        <a class="link-row" href="#/links/${l.id}">
+          <span class="store-icon">${[...l.store.name][0]}</span>
+          <span class="link-row-main"><b>${l.store.name}</b>
+            <span>${l.status === 'active' ? `連携中 ・ 共有 ${l.sharedCount}件` : '承認待ち'}${l.unreadComments ? ` ・ 新しいコメント ${l.unreadComments}件` : ''}</span></span>
+          ${l.status === 'pending' ? html`<span class="pill pill-wait">承認待ち</span>` : l.unreadComments ? html`<span class="dot-badge">${l.unreadComments}</span>` : ''}
+          ${icon('chevronRight', { size: 16 })}
+        </a></li>`)}</ul>`
+      : html`<p class="muted">レッスンに通っている教室・お店と連携すると、記録を先生に見てもらいコメントをもらえます。</p>`}
+      <a class="btn btn-soft btn-block link-add" href="#/links/new">${icon('plus', { size: 18 })}店舗IDで連携する</a>
+    </section>
 
     <section class="card">
       <div class="card-head"><h2 class="card-title">${icon('gem', { size: 18 })}成長の資産</h2></div>
@@ -112,6 +128,14 @@ export async function render(root, _params, { state, navigate, refreshMe }) {
       </form>
       <p class="muted small">${me.user.email}</p>
     </section>
+
+    <a class="card staff-entry" href="#/store">
+      <span class="store-icon alt">${icon('user', { size: 20 })}</span>
+      <span class="link-row-main"><b>先生・スタッフの方</b>
+        <span>${myStores.length ? `${myStores.map((x) => x.name).join('、')} を管理` : '店舗を登録して、生徒さんの記録を見る'}</span></span>
+      ${myStores.some((x) => x.pendingMembers) ? html`<span class="pill pill-wait">承認待ちあり</span>` : ''}
+      ${icon('chevronRight', { size: 16 })}
+    </a>
 
     <div class="account-actions">
       <button class="btn btn-ghost btn-block" data-action="logout">${icon('logout', { size: 18 })}ログアウト</button>

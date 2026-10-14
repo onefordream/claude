@@ -14,6 +14,7 @@ import { registerEntryRoutes } from './routes/entries.js';
 import { registerGoalRoutes } from './routes/goals.js';
 import { registerMediaRoutes } from './routes/media.js';
 import { registerHomeRoutes } from './routes/home.js';
+import { registerStoreRoutes } from './routes/stores.js';
 
 const STATIC_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -55,6 +56,7 @@ export function createApp(config, { log = console } = {}) {
   registerEntryRoutes(router, app);
   registerGoalRoutes(router, app);
   registerMediaRoutes(router, app);
+  registerStoreRoutes(router, app);
   router.get('/api/health', async (ctx) => sendJson(ctx.res, 200, { ok: true }), { auth: false });
 
   function clientIp(req) {

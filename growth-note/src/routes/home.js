@@ -68,6 +68,10 @@ export function registerHomeRoutes(router, app) {
       todayStep,
       goals: goals.slice(0, 3),
       goalsTotal: goals.length,
+      storeComments: repo.comments.unreadForUser(user.id, 3).map((c) => ({
+        id: c.id, entryId: c.entry_id, body: c.body, createdAt: c.created_at, storeName: c.store_name, authorName: c.author_name,
+      })),
+      links: repo.links.activeForUser(user.id).map((l) => ({ id: l.id, storeName: l.store_name })),
       latestInsight: latest ? { entryId: latest.entry_id, summary: latest.summary, data: latest.data, provider: latest.provider, createdAt: latest.created_at } : null,
       totals: {
         entries: stats.totalEntries,

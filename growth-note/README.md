@@ -37,6 +37,30 @@ npm run set-plan -- you@example.com pro
 npm run set-plan -- you@example.com free
 ```
 
+## 教室・お店（店舗）との連携
+
+レッスンに通っている教室・スクール・ジムなどと、**店舗ID** で連携できます。
+
+**生徒側（個人ユーザー）**
+1. マイページ →「店舗IDで連携する」→ 店舗IDを入力（例: `K7QM-4XPA`。小文字・ハイフンなしでも可）
+2. 店舗名を確認し、共有のしかたを選ぶ
+   - 選んだ記録だけ共有（既定）／これからの記録をすべて共有
+3. 承認制の店舗なら、先生が承認すると連携開始
+4. 記録を書くとき・あとからでも、共有する店舗を選べる。先生のコメントはホームと記録の詳細に届く
+5. 連携はいつでも解除でき、解除した瞬間から店舗は記録を見られなくなる
+
+店舗に見えるのは「本人が共有した記録（本文・写真・動画・音声・気分）」「ニックネーム」「共有した記録から数えた継続日数」だけです。
+共有していない記録・AI のふりかえり・目標・メールアドレスは見えません。
+
+**店舗側（先生・スタッフ）**
+- マイページ →「先生・スタッフの方」→ 店舗を登録すると店舗IDが発行される（招待リンク `/#/links/new?code=...` も作れる）
+- 共有された記録の閲覧・コメント、メンバーの承認／解除、継続日数の確認
+- オーナーはスタッフ招待コードで他の先生を追加でき、店舗IDの作り直しもできる
+- 店舗側のプラン（メンバー数・スタッフ数の上限）は `src/lib/plans.js` の `STORE_PLANS`
+
+データ: `stores` / `store_staff` / `store_links`（status: pending・active・rejected・ended）/ `entry_shares` / `store_comments`。
+店舗側から記録・写真が見えるかは、毎回「つながりが active」かつ「共有されている」ことを SQL で確認しています。
+
 ## Render へのデプロイ
 
 リポジトリ直下の `render.yaml`（Blueprint）で設定済みです。
@@ -65,7 +89,7 @@ src/
     storage.js         アップロードのストリーム保存（S3 等へ差し替え可能な形）
     ai.js              Claude API 呼び出し（fetch）
     ai-local.js        APIキー未設定・上限超過時の簡易分析
-  routes/              auth / entries / goals / media / home
+  routes/              auth / entries / goals / media / home / stores（店舗連携）
 web/                   フロントエンド（SPA）
   js/views/            home / write / entries / entry / goals / goal / me / auth
   css/app.css          デザイントークンとスタイル（ダークモード対応）

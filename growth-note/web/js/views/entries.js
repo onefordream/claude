@@ -12,6 +12,8 @@ function entryCard(e) {
         <span class="entry-row-date">${fmtRelDate(e.localDate)}</span>
         ${e.mood ? html`<span class="entry-row-mood">${moodEmoji(e.mood)}</span>` : ''}
         ${e.goal ? html`<span class="pill pill-sm">${e.goal.icon} ${e.goal.title}</span>` : ''}
+        ${e.shares?.length ? html`<span class="pill pill-sm pill-share">${icon('user', { size: 11 })}${e.shares.map((x) => x.storeName).join('・')}に共有</span>` : ''}
+        ${e.comments?.length ? html`<span class="pill pill-sm pill-accent">コメント ${e.comments.length}</span>` : ''}
       </div>
       <p class="entry-row-text">${e.body || (e.insight?.summary ?? '添付のみの記録')}</p>
       ${e.insight?.status === 'done' && e.insight.summary && e.body && !e.body.trim().startsWith(e.insight.summary.replace(/…$/, '')) ? html`

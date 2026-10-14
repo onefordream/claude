@@ -88,6 +88,15 @@ export async function render(root, _params, { navigate }) {
           <span class="cta-btn">${icon('plus', { size: 20, stroke: 2.6 })}今日の記録をつける</span>
         </a>`}
 
+    ${h.storeComments?.length ? html`
+      <section class="card teacher-card">
+        <div class="card-head"><h2 class="card-title">${icon('user', { size: 18 })}先生からの新しいコメント</h2><span class="pill pill-sm">${h.storeComments.length}件</span></div>
+        <div class="comments">${h.storeComments.map((c) => html`
+          <a class="comment unread" href="#/entries/${c.entryId}">
+            <div class="comment-head"><b>${c.authorName || '先生'}</b><span>${c.storeName}</span></div>
+            <p class="clamp2">${c.body}</p></a>`)}</div>
+      </section>` : ''}
+
     <section class="card step-card ${stepDone(today, h.todayStep.text) ? 'checked' : ''}">
       <div class="card-head">
         <h2 class="card-title">${icon('bulb', { size: 18 })}今日の一歩</h2>

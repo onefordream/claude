@@ -9,6 +9,8 @@ import * as entryView from './views/entry.js';
 import * as goalsView from './views/goals.js';
 import * as goalView from './views/goal.js';
 import * as meView from './views/me.js';
+import * as linksView from './views/links.js';
+import * as storeView from './views/store.js';
 
 // アプリ全体の状態（ログインユーザーなど）
 export const state = { me: null };
@@ -24,6 +26,10 @@ const routes = [
   { re: /^\/goals\/new$/, view: goalView, tab: 'goals', params: () => ({ id: null }) },
   { re: /^\/goals\/([\w-]+)$/, view: goalView, tab: 'goals', params: (m) => ({ id: m[1] }) },
   { re: /^\/me$/, view: meView, tab: 'me' },
+  { re: /^\/links\/new$/, view: linksView, tab: 'me', params: () => ({ id: null }) },
+  { re: /^\/links\/([\w-]+)$/, view: linksView, tab: 'me', params: (m) => ({ id: m[1] }) },
+  { re: /^\/store$/, view: storeView, tab: 'me', params: () => ({ id: null }) },
+  { re: /^\/store\/([\w-]+)$/, view: storeView, tab: 'me', params: (m) => ({ id: m[1] }) },
 ];
 
 const TABS = [
