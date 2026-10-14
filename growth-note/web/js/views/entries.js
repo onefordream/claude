@@ -47,6 +47,7 @@ export async function render(root, { query }) {
         <p class="eyebrow">これまでの積み重ね</p>
         <h1 class="page-title">ふりかえり</h1>
       </div>
+      <a class="btn btn-soft btn-sm" href="#/growth">${icon('target', { size: 16 })}成長分析</a>
     </header>
     <div class="search">
       ${icon('search', { size: 18 })}

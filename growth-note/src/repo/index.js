@@ -16,6 +16,19 @@ const parseJson = (s, fallback) => {
   }
 };
 
+/**
+ * 無料プランでロックされたAIふりかえりは、中身をサーバーから送らない。
+ * 画面のぼかしは見本の文章で作るので、開発者ツールで覗いても本物は見えない。
+ */
+function redactLocked(insight) {
+  if (!insight?.data?.locked) return insight;
+  return {
+    id: insight.id, entry_id: insight.entry_id, scope: insight.scope, status: insight.status, provider: insight.provider,
+    created_at: insight.created_at, updated_at: insight.updated_at, locked: true, summary: null, note: null,
+    data: { encouragement: insight.data.encouragement || '' },
+  };
+}
+
 export function createRepos(db) {
   const q = (sql) => db.prepare(sql);
   const storeRepos = createStoreRepos(db, { tx: (fn) => tx(db, fn) });
@@ -78,6 +91,28 @@ export function createRepos(db) {
          ON CONFLICT(user_id) DO UPDATE SET plan = excluded.plan, status = excluded.status,
            current_period_end = excluded.current_period_end, provider = excluded.provider,
            updated_at = excluded.updated_at`).run(userId, plan, status, currentPeriodEnd, provider, nowIso());
+    },
+    /** Stripe などの決済サービスから受け取った状態を反映する */
+    applySubscription(userId, f) {
+      q(`UPDATE subscriptions SET plan = ?, status = ?, current_period_end = ?, trial_end = ?, cancel_at_period_end = ?,
+           billing_interval = ?, provider = ?, provider_customer_id = COALESCE(?, provider_customer_id),
+           provider_subscription_id = COALESCE(?, provider_subscription_id),
+           trial_used = CASE WHEN ? IS NOT NULL OR ? = 'trialing' THEN 1 ELSE trial_used END, updated_at = ?
+         WHERE user_id = ?`).run(
+        f.plan, f.status, f.currentPeriodEnd ?? null, f.trialEnd ?? null, f.cancelAtPeriodEnd ? 1 : 0,
+        f.interval ?? null, f.provider, f.customerId ?? null, f.subscriptionId ?? null,
+        f.trialEnd ?? null, f.status, nowIso(), userId,
+      );
+    },
+    setCustomer(userId, customerId) {
+      q('UPDATE subscriptions SET provider_customer_id = ?, provider = ?, updated_at = ? WHERE user_id = ?').run(customerId, 'stripe', nowIso(), userId);
+    },
+    userIdByCustomer(customerId) {
+      return q('SELECT user_id FROM subscriptions WHERE provider_customer_id = ?').get(customerId)?.user_id ?? null;
+    },
+    /** 初めて見るイベントなら true（同じ Webhook の二重処理を防ぐ） */
+    recordEvent(id, type) {
+      return Number(q('INSERT OR IGNORE INTO billing_events (id, type, created_at) VALUES (?, ?, ?)').run(id, type, nowIso()).changes) > 0;
     },
     usage(userId, period, key) {
       return q('SELECT value FROM usage_counters WHERE user_id = ? AND period = ? AND key = ?').get(userId, period, key)?.value ?? 0;
@@ -313,7 +348,7 @@ export function createRepos(db) {
           ? { id: r.goal_id, title: goalMap.get(r.goal_id).title, icon: goalMap.get(r.goal_id).icon }
           : null,
         media: mediaRows.filter((m) => m.entry_id === r.id).map(({ entry_id, ...m }) => ({ ...m, url: `/api/media/${m.id}` })),
-        insight: insightRows.find((i) => i.entry_id === r.id) || null,
+        insight: redactLocked(insightRows.find((i) => i.entry_id === r.id) || null),
         // 共有先は、いまもつながっている店舗だけを表示する
         shares: shareRows.filter((x) => x.entry_id === r.id && x.status === 'active').map((x) => ({ storeId: x.store_id, storeName: x.store_name })),
         comments: commentRows.filter((c) => c.entry_id === r.id).map((c) => ({

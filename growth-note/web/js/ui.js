@@ -159,3 +159,19 @@ export function confirmSheet({ title, message = '', ok = 'OK', danger = false, i
     $('input', wrap)?.focus();
   });
 }
+
+/** プロへの案内ボタンの文言（無料体験が残っていれば「7日間無料で試す」） */
+export function upgradeLabel(me) {
+  return me?.billing?.trialAvailable ? 'プロを7日間無料で試す' : 'プロにアップグレード';
+}
+
+/** ロックされた機能の上に重ねる案内カード */
+export function paywallCard(me, { title, text, reason = '' }) {
+  return html`<div class="paywall-card">
+    <span class="paywall-icon">🔒</span>
+    <p class="paywall-title">${title}</p>
+    ${text ? html`<p class="paywall-text">${text}</p>` : ''}
+    <a class="btn btn-primary btn-block" href="#/pricing${reason ? `?from=${reason}` : ''}">${upgradeLabel(me)}</a>
+    ${me?.billing?.trialAvailable ? html`<p class="paywall-foot">無料期間中に解約すれば、料金はかかりません</p>` : ''}
+  </div>`;
+}

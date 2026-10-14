@@ -37,6 +37,38 @@ npm run set-plan -- you@example.com pro
 npm run set-plan -- you@example.com free
 ```
 
+## 無料プランとプロプラン（サブスクリプション）
+
+入口は無料で、記録すること自体には一切制限をかけません。AI と分析に課金します。
+
+| | フリー | プロ（月¥580 / 年¥5,800） |
+|---|---|---|
+| 記録（文章・写真・動画・音声）・継続日数・目標・検索・店舗連携 | ✓ | ✓ |
+| ひとことフィードバック（AI なし） | ✓ | ✓ |
+| AI のふりかえり（記録ごと） | 3回まで体験 | 毎回（月600回まで） |
+| 成長レベル・6つの指標・推移・足りないもの | ぼかし表示（強みの名前だけ見える） | ✓ |
+| AI 自己分析 | — | 月8回 |
+| AI の週間ふりかえり | — | ✓ |
+
+- 機能差は `src/lib/plans.js`（`PLANS` と表示用の `PRICING`）に集約しています。
+- **ぼかしは見本データで作っています。** 無料の人には本人の分析結果をサーバーから送らないので、開発者ツールでも見えません。
+- 6つの指標（継続力・行動量・振り返り力・目標推進力・挑戦・改善・コンディション）は `src/lib/growth.js` で、直近4週間の記録から計算します。
+- プロへの導線: 記録後のAIふりかえり（ぼかし）、ホームの成長レベルカード、ふりかえり一覧の「成長分析」、マイページ、料金ページ（`/#/pricing`）
+
+### 決済（Stripe）
+
+| 環境変数 | 内容 |
+|---|---|
+| `STRIPE_SECRET_KEY` | Stripe のシークレットキー |
+| `STRIPE_WEBHOOK_SECRET` | Webhook の署名シークレット（エンドポイント: `/api/billing/webhook`） |
+| `STRIPE_PRICE_MONTHLY` / `STRIPE_PRICE_YEARLY` | 月額・年額の Price ID |
+| `APP_URL` | 公開URL（決済後の戻り先） |
+| `BILLING_DEMO` | `1` で Stripe なしのデモ決済（実際の請求なし）。本番以外では既定で有効 |
+
+- 申し込みは Stripe Checkout（初回のみ7日間の無料体験）、解約・カード変更は Stripe のカスタマーポータル。
+- Webhook で受け取るイベント: `checkout.session.completed` / `customer.subscription.created` / `updated` / `deleted`。
+  署名を検証し、同じイベントは1回だけ反映します。支払い失敗のリトライ中（past_due）はプロのまま使えます。
+
 ## 教室・お店（店舗）との連携
 
 レッスンに通っている教室・スクール・ジムなどと、**店舗ID** で連携できます。
@@ -89,7 +121,7 @@ src/
     storage.js         アップロードのストリーム保存（S3 等へ差し替え可能な形）
     ai.js              Claude API 呼び出し（fetch）
     ai-local.js        APIキー未設定・上限超過時の簡易分析
-  routes/              auth / entries / goals / media / home / stores（店舗連携）
+  routes/              auth / entries / goals / media / home / stores（店舗連携）/ growth（成長分析）/ billing（課金）
 web/                   フロントエンド（SPA）
   js/views/            home / write / entries / entry / goals / goal / me / auth
   css/app.css          デザイントークンとスタイル（ダークモード対応）

@@ -17,6 +17,11 @@ services:
         value: production    # HTTPS 前提で Secure Cookie を有効化
       - key: TRUST_PROXY
         value: "1"
+      # 課金の流れを試すためのデモ決済（実際の請求なし）。Stripe を設定したら削除する
+      - key: BILLING_DEMO
+        value: "1"
+      # Stripe を使うときは、ダッシュボードの Environment で次を設定する:
+      # STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET / STRIPE_PRICE_MONTHLY / STRIPE_PRICE_YEARLY / APP_URL
     # データを残したい場合は、上の plan を starter（有料）にして、次のディスク設定を有効にする
     # disk:
     #   name: growth-note-data

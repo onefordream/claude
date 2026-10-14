@@ -15,6 +15,8 @@ import { registerGoalRoutes } from './routes/goals.js';
 import { registerMediaRoutes } from './routes/media.js';
 import { registerHomeRoutes } from './routes/home.js';
 import { registerStoreRoutes } from './routes/stores.js';
+import { registerGrowthRoutes } from './routes/growth.js';
+import { registerBillingRoutes, billingSummary } from './routes/billing.js';
 
 const STATIC_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -47,7 +49,15 @@ export function createApp(config, { log = console } = {}) {
   const app = {
     config, db, repo, storage, ai, worker,
     onClose: (fn) => closers.push(fn),
-    me: (user) => ({ ...publicMe(repo, user), ai: { enabled: ai.enabled } }),
+    me: (user) => {
+      const me = publicMe(repo, user);
+      const trialUsed = repo.billing.usage(user.id, 'all', 'ai_trial_used');
+      return {
+        ...me,
+        ai: { enabled: ai.enabled, trialLeft: Math.max(0, me.plan.limits.aiTrialCredits - trialUsed) },
+        billing: billingSummary(repo, user.id, config),
+      };
+    },
   };
 
   const router = new Router();
@@ -57,6 +67,8 @@ export function createApp(config, { log = console } = {}) {
   registerGoalRoutes(router, app);
   registerMediaRoutes(router, app);
   registerStoreRoutes(router, app);
+  registerGrowthRoutes(router, app);
+  registerBillingRoutes(router, app);
   router.get('/api/health', async (ctx) => sendJson(ctx.res, 200, { ok: true }), { auth: false });
 
   function clientIp(req) {

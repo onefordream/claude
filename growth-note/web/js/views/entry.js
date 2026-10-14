@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { html, mount, $, onAction, toast, fmtRelDate, fmtTime, moodEmoji, celebrate, confirmSheet } from '../ui.js';
+import { html, mount, $, onAction, toast, fmtRelDate, fmtTime, moodEmoji, celebrate, confirmSheet, paywallCard } from '../ui.js';
 import { icon } from '../icons.js';
 import { takeCelebration } from './write.js';
 
@@ -25,7 +25,7 @@ function shareBlock(entry, activeLinks) {
   </section>`;
 }
 
-export function insightBlock(insight, { compact = false } = {}) {
+export function insightBlock(insight, { compact = false, me = null } = {}) {
   if (!insight) return '';
   if (insight.status === 'pending') {
     return html`<section class="card ai-card pending">
@@ -37,6 +37,24 @@ export function insightBlock(insight, { compact = false } = {}) {
     return html`<section class="card ai-card">
       <p class="muted">AIの分析を作成できませんでした。</p>
       <button class="btn btn-soft btn-sm" data-action="retry-insight">${icon('refresh', { size: 16 })}もう一度分析する</button>
+    </section>`;
+  }
+  if (insight.locked) {
+    const isPro = me?.plan?.id === 'pro';
+    return html`<section class="card ai-card">
+      <div class="card-head"><h2 class="card-title">${icon('sparkles', { size: 18 })}AIのふりかえり</h2>${isPro ? '' : html`<span class="plan-badge pro small">プロ</span>`}</div>
+      ${insight.data?.encouragement ? html`<p class="ai-cheer">${insight.data.encouragement}</p>` : ''}
+      ${isPro
+        ? html`<p class="muted">この記録はまだAIでふりかえっていません。</p>
+            <button class="btn btn-primary btn-block" data-action="retry-insight">${icon('sparkles', { size: 18 })}AIでふりかえる</button>`
+        : html`<div class="locked-wrap small">
+            <div class="locked-preview" aria-hidden="true">
+              <p class="ai-summary">今日の取り組みでは、前回の課題を意識して練習の質が上がっています。</p>
+              <h3 class="ai-h">気づき</h3><ul class="ai-list"><li>同じ失敗の原因がはっきりしてきています。</li><li>続けている習慣が成果につながり始めています。</li></ul>
+              <h3 class="ai-h">次の一歩</h3><ul class="ai-actions"><li><span class="dot"></span>次回はひとつだけ条件を変えて試してみる</li></ul>
+            </div>
+            ${paywallCard(me, { title: 'AIが記録を読み解きます', text: '要約・気づき・次の一歩を、記録するたびにAIがまとめます。', reason: 'insight' })}
+          </div>`}
     </section>`;
   }
   const d = insight.data || {};
@@ -85,7 +103,7 @@ function celebrationBlock(c) {
   </section>`;
 }
 
-export async function render(root, { id, query }, { navigate }) {
+export async function render(root, { id, query }, { navigate, state }) {
   const isNew = query.get('new') === '1';
   const celebration = isNew ? takeCelebration() : null;
   let [entry, activeLinks] = await Promise.all([
@@ -119,7 +137,7 @@ export async function render(root, { id, query }, { navigate }) {
 
       ${commentsBlock(entry.comments)}
 
-      ${insightBlock(entry.insight)}
+      ${insightBlock(entry.insight, { me: state.me })}
 
       ${shareBlock(entry, activeLinks)}
 

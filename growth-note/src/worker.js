@@ -1,5 +1,5 @@
 import { jstDate, jstMonth, addDays } from './lib/date.js';
-import { entitlementsOf, userStats } from './services.js';
+import { entitlementsOf, userStats, growthReport } from './services.js';
 
 // AI 分析などの重い処理を、リクエストとは切り離して順番に実行する常駐ワーカー。
 // 記録の保存自体はすぐ終わり、AI の結果はあとから画面に反映される。
@@ -27,23 +27,38 @@ export function createWorker({ repo, ai, storage, intervalMs = 1500, log = conso
       const used = repo.billing.usage(userId, month, 'ai_entry_insights');
       const input = { entry, media, goal, goals, recent, streak: streak.current, allowImages: ent.can('aiImageReading'), storage };
 
-      const saveLocal = (note) => {
+      const saveLocal = (note, extra = {}) => {
         const mediaCounts = { image: 0, video: 0, audio: 0 };
         for (const m of media) mediaCounts[m.kind]++;
-        const data = ai.local.entryInsight({ entry, mediaCounts, goal, streak: streak.current });
+        const data = { ...ai.local.entryInsight({ entry, mediaCounts, goal, streak: streak.current }), ...extra };
         repo.insights.setResult(userId, insightId, { status: 'done', provider: 'local', note, summary: data.summary, data });
       };
 
-      if (!ai.enabled) {
-        saveLocal(null);
-      } else if (used >= ent.limit('aiEntryInsightsPerMonth')) {
+      // 無料プランは体験回数だけAIふりかえりを使える。使い切ったら「ロック」して中身は見せない
+      const hasAccess = ent.can('aiEntryInsight');
+      const trialLeft = ent.limit('aiTrialCredits') - repo.billing.usage(userId, 'all', 'ai_trial_used');
+      const useTrial = !hasAccess && trialLeft > 0;
+      const trialNote = useTrial ? `無料体験のAIふりかえりです（残り${trialLeft - 1}回）` : null;
+      const countUse = () => {
+        if (useTrial) repo.billing.addUsage(userId, 'all', 'ai_trial_used', 1);
+        else repo.billing.addUsage(userId, month, 'ai_entry_insights', 1);
+      };
+
+      if (!hasAccess && !useTrial) {
+        saveLocal(null, { locked: true });
+      } else if (hasAccess && used >= ent.limit('aiEntryInsightsPerMonth')) {
         saveLocal('今月のAI分析の上限に達したため、簡易分析を表示しています。');
+      } else if (!ai.enabled) {
+        repo.tx(() => {
+          saveLocal(trialNote);
+          countUse();
+        });
       } else {
         try {
           const { provider, data } = await ai.entryInsight(input);
           repo.tx(() => {
-            repo.insights.setResult(userId, insightId, { status: 'done', provider, summary: data.summary, data });
-            repo.billing.addUsage(userId, month, 'ai_entry_insights', 1);
+            repo.insights.setResult(userId, insightId, { status: 'done', provider, note: trialNote, summary: data.summary, data });
+            countUse();
           });
         } catch (err) {
           if (err.retryable && job.attempts < MAX_ATTEMPTS) throw err;
@@ -52,6 +67,25 @@ export function createWorker({ repo, ai, storage, intervalMs = 1500, log = conso
         }
       }
       repo.entries.reindex(userId, entryId);
+    },
+
+    async self_analysis(job) {
+      const { userId } = job;
+      const { insightId } = job.payload;
+      const user = repo.users.get(userId);
+      if (!user) return;
+      const report = growthReport(repo, user);
+      const entries = repo.entries.recent(userId, 30);
+      try {
+        const { provider, data } = await ai.selfAnalysis({ report, entries });
+        repo.insights.setResult(userId, insightId, { status: 'done', provider, summary: data.summary, data });
+      } catch (err) {
+        if (err.retryable && job.attempts < MAX_ATTEMPTS) throw err;
+        const data = ai.local.selfAnalysis({ report });
+        repo.insights.setResult(userId, insightId, {
+          status: 'done', provider: 'local', note: 'AI分析を完了できなかったため、簡易分析を表示しています。', summary: data.summary, data,
+        });
+      }
     },
 
     async weekly_review(job) {

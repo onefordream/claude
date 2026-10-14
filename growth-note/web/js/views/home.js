@@ -1,5 +1,5 @@
 import { api } from '../api.js';
-import { html, mount, fmtDate, progressBar, fmtNum, onAction, jstToday } from '../ui.js';
+import { html, mount, fmtDate, progressBar, fmtNum, onAction, jstToday, upgradeLabel } from '../ui.js';
 import { icon } from '../icons.js';
 
 const STEP_KEY = 'gn:step-done';
@@ -21,6 +21,36 @@ function setStepDone(today, text, done) {
   }
 }
 
+/** 成長分析への入口。無料の人には強みの名前だけ見せて、続きはプロで */
+function growthCard(g, me) {
+  if (!g) return '';
+  if (!g.ready) {
+    return html`<a class="card growth-card" href="#/growth">
+      <div class="growth-lv locked"><span>Lv.</span><strong>?</strong></div>
+      <div class="growth-main"><p class="growth-title">成長レベル</p><p class="muted small">あと${g.needEntries}件の記録で、レベルと6つの指標が出ます</p></div>
+    </a>`;
+  }
+  if (g.locked) {
+    return html`<a class="card growth-card teaser" href="#/growth">
+      <div class="growth-lv locked"><span>Lv.</span><strong class="blur-text">12</strong></div>
+      <div class="growth-main">
+        <p class="growth-title">あなたの強みは「${g.teaser.topStrength}」</p>
+        <p class="muted small">レベル・6つの指標・足りないものを見る</p>
+        <span class="growth-cta">${upgradeLabel(me)} ${icon('chevronRight', { size: 14 })}</span>
+      </div>
+    </a>`;
+  }
+  return html`<a class="card growth-card" href="#/growth">
+    <div class="growth-lv"><span>Lv.</span><strong>${g.level.level}</strong></div>
+    <div class="growth-main">
+      <p class="growth-title">総合スコア ${g.overall}点 <span class="score-rank rank-${g.rank.key}">${g.rank.label}</span></p>
+      ${progressBar(g.level.progress, { cls: 'progress-sm progress-accent' })}
+      <p class="muted small">いま伸ばしたいのは「${g.gaps[0].label}」</p>
+    </div>
+    ${icon('chevronRight', { size: 16 })}
+  </a>`;
+}
+
 function streakMessage(h) {
   const s = h.streak.current;
   if (h.recordedToday) {
@@ -33,8 +63,9 @@ function streakMessage(h) {
   return h.totals.entries ? '今日の一言から、また始めましょう' : '最初の記録から、成長の物語がはじまります';
 }
 
-export async function render(root, _params, { navigate }) {
-  const h = await api('/home');
+export async function render(root, _params, { navigate, state }) {
+  const [h, g] = await Promise.all([api('/home'), api('/growth').catch(() => null)]);
+  const me = state.me;
   const today = h.today || jstToday();
   const s = h.streak;
 
@@ -107,6 +138,8 @@ export async function render(root, _params, { navigate }) {
         <span class="step-text">${h.todayStep.text}</span>
       </button>
     </section>
+
+    ${growthCard(g, me)}
 
     <section class="card">
       <div class="card-head">

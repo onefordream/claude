@@ -721,3 +721,121 @@ ul { padding: 0; list-style: none; }
 .toggle { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; cursor: pointer; }
 .toggle input { width: 22px; height: 22px; accent-color: var(--brand); flex-shrink: 0; margin-top: 2px; }
 .toggle > span { display: flex; flex-direction: column; }
+
+/* =========================================================
+   成長分析・プロプラン
+   ========================================================= */
+.level-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; background: linear-gradient(150deg, var(--surface) 55%, var(--accent-soft)); }
+.level-badge { width: 64px; height: 64px; border-radius: 20px; display: flex; align-items: baseline; justify-content: center; padding-top: 14px; background: linear-gradient(160deg, #FFD08A, var(--accent)); color: #fff; box-shadow: 0 8px 20px color-mix(in srgb, var(--accent) 30%, transparent); }
+.level-badge span { font-size: 13px; font-weight: 800; }
+.level-badge strong { font-size: 28px; font-weight: 900; line-height: 1; }
+.level-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.score-box { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.score-num { font-size: 32px; font-weight: 900; line-height: 1; }
+.score-rank { font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); }
+.rank-great, .rank-steady { background: var(--brand-soft); color: var(--brand-strong); }
+.rank-growing { background: var(--accent-soft); color: var(--accent); }
+.score-diff { font-size: 11px; font-weight: 700; color: var(--ink-3); }
+.score-diff.up, .axis-diff.up { color: var(--brand); }
+.score-diff.down, .axis-diff.down { color: var(--warn); }
+
+.chart { width: 100%; height: auto; display: block; font-family: var(--font); }
+.ch-grid { stroke: var(--line); stroke-width: 1; }
+.ch-area { fill: color-mix(in srgb, var(--brand-2) 28%, transparent); stroke: var(--brand); stroke-width: 2; stroke-linejoin: round; }
+.ch-prev { stroke: var(--ink-3); stroke-width: 1.5; stroke-dasharray: 4 4; }
+.ch-dot { fill: var(--brand); stroke: var(--surface); stroke-width: 2; }
+.ch-label { fill: var(--ink-2); font-size: 11.5px; font-weight: 700; }
+.ch-value { fill: var(--ink); font-size: 13px; font-weight: 800; }
+.ch-line { stroke: var(--brand); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.ch-fill { fill: color-mix(in srgb, var(--brand-2) 16%, transparent); }
+.ch-end { fill: var(--ink); font-size: 13px; font-weight: 800; }
+.ch-axis { fill: var(--ink-3); font-size: 10.5px; }
+.radar-wrap { max-width: 420px; margin: 0 auto; }
+.chart-key { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-3); font-weight: 600; }
+.chart-key i { display: inline-block; width: 16px; height: 0; border-top: 2.5px solid var(--brand); }
+.chart-key i.k-prev { border-top: 1.5px dashed var(--ink-3); margin-left: 6px; }
+
+.axis-bars { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.axis-bars li { display: grid; grid-template-columns: 96px minmax(0, 1fr) 30px 34px; gap: 8px; align-items: center; font-size: 13px; }
+.axis-name { font-weight: 700; color: var(--ink-2); }
+.axis-track { height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+.axis-track i { display: block; height: 100%; border-radius: inherit; background: var(--brand-2); }
+.axis-score { font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.axis-diff { font-size: 11px; font-weight: 700; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+.gap-list { display: flex; flex-direction: column; gap: 10px; }
+.gap { background: var(--surface-2); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.gap-top { display: flex; justify-content: space-between; align-items: baseline; }
+.gap-top span { font-weight: 800; color: var(--warn); }
+.gap p { font-size: 13.5px; color: var(--ink-2); }
+.gap .gap-action { display: flex; gap: 6px; align-items: flex-start; color: var(--brand-strong); font-weight: 700; }
+.gap-action .icon { margin-top: 4px; }
+.strengths { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; color: var(--ink-2); font-weight: 700; margin-top: 12px; }
+
+/* ---------- ロック（ぼかし） ---------- */
+.locked-wrap { position: relative; display: flex; flex-direction: column; gap: 14px; min-height: 360px; }
+.locked-wrap.small { min-height: 0; }
+.locked-preview { filter: blur(7px) saturate(.8); opacity: .75; pointer-events: none; user-select: none; display: flex; flex-direction: column; gap: 14px; }
+.locked-wrap.small .locked-preview { filter: blur(5px); }
+.paywall-card { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(100%, 340px); background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow-lg); padding: 22px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.locked-wrap.small .paywall-card { position: relative; left: auto; top: auto; transform: none; margin: -40px auto 0; box-shadow: var(--shadow); }
+.locked-wrap:not(.small) .paywall-card { top: 40%; }
+.paywall-icon { font-size: 26px; }
+.paywall-title { font-size: 16px; font-weight: 800; }
+.paywall-text { font-size: 13px; color: var(--ink-2); }
+.paywall-card .btn { margin-top: 6px; }
+.paywall-foot { font-size: 11.5px; color: var(--ink-3); }
+.teaser-card { text-align: center; background: linear-gradient(150deg, var(--surface) 50%, var(--brand-soft)); }
+.teaser-lead { font-size: 13px; color: var(--ink-2); font-weight: 700; }
+.teaser-strength { font-size: 24px; font-weight: 900; color: var(--brand-strong); margin: 2px 0 6px; }
+
+.growth-card { display: flex; align-items: center; gap: 14px; color: var(--ink-3); transition: transform .15s; }
+.growth-card:active { transform: scale(.99); }
+.growth-lv { width: 56px; height: 56px; border-radius: 18px; display: flex; align-items: baseline; justify-content: center; padding-top: 12px; background: linear-gradient(160deg, #FFD08A, var(--accent)); color: #fff; flex-shrink: 0; }
+.growth-lv.locked { background: var(--surface-2); color: var(--ink-3); }
+.growth-lv span { font-size: 12px; font-weight: 800; }
+.growth-lv strong { font-size: 24px; font-weight: 900; line-height: 1; }
+.blur-text { filter: blur(5px); }
+.growth-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; color: var(--ink); }
+.growth-title { font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.growth-cta { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 800; color: var(--accent); }
+.growth-card.teaser { background: linear-gradient(150deg, var(--surface) 60%, var(--accent-soft)); }
+
+/* ---------- 料金ページ ---------- */
+.pricing-hero { display: flex; flex-direction: column; gap: 10px; padding: 4px 4px 0; }
+.pricing-hero .pill { align-self: flex-start; }
+.pricing-title { font-size: 26px; font-weight: 900; line-height: 1.35; }
+.pricing-points { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+.pricing-points li { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; color: var(--ink-2); }
+.pricing-points li .icon { color: var(--brand); margin-top: 2px; }
+.pricing-points b { display: block; color: var(--ink); font-size: 15px; }
+.plan-card { display: flex; flex-direction: column; gap: 14px; border: 2px solid var(--brand-2); }
+.interval-toggle { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface-2); border-radius: 99px; padding: 4px; }
+.interval-toggle button { padding: 9px 6px; border-radius: 99px; font-size: 13.5px; font-weight: 800; color: var(--ink-2); }
+.interval-toggle button.on { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+.interval-toggle .save { display: inline-block; font-size: 10px; color: var(--accent); margin-left: 2px; }
+.price { text-align: center; }
+.price-amount { font-size: 40px; font-weight: 900; letter-spacing: -.01em; }
+.price-unit { font-size: 14px; color: var(--ink-2); font-weight: 700; margin-left: 4px; }
+.price-sub { font-size: 12.5px; color: var(--accent); font-weight: 700; }
+.demo-note { font-size: 12px; text-align: center; color: var(--warn); background: var(--accent-soft); border-radius: 10px; padding: 6px 10px; font-weight: 700; }
+.compare-table { display: flex; flex-direction: column; font-size: 13px; }
+.ct-row { display: grid; grid-template-columns: minmax(0, 1fr) 76px 76px; gap: 6px; padding: 9px 0; border-bottom: 1px solid var(--line); align-items: center; }
+.ct-row:last-child { border-bottom: 0; }
+.ct-row span:not(:first-child) { text-align: center; font-weight: 700; }
+.ct-row .no { color: var(--ink-3); font-weight: 500; }
+.ct-row .pro-col { color: var(--brand-strong); }
+.ct-head span { font-size: 12px; color: var(--ink-3); }
+.ct-head .pro-col { color: var(--brand); }
+.faq details { border-bottom: 1px solid var(--line); padding: 10px 0; }
+.faq details:last-child { border-bottom: 0; }
+.faq summary { font-weight: 700; font-size: 14px; cursor: pointer; }
+.faq details p { font-size: 13.5px; color: var(--ink-2); margin-top: 6px; }
+.pro-now { display: flex; flex-direction: column; gap: 10px; text-align: center; }
+
+.billing-card { display: flex; flex-direction: column; gap: 6px; }
+.billing-plan { font-size: 22px; font-weight: 900; }
+.billing-actions { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 10px; }
+a.upsell { display: block; color: inherit; }
+a.upsell .btn { margin-top: 12px; }
+.growth-link .store-icon { background: var(--accent-soft); color: var(--accent); }

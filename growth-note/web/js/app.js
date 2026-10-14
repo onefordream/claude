@@ -11,6 +11,8 @@ import * as goalView from './views/goal.js';
 import * as meView from './views/me.js';
 import * as linksView from './views/links.js';
 import * as storeView from './views/store.js';
+import * as growthView from './views/growth.js';
+import * as pricingView from './views/pricing.js';
 
 // アプリ全体の状態（ログインユーザーなど）
 export const state = { me: null };
@@ -26,6 +28,10 @@ const routes = [
   { re: /^\/goals\/new$/, view: goalView, tab: 'goals', params: () => ({ id: null }) },
   { re: /^\/goals\/([\w-]+)$/, view: goalView, tab: 'goals', params: (m) => ({ id: m[1] }) },
   { re: /^\/me$/, view: meView, tab: 'me' },
+  { re: /^\/growth$/, view: growthView, tab: 'home' },
+  { re: /^\/pricing$/, view: pricingView, tab: 'me', params: () => ({ page: 'pricing' }) },
+  { re: /^\/billing$/, view: pricingView, tab: 'me', params: () => ({ page: 'billing' }) },
+  { re: /^\/billing\/success$/, view: pricingView, tab: 'me', params: () => ({ page: 'success' }) },
   { re: /^\/links\/new$/, view: linksView, tab: 'me', params: () => ({ id: null }) },
   { re: /^\/links\/([\w-]+)$/, view: linksView, tab: 'me', params: (m) => ({ id: m[1] }) },
   { re: /^\/store$/, view: storeView, tab: 'me', params: () => ({ id: null }) },

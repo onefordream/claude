@@ -199,6 +199,21 @@ const MIGRATIONS = [
   );
   CREATE INDEX store_comments_entry ON store_comments(entry_id, created_at);
   `,
+  // v3: サブスクリプション（Stripe）
+  `
+  ALTER TABLE subscriptions ADD COLUMN cancel_at_period_end INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE subscriptions ADD COLUMN trial_end TEXT;
+  ALTER TABLE subscriptions ADD COLUMN trial_used INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE subscriptions ADD COLUMN billing_interval TEXT;
+  CREATE INDEX subscriptions_customer ON subscriptions(provider_customer_id);
+
+  -- Webhook の二重処理を防ぐ（同じイベントは1回だけ反映する）
+  CREATE TABLE billing_events (
+    id         TEXT PRIMARY KEY,
+    type       TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  `,
 ];
 
 export function openDb(file) {

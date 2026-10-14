@@ -78,3 +78,18 @@ export function localWeeklyReview({ entries, activeDays, streak }) {
     encouragement: '1週間おつかれさまでした。来週も自分のペースでいきましょう。',
   };
 }
+
+/** AI自己分析の簡易版（APIキー未設定・失敗時） */
+export function localSelfAnalysis({ report }) {
+  const s = report.strengths.map((x) => x.label);
+  return {
+    summary: `総合スコアは${report.overall}点（${report.rank.label}）です。いちばんの強みは「${s[0]}」、伸びしろが大きいのは「${report.gaps[0].label}」です。`,
+    strengths: report.strengths.map((x) => `${x.label}が${x.score}点と高く、積み重ねが形になっています。`),
+    gaps: report.gaps.map((g) => `${g.label}（${g.score}点）: ${g.advice}`),
+    patterns: [
+      report.overall >= report.overallPrev ? `4週間前より総合スコアが${report.overall - report.overallPrev}点上がっています。` : `4週間前より総合スコアが${report.overallPrev - report.overall}点下がっています。ペースを見直すタイミングです。`,
+    ],
+    actions: report.gaps.map((g) => g.action).concat(['週に1回、記録を読み返して変化を確かめる']).slice(0, 3),
+    focus: `この1か月は「${report.gaps[0].label}」を伸ばすことに集中しましょう。`,
+  };
+}

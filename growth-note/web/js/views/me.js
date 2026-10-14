@@ -1,5 +1,6 @@
 import { api } from '../api.js';
 import { html, mount, $, onAction, toast, fmtNum, fmtBytes, fmtDate, progressBar, confirmSheet } from '../ui.js';
+import { upgradeLabel } from '../ui.js';
 import { icon } from '../icons.js';
 
 function heatmap(cal) {
@@ -18,7 +19,8 @@ function weeklyBlock(review, canUse) {
   if (!canUse) {
     return html`<div class="locked">
       ${icon('lock', { size: 18 })}
-      <div><strong>AIの週間ふりかえり</strong><p>1週間の記録をAIがまとめ、来週のフォーカスを提案します。プロプランで使えます。</p></div>
+      <div><strong>AIの週間ふりかえり</strong><p>1週間の記録をAIがまとめ、来週のフォーカスを提案します。プロプランで使えます。</p>
+        <a class="link" href="#/pricing?from=weekly">プロプランを見る ${icon('chevronRight', { size: 14 })}</a></div>
     </div>`;
   }
   if (!review) return html`<p class="muted">この1週間の記録をAIがまとめます。</p>
@@ -58,6 +60,12 @@ export async function render(root, _params, { state, navigate, refreshMe }) {
       </div>
       <span class="plan-badge ${me.plan.id}">${me.plan.id === 'pro' ? html`${icon('gem', { size: 14 })}` : ''}${me.plan.label}</span>
     </header>
+
+    <a class="card staff-entry growth-link" href="#/growth">
+      <span class="store-icon">${icon('sparkles', { size: 20 })}</span>
+      <span class="link-row-main"><b>成長分析</b><span>レベル・6つの指標・足りないもの${me.plan.id === 'pro' ? '' : '（プロ）'}</span></span>
+      ${icon('chevronRight', { size: 16 })}
+    </a>
 
     <section class="card">
       <div class="card-head"><h2 class="card-title">${icon('target', { size: 18 })}通っている教室・お店</h2></div>
@@ -102,19 +110,24 @@ export async function render(root, _params, { state, navigate, refreshMe }) {
     </section>
 
     <section class="card">
-      <h2 class="card-title small">プランと利用状況</h2>
+      <div class="card-head"><h2 class="card-title small" style="margin:0">プランと利用状況</h2>
+        <a class="link" href="#/billing">プランとお支払い ${icon('chevronRight', { size: 14 })}</a></div>
       <div class="usage">
-        <div class="usage-row"><span>今月のAI分析</span><span>${me.usage.aiEntryInsights} / ${aiLimit}回</span></div>
-        ${progressBar(me.usage.aiEntryInsights / aiLimit, { cls: 'progress-sm' })}
+        ${me.plan.id === 'pro'
+          ? html`<div class="usage-row"><span>今月のAIふりかえり</span><span>${me.usage.aiEntryInsights} / ${aiLimit}回</span></div>
+            ${progressBar(me.usage.aiEntryInsights / Math.max(1, aiLimit), { cls: 'progress-sm' })}`
+          : html`<div class="usage-row"><span>AIふりかえりの無料体験</span><span>残り ${me.ai.trialLeft} / ${me.plan.limits.aiTrialCredits}回</span></div>
+            ${progressBar(me.ai.trialLeft / Math.max(1, me.plan.limits.aiTrialCredits), { cls: 'progress-sm' })}`}
         <div class="usage-row"><span>保存容量</span><span>${fmtBytes(me.usage.storageBytes)} / ${fmtBytes(storageLimit)}</span></div>
         ${progressBar(me.usage.storageBytes / storageLimit, { cls: 'progress-sm' })}
         <div class="usage-row"><span>取り組み中の目標</span><span>${me.usage.activeGoals} / ${me.plan.limits.maxActiveGoals}</span></div>
       </div>
       ${me.ai.enabled ? '' : html`<p class="hint">いまはAIが簡易モードで動いています（管理者がAPIキーを設定すると本格的なAI分析になります）。</p>`}
-      ${me.plan.id === 'free' ? html`<div class="upsell">
-        <p><strong>プロプラン</strong>（準備中）</p>
-        <ul><li>AI分析 月${600}回</li><li>AIの週間ふりかえり</li><li>目標の数が無制限</li><li>保存容量 20GB</li></ul>
-      </div>` : ''}
+      ${me.plan.id === 'free' ? html`<a class="upsell" href="#/pricing">
+        <p><strong>プロプラン</strong> 月¥580〜${me.billing.trialAvailable ? '・7日間無料' : ''}</p>
+        <ul><li>AIのふりかえり</li><li>成長レベルと6つの指標</li><li>足りないものの分析</li><li>AI自己分析</li></ul>
+        <span class="btn btn-primary btn-block">${upgradeLabel(me)}</span>
+      </a>` : ''}
     </section>
 
     <section class="card">
