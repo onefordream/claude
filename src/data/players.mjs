@@ -343,6 +343,7 @@ export const players = [
     nameKana: "かとう さや",
     nameRomaji: "Kato Saya",
     instagram: "https://www.instagram.com/kato_saya_?exln=MWQ1ZGVyY2lzbHg3YQ==",
+    photo: "/images/players/kato-saya.webp",
   },
   {
     id: "player-37",
