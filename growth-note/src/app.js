@@ -16,6 +16,7 @@ import { registerMediaRoutes } from './routes/media.js';
 import { registerHomeRoutes } from './routes/home.js';
 import { registerStoreRoutes } from './routes/stores.js';
 import { registerGrowthRoutes } from './routes/growth.js';
+import { registerGolfRoutes } from './routes/golf.js';
 import { registerBillingRoutes, billingSummary } from './routes/billing.js';
 
 const STATIC_TYPES = {
@@ -68,6 +69,7 @@ export function createApp(config, { log = console } = {}) {
   registerMediaRoutes(router, app);
   registerStoreRoutes(router, app);
   registerGrowthRoutes(router, app);
+  registerGolfRoutes(router, app);
   registerBillingRoutes(router, app);
   router.get('/api/health', async (ctx) => sendJson(ctx.res, 200, { ok: true }), { auth: false });
 

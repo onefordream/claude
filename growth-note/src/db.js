@@ -214,6 +214,55 @@ const MIGRATIONS = [
     created_at TEXT NOT NULL
   );
   `,
+  // v4: ゴルフのラウンド記録
+  `
+  -- 一度入力したコースのパーを覚えておき、次回から入力を省く
+  CREATE TABLE golf_courses (
+    id           TEXT PRIMARY KEY,
+    user_id      TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name         TEXT NOT NULL,
+    pars         TEXT NOT NULL,              -- JSON 配列 [4,4,3,...]
+    last_used_at TEXT NOT NULL,
+    created_at   TEXT NOT NULL,
+    UNIQUE (user_id, name)
+  );
+
+  CREATE TABLE golf_rounds (
+    id             TEXT PRIMARY KEY,
+    user_id        TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    entry_id       TEXT REFERENCES entries(id) ON DELETE SET NULL, -- 成長ノートの記録
+    played_on      TEXT NOT NULL,            -- JST 日付
+    course_name    TEXT NOT NULL,
+    tee            TEXT NOT NULL DEFAULT '',
+    holes_count    INTEGER NOT NULL,         -- 9 | 18
+    pars           TEXT NOT NULL,            -- JSON 配列
+    mode           TEXT NOT NULL DEFAULT 'hole', -- hole: ホールごと / total: 合計だけ
+    totals         TEXT,                     -- mode=total のときの合計値（JSON）
+    drive_distance INTEGER,                  -- ドライバー平均飛距離（ヤード、任意）
+    note           TEXT NOT NULL DEFAULT '',
+    status         TEXT NOT NULL DEFAULT 'in_progress', -- in_progress | done
+    created_at     TEXT NOT NULL,
+    updated_at     TEXT NOT NULL,
+    finished_at    TEXT
+  );
+  CREATE INDEX golf_rounds_user ON golf_rounds(user_id, played_on DESC);
+  CREATE INDEX golf_rounds_entry ON golf_rounds(entry_id);
+
+  CREATE TABLE golf_holes (
+    round_id   TEXT NOT NULL REFERENCES golf_rounds(id) ON DELETE CASCADE,
+    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    hole_no    INTEGER NOT NULL,
+    par        INTEGER NOT NULL,
+    score      INTEGER,
+    putts      INTEGER,
+    fairway    TEXT,                         -- fw | left | right（パー3は記録しない）
+    ob         INTEGER NOT NULL DEFAULT 0,
+    bunker     INTEGER NOT NULL DEFAULT 0,   -- グリーン周りのバンカーに入ったか
+    penalty    INTEGER NOT NULL DEFAULT 0,   -- OB 以外のペナルティ（池など）
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (round_id, hole_no)
+  );
+  `,
 ];
 
 export function openDb(file) {

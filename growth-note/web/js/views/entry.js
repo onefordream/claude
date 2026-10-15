@@ -131,6 +131,9 @@ export async function render(root, { id, query }, { navigate, state }) {
           ${entry.mood ? html`<span class="entry-mood" title="気分">${moodEmoji(entry.mood)}</span>` : ''}
           ${entry.goal ? html`<a class="pill" href="#/goals/${entry.goal.id}">${entry.goal.icon} ${entry.goal.title}</a>` : ''}
         </div>
+        ${entry.golf ? html`<a class="golf-entry" href="#/golf/rounds/${entry.golf.roundId}">
+          <span class="golf-entry-score"><b class="num">${entry.golf.score}</b><small>${entry.golf.toPar > 0 ? `+${entry.golf.toPar}` : entry.golf.toPar === 0 ? '±0' : entry.golf.toPar}</small></span>
+          <span class="golf-entry-main"><b>⛳ ${entry.golf.course}</b><span>スコアカードを見る</span></span>${icon('chevronRight', { size: 16 })}</a>` : ''}
         ${entry.body ? html`<p class="entry-body">${entry.body}</p>` : ''}
         ${mediaGallery(entry.media)}
       </article>

@@ -267,6 +267,8 @@ export function registerStoreRoutes(router, app) {
       ? repo.db.prepare(`SELECT id, entry_id, kind, mime, size FROM media WHERE entry_id IN (${ids.map(() => '?').join(',')}) ORDER BY created_at`).all(...ids)
       : [];
     const commentRows = repo.comments.forStoreEntries(storeId, ids);
+    // 共有された記録がラウンドなら、成績の要約も見せる（記録そのものはすでに共有確認済み）
+    const golfMap = repo.golfSummaries(null, ids);
     return rows.map((r) => ({
       id: r.id,
       member: { linkId: r.link_id, name: r.member_name },
@@ -275,6 +277,7 @@ export function registerStoreRoutes(router, app) {
       localDate: r.local_date,
       createdAt: r.created_at,
       media: mediaRows.filter((m) => m.entry_id === r.id).map(({ entry_id, ...m }) => ({ ...m, url: `/api/media/${m.id}` })),
+      golf: golfMap.get(r.id) || null,
       comments: commentRows.filter((c) => c.entry_id === r.id).map((c) => ({
         id: c.id, body: c.body, createdAt: c.created_at, authorName: c.author_name, mine: c.author_id === viewerId,
       })),

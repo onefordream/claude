@@ -118,6 +118,8 @@ export async function render(root, { query }, { state, navigate }) {
         <p>まずは今日のことを、ひとことだけ書いてみましょう。短くても大丈夫です。</p>
       </div>` : ''}
 
+    <a class="golf-shortcut" href="#/golf/new">⛳ <b>ゴルフのラウンドを記録する</b><span>スコア・パット・FWキープなど</span>${icon('chevronRight', { size: 16 })}</a>
+
     <section class="write-main card">
       <div class="starters">${STARTERS.map((s, i) => html`<button class="chip" data-action="starter" data-i="${i}">${s.label}</button>`)}</div>
       <textarea class="write-text" name="body" rows="6" maxlength="5000" placeholder="一言でもOK。今日の自分を残しておこう">${form.body}</textarea>

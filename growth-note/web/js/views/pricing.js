@@ -13,6 +13,8 @@ const ROWS = [
   ['成長レベル・6つの指標', '—', '✓'],
   ['足りないものの分析・推移グラフ', '—', '✓'],
   ['AI自己分析', '—', '月8回'],
+  ['ゴルフ：ラウンド記録・スコアカード', '✓', '✓'],
+  ['ゴルフ：能力チャート・伸びしろ分析・AIコーチ', '—', '✓'],
   ['AIの週間ふりかえり', '—', '✓'],
   ['同時に持てる目標', '3つ', '無制限'],
   ['保存容量', '1GB', '20GB'],
@@ -32,7 +34,7 @@ async function renderPricing(root, query, { state, refreshMe }) {
   const isPro = state.me.plan.id === 'pro';
   let interval = 'year';
   const from = query.get('from');
-  const fromText = { growth: '成長分析はプロの機能です', insight: 'AIのふりかえりはプロの機能です', weekly: '週間ふりかえりはプロの機能です', analysis: 'AI自己分析はプロの機能です' }[from];
+  const fromText = { golf: 'ゴルフのスコア分析はプロの機能です', growth: '成長分析はプロの機能です', insight: 'AIのふりかえりはプロの機能です', weekly: '週間ふりかえりはプロの機能です', analysis: 'AI自己分析はプロの機能です' }[from];
 
   const priceBox = () => {
     const p = pricing[interval];

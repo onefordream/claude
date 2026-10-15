@@ -61,6 +61,12 @@ export async function render(root, _params, { state, navigate, refreshMe }) {
       <span class="plan-badge ${me.plan.id}">${me.plan.id === 'pro' ? html`${icon('gem', { size: 14 })}` : ''}${me.plan.label}</span>
     </header>
 
+    <a class="card staff-entry" href="#/golf">
+      <span class="store-icon">⛳</span>
+      <span class="link-row-main"><b>ゴルフ</b><span>ラウンドの記録・スコア分析・AIコーチ</span></span>
+      ${icon('chevronRight', { size: 16 })}
+    </a>
+
     <a class="card staff-entry growth-link" href="#/growth">
       <span class="store-icon">${icon('sparkles', { size: 20 })}</span>
       <span class="link-row-main"><b>成長分析</b><span>レベル・6つの指標・足りないもの${me.plan.id === 'pro' ? '' : '（プロ）'}</span></span>

@@ -1,6 +1,7 @@
 import { jstDate, jstMonth, addDays } from './lib/date.js';
 import { AXES, axisScores, overallOf, rankOf, experience, levelOf, gapsOf, strengthsOf, trendOf } from './lib/growth.js';
 import { computeStreak, badges } from './lib/stats.js';
+import { roundStats, aggregate, skillAxes, potentials as golfPotentials } from './lib/golf.js';
 import { entitlementsFor, effectivePlan } from './lib/plans.js';
 
 export const MB = 1024 * 1024;
@@ -83,5 +84,39 @@ export function growthReport(repo, user, today = jstDate()) {
     trend: trendOf(input),
     gaps: gapsOf(scores),
     strengths: strengthsOf(scores),
+  };
+}
+
+// ---- ゴルフ ----
+
+/** ラウンド一覧（成績つき）。新しい順 */
+export function golfRoundsWithStats(repo, userId, { status = null, limit = 50 } = {}) {
+  const rounds = repo.golf.list(userId, { status, limit });
+  const holes = repo.golf.holesFor(userId, rounds.map((r) => r.id));
+  return rounds.map((r) => ({ round: r, stats: roundStats(r, holes.filter((h) => h.round_id === r.id)) }));
+}
+
+/** ゴルフの分析（直近10ラウンド）。データが足りなければ null */
+export function golfAnalysisData(repo, userId) {
+  const done = golfRoundsWithStats(repo, userId, { status: 'done', limit: 30 }).filter((x) => x.stats.complete);
+  const recent = done.slice(0, 10);
+  const agg = aggregate(recent.map((x) => x.stats));
+  if (!agg) return null;
+  const axes = skillAxes(agg);
+  return {
+    agg,
+    axes,
+    potentials: golfPotentials(agg),
+    trend: done.slice(0, 20).reverse().map((x) => ({
+      date: x.round.played_on,
+      course: x.round.course_name,
+      score18: Math.round((x.stats.score / x.stats.holesPlayed) * 18),
+      score: x.stats.score,
+      holes: x.stats.holesPlayed,
+      putts18: x.stats.putts != null ? Math.round((x.stats.putts / x.stats.puttHoles) * 18 * 10) / 10 : null,
+      fwPct: x.stats.fwPct,
+      girPct: x.stats.girPct,
+    })),
+    notes: recent.slice(0, 5).map((x) => ({ date: x.round.played_on, course: x.round.course_name, score: x.stats.score, note: x.round.note })),
   };
 }

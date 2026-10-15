@@ -2,6 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { tx } from '../db.js';
 import { nowIso } from '../lib/date.js';
 import { createStoreRepos } from './stores.js';
+import { createGolfRepos } from './golf.js';
+import { roundStats } from '../lib/golf.js';
 
 // データアクセスはすべてここを通す。
 // ユーザーのデータを扱う関数は必ず userId を第1引数に取り、SQL に user_id 条件を含める。
@@ -32,6 +34,7 @@ function redactLocked(insight) {
 export function createRepos(db) {
   const q = (sql) => db.prepare(sql);
   const storeRepos = createStoreRepos(db, { tx: (fn) => tx(db, fn) });
+  const golfRepos = createGolfRepos(db, { tx: (fn) => tx(db, fn) });
 
   const users = {
     create({ email, passwordHash, displayName }) {
@@ -337,6 +340,7 @@ export function createRepos(db) {
       const goalMap = new Map(goalIds.map((gid) => [gid, goals.get(userId, gid)]).filter(([, g]) => g));
       const shareRows = storeRepos.shares.forEntries(userId, ids);
       const commentRows = storeRepos.comments.forOwnEntries(userId, ids);
+      const golfMap = golfSummaries(userId, ids);
       return rows.map((r) => ({
         id: r.id,
         body: r.body,
@@ -351,6 +355,7 @@ export function createRepos(db) {
         insight: redactLocked(insightRows.find((i) => i.entry_id === r.id) || null),
         // 共有先は、いまもつながっている店舗だけを表示する
         shares: shareRows.filter((x) => x.entry_id === r.id && x.status === 'active').map((x) => ({ storeId: x.store_id, storeName: x.store_name })),
+        golf: golfMap.get(r.id) || null,
         comments: commentRows.filter((c) => c.entry_id === r.id).map((c) => ({
           id: c.id, body: c.body, createdAt: c.created_at, unread: !c.read_at, storeName: c.store_name, authorName: c.author_name,
         })),
@@ -410,5 +415,18 @@ export function createRepos(db) {
     },
   };
 
-  return { db, users, sessions, billing, media, insights, goals, entries, jobs, ...storeRepos, tx: (fn) => tx(db, fn) };
+  /** 記録に紐づくラウンドの要約（成長ノートの一覧・詳細・店舗側の表示に使う） */
+  function golfSummaries(userId, entryIds) {
+    const rounds = golfRepos.golf.byEntries(entryIds).filter((r) => userId === null || r.user_id === userId);
+    const holes = rounds.length ? db.prepare(`SELECT * FROM golf_holes WHERE round_id IN (${rounds.map(() => '?').join(',')})`).all(...rounds.map((r) => r.id)) : [];
+    return new Map(rounds.map((r) => {
+      const st = roundStats(r, holes.filter((h) => h.round_id === r.id));
+      return [r.entry_id, {
+        roundId: r.id, course: r.course_name, playedOn: r.played_on, holes: r.holes_count,
+        score: st.score, toPar: st.toPar, putts: st.putts, fwPct: st.fwPct, girPct: st.girPct, ob: st.ob,
+      }];
+    }));
+  }
+
+  return { db, users, sessions, billing, media, insights, goals, entries, jobs, ...storeRepos, ...golfRepos, golfSummaries, tx: (fn) => tx(db, fn) };
 }

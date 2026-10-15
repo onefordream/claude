@@ -93,3 +93,24 @@ export function localSelfAnalysis({ report }) {
     focus: `この1か月は「${report.gaps[0].label}」を伸ばすことに集中しましょう。`,
   };
 }
+
+/** ゴルフAIコーチの簡易版（APIキー未設定・失敗時）。伸びしろの大きい順に提案する */
+export function localGolfCoach({ agg, potentials, axes }) {
+  const items = potentials.items;
+  const strong = [...axes].sort((a, b) => b.score - a.score).slice(0, 2);
+  const weak = [...axes].sort((a, b) => a.score - b.score).slice(0, 2);
+  const total = Math.round(items.reduce((s, i) => s + i.strokes, 0) * 10) / 10;
+  return {
+    summary: `直近${agg.rounds}ラウンドの平均は${agg.score18}（18ホール換算）で、${potentials.current.label}の水準です。` +
+      (items.length ? `${potentials.target.label}の水準に近づけると、1ラウンドあたり約${total}打縮められる見込みです。いちばんの伸びしろは「${items[0].label}」です。` : '各項目とも目標の水準に届いています。'),
+    strengths: strong.map((a) => `${a.label}（${a.detail}）は安定しています。`),
+    weaknesses: weak.map((a) => `${a.label}（${a.detail}）が伸びしろです。`),
+    priorities: items.slice(0, 3).map((i) => ({
+      area: i.label,
+      why: `${i.from}${i.unit} → 目標 ${i.to}${i.unit}`,
+      drill: i.tip,
+      expected_gain: `約${i.strokes}打`,
+    })),
+    next_round_plan: ['スタート前にパター練習で距離感を合わせる', '危ないホールではティーショットの番手を落とす', 'グリーンを外したら、まず1パット圏に寄せることを優先する'],
+  };
+}

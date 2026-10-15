@@ -105,6 +105,8 @@ function feedCard(e) {
       <div class="feed-who"><b>${e.member.name}</b><span>${fmtRelDate(e.localDate)} ・ ${fmtTime(e.createdAt)}</span></div>
       ${e.mood ? html`<span class="entry-mood">${moodEmoji(e.mood)}</span>` : ''}
     </div>
+    ${e.golf ? html`<div class="golf-entry static"><span class="golf-entry-score"><b class="num">${e.golf.score}</b><small>${e.golf.toPar > 0 ? `+${e.golf.toPar}` : e.golf.toPar}</small></span>
+      <span class="golf-entry-main"><b>⛳ ${e.golf.course}</b><span>${[e.golf.putts != null && `パット${e.golf.putts}`, e.golf.fwPct != null && `FW${e.golf.fwPct}%`, e.golf.girPct != null && `パーオン${e.golf.girPct}%`, e.golf.ob != null && `OB${e.golf.ob}`].filter(Boolean).join(' ・ ')}</span></span></div>` : ''}
     ${e.body ? html`<p class="entry-body">${e.body}</p>` : ''}
     ${e.media.length ? html`<div class="gallery">${e.media.map((m) =>
       m.kind === 'image' ? html`<a class="gallery-item" href="${m.url}" target="_blank" rel="noopener"><img src="${m.url}" alt="添付写真" loading="lazy"></a>`

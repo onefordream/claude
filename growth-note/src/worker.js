@@ -1,5 +1,5 @@
 import { jstDate, jstMonth, addDays } from './lib/date.js';
-import { entitlementsOf, userStats, growthReport } from './services.js';
+import { entitlementsOf, userStats, growthReport, golfAnalysisData } from './services.js';
 
 // AI 分析などの重い処理を、リクエストとは切り離して順番に実行する常駐ワーカー。
 // 記録の保存自体はすぐ終わり、AI の結果はあとから画面に反映される。
@@ -67,6 +67,26 @@ export function createWorker({ repo, ai, storage, intervalMs = 1500, log = conso
         }
       }
       repo.entries.reindex(userId, entryId);
+    },
+
+    async golf_coach(job) {
+      const { userId } = job;
+      const { insightId } = job.payload;
+      const data = golfAnalysisData(repo, userId);
+      if (!data) {
+        repo.insights.setResult(userId, insightId, { status: 'failed', error: 'no rounds' });
+        return;
+      }
+      try {
+        const { provider, data: out } = await ai.golfCoach(data);
+        repo.insights.setResult(userId, insightId, { status: 'done', provider, summary: out.summary, data: out });
+      } catch (err) {
+        if (err.retryable && job.attempts < MAX_ATTEMPTS) throw err;
+        const out = ai.local.golfCoach(data);
+        repo.insights.setResult(userId, insightId, {
+          status: 'done', provider: 'local', note: 'AI分析を完了できなかったため、簡易分析を表示しています。', summary: out.summary, data: out,
+        });
+      }
     },
 
     async self_analysis(job) {

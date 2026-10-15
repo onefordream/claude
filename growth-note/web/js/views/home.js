@@ -21,6 +21,19 @@ function setStepDone(today, text, done) {
   }
 }
 
+/** ゴルフ: 入力中のラウンドがあれば続きへ、記録があれば最近の成績 */
+function golfCard(golf) {
+  if (!golf || !golf.rounds.length) return '';
+  const wip = golf.rounds.find((r) => r.status !== 'done');
+  if (wip) {
+    return html`<a class="card wip-banner" href="#/golf/rounds/${wip.id}">
+      <span>⛳</span><div><b>${wip.courseName} を入力中</b><span>${wip.holesPlayed}/${wip.holesCount}ホール ・ タップで続きから</span></div>${icon('chevronRight', { size: 16 })}</a>`;
+  }
+  const last = golf.rounds[0];
+  return html`<a class="card wip-banner done" href="#/golf">
+    <span>⛳</span><div><b>前回 ${last.score}（${last.courseName}）</b><span>平均 ${golf.summary.average ?? '—'} ・ ベスト ${golf.summary.best ?? '—'}</span></div>${icon('chevronRight', { size: 16 })}</a>`;
+}
+
 /** 成長分析への入口。無料の人には強みの名前だけ見せて、続きはプロで */
 function growthCard(g, me) {
   if (!g) return '';
@@ -64,7 +77,7 @@ function streakMessage(h) {
 }
 
 export async function render(root, _params, { navigate, state }) {
-  const [h, g] = await Promise.all([api('/home'), api('/growth').catch(() => null)]);
+  const [h, g, golf] = await Promise.all([api('/home'), api('/growth').catch(() => null), api('/golf/rounds').catch(() => null)]);
   const me = state.me;
   const today = h.today || jstToday();
   const s = h.streak;
@@ -138,6 +151,8 @@ export async function render(root, _params, { navigate, state }) {
         <span class="step-text">${h.todayStep.text}</span>
       </button>
     </section>
+
+    ${golfCard(golf)}
 
     ${growthCard(g, me)}
 

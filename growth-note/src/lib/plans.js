@@ -11,6 +11,7 @@ export const PLANS = {
       growthAnalytics: false, // 成長レベル・レーダー・推移・足りないもの
       aiSelfAnalysis: false, // AIによる自己分析
       weeklyReview: false, // AIによる週間ふりかえり
+      golfAnalytics: false, // ゴルフのデータ分析（能力レーダー・伸びしろ・推移）とAIコーチ
       videoUpload: true,
       aiImageReading: true, // 写真もAIに読ませる
     },
@@ -18,6 +19,7 @@ export const PLANS = {
       aiTrialCredits: 3, // 無料で体験できるAIふりかえりの回数（通算）
       aiEntryInsightsPerMonth: 0,
       aiSelfAnalysesPerMonth: 0,
+      aiGolfCoachPerMonth: 0,
       maxActiveGoals: 3,
       maxImageMB: 15,
       maxAudioMB: 25,
@@ -33,6 +35,7 @@ export const PLANS = {
       growthAnalytics: true,
       aiSelfAnalysis: true,
       weeklyReview: true,
+      golfAnalytics: true,
       videoUpload: true,
       aiImageReading: true,
     },
@@ -40,6 +43,7 @@ export const PLANS = {
       aiTrialCredits: 0,
       aiEntryInsightsPerMonth: 600,
       aiSelfAnalysesPerMonth: 8,
+      aiGolfCoachPerMonth: 10,
       maxActiveGoals: 50,
       maxImageMB: 25,
       maxAudioMB: 100,
