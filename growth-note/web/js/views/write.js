@@ -101,89 +101,87 @@ export async function render(root, { query }, { state, navigate }) {
   const dates = Array.from({ length: 7 }, (_, i) => addDays(today, -i));
 
   mount(root, html`
-    <header class="write-head">
-      <button class="icon-btn" data-action="close" aria-label="閉じる">${icon('x', { size: 22 })}</button>
-      <div class="write-head-title">
-        <span>今日の記録</span>
-        <select class="date-select" name="date" aria-label="記録する日">
-          ${dates.map((d, i) => html`<option value="${d}" ${d === form.date ? 'selected' : ''}>${i === 0 ? '今日' : i === 1 ? '昨日' : ''} ${fmtDate(d)}</option>`)}
-        </select>
+    <header class="focus-head">
+      <button class="icon-btn" data-action="close" aria-label="閉じる">${icon('x', { size: 20 })}</button>
+      <div class="focus-head-title">
+        <span>記録を追加</span>
+        <span class="select select-inline"><select class="date-select" name="date" aria-label="記録する日">
+          ${dates.map((d, i) => html`<option value="${d}" ${d === form.date ? 'selected' : ''}>${i === 0 ? '今日 ' : i === 1 ? '昨日 ' : ''}${fmtDate(d)}</option>`)}
+        </select></span>
       </div>
-      <button class="btn btn-primary btn-sm" data-action="save">記録する</button>
+      <button class="text-btn" data-action="save">保存</button>
     </header>
 
     ${query.get('welcome') ? html`
-      <div class="welcome card">
-        <p class="welcome-title">ようこそ！🌱</p>
-        <p>まずは今日のことを、ひとことだけ書いてみましょう。短くても大丈夫です。</p>
-      </div>` : ''}
+      <section class="notice">
+        <p class="notice-title">最初の記録です</p>
+        <p class="notice-text">今日のことを短い一文で残してください。あとから写真や声も添えられます。</p>
+      </section>` : ''}
 
-    <a class="golf-shortcut" href="#/golf/new">⛳ <b>ゴルフのラウンドを記録する</b><span>スコア・パット・FWキープなど</span>${icon('chevronRight', { size: 16 })}</a>
-
-    <section class="write-main card">
-      <div class="starters">${STARTERS.map((s, i) => html`<button class="chip" data-action="starter" data-i="${i}">${s.label}</button>`)}</div>
-      <textarea class="write-text" name="body" rows="6" maxlength="5000" placeholder="一言でもOK。今日の自分を残しておこう">${form.body}</textarea>
+    <section class="section">
+      <div class="starters" role="group" aria-label="書き出し">${STARTERS.map((s, i) => html`<button class="chip" data-action="starter" data-i="${i}">${s.label}</button>`)}</div>
+      <textarea class="write-text" name="body" rows="6" maxlength="5000" placeholder="今日やったこと、気づいたこと" aria-label="本文">${form.body}</textarea>
       <div class="write-tools">
-        ${SR ? html`<button class="tool-btn" data-action="dictate" aria-pressed="false">${icon('mic', { size: 20 })}<span>音声で入力</span></button>` : ''}
-        <span class="char-count"><span data-count>${form.body.length}</span>/5000</span>
+        ${SR ? html`<button class="text-btn" data-action="dictate" aria-pressed="false">${icon('mic', { size: 16 })}<span>音声で入力</span></button>` : html`<span></span>`}
+        <span class="char-count"><span data-count>${form.body.length}</span> / 5000</span>
       </div>
     </section>
 
-    <section class="card">
-      <h2 class="card-title small">添付する</h2>
+    <section class="section">
+      <h2 class="section-title">添付</h2>
       <div class="attach-row">
-        <label class="attach-btn">${icon('camera', { size: 22 })}<span>写真</span>
+        <label class="attach-btn">${icon('camera', { size: 20 })}<span>写真</span>
           <input type="file" accept="image/*" multiple hidden data-input="image"></label>
-        <label class="attach-btn">${icon('video', { size: 22 })}<span>動画</span>
+        <label class="attach-btn">${icon('video', { size: 20 })}<span>動画</span>
           <input type="file" accept="video/*" hidden data-input="video"></label>
         ${canRecord
-          ? html`<button class="attach-btn" data-action="record">${icon('mic', { size: 22 })}<span>音声メモ</span></button>`
-          : html`<label class="attach-btn">${icon('mic', { size: 22 })}<span>音声メモ</span>
+          ? html`<button class="attach-btn" data-action="record">${icon('mic', { size: 20 })}<span>音声メモ</span></button>`
+          : html`<label class="attach-btn">${icon('mic', { size: 20 })}<span>音声メモ</span>
               <input type="file" accept="audio/*" hidden data-input="audio"></label>`}
       </div>
       <div class="recorder" hidden>
-        <span class="rec-dot"></span><span class="rec-time">0:00</span><span class="rec-label">録音中…</span>
-        <button class="btn btn-soft btn-sm" data-action="stop-record">${icon('stop', { size: 16 })}停止</button>
+        <span class="rec-dot" aria-hidden="true"></span><span class="rec-time">0:00</span><span class="rec-label">録音中</span>
+        <button class="btn btn-secondary btn-sm" data-action="stop-record">${icon('stop', { size: 16 })}停止</button>
       </div>
       <div class="attach-list"></div>
       <p class="hint">写真 ${limits.maxImageMB}MB・動画 ${limits.maxVideoMB}MB・音声 ${limits.maxAudioMB}MB まで</p>
     </section>
 
-    <section class="card">
-      <h2 class="card-title small">今日の気分</h2>
-      <div class="moods">
-        ${MOODS.map((m) => html`<button class="mood ${form.mood === m.v ? 'on' : ''}" data-action="mood" data-v="${m.v}" aria-pressed="${form.mood === m.v}">
-          <span class="mood-emoji">${m.emoji}</span><span class="mood-label">${m.label}</span></button>`)}
+    <section class="section">
+      <h2 class="section-title">気分</h2>
+      <div class="scale" role="group" aria-label="気分">
+        ${MOODS.map((m) => html`<button class="scale-opt mood ${form.mood === m.v ? 'on' : ''}" data-action="mood" data-v="${m.v}" aria-pressed="${form.mood === m.v}">${m.label}</button>`)}
       </div>
     </section>
 
     ${activeLinks.length ? html`
-      <section class="card">
-        <h2 class="card-title small">教室・お店に共有する</h2>
-        <div class="share-pick">
-          ${activeLinks.map((l) => html`<button class="chip share-chip ${form.storeIds.has(l.store.id) ? 'on' : ''}" data-action="share" data-id="${l.store.id}" aria-pressed="${form.storeIds.has(l.store.id)}">
-            ${icon('check', { size: 14, stroke: 3 })}${l.store.name}</button>`)}
+      <section class="section">
+        <h2 class="section-title">教室・お店に共有</h2>
+        <div class="chips">
+          ${activeLinks.map((l) => html`<button class="chip ${form.storeIds.has(l.store.id) ? 'on' : ''}" data-action="share" data-id="${l.store.id}" aria-pressed="${form.storeIds.has(l.store.id)}">${l.store.name}</button>`)}
         </div>
         <p class="hint">選んだ店舗の先生がこの記録を見て、コメントできるようになります。</p>
       </section>` : ''}
 
     ${goals.length ? html`
-      <section class="card">
-        <h2 class="card-title small">目標にむすびつける</h2>
-        <div class="goal-pick">
+      <section class="section">
+        <h2 class="section-title">目標に反映</h2>
+        <div class="chips goal-pick">
           <button class="chip ${!form.goalId ? 'on' : ''}" data-action="goal" data-id="">なし</button>
-          ${goals.map((g) => html`<button class="chip ${form.goalId === g.id ? 'on' : ''}" data-action="goal" data-id="${g.id}">${g.icon} ${g.title}</button>`)}
+          ${goals.map((g) => html`<button class="chip ${form.goalId === g.id ? 'on' : ''}" data-action="goal" data-id="${g.id}">${g.title}</button>`)}
         </div>
-        <div class="goal-delta" ${form.goalId ? '' : 'hidden'}>
+        <div class="inline-fields goal-delta" ${form.goalId ? '' : 'hidden'}>
           <span>進捗に</span>
-          <input class="input input-num" type="number" inputmode="decimal" min="0" step="any" name="goalDelta" value="${form.goalDelta}">
+          <input class="input input-num" type="number" inputmode="decimal" min="0" step="any" name="goalDelta" value="${form.goalDelta}" aria-label="加える量">
           <span data-unit>${goals.find((g) => g.id === form.goalId)?.unit || ''}</span>
           <span>を加える</span>
         </div>
       </section>` : ''}
 
-    <div class="write-foot">
-      <button class="btn btn-primary btn-block btn-lg" data-action="save">${icon('check', { size: 20, stroke: 2.6 })}記録する</button>
+    <div class="form-foot">
+      <button class="btn btn-primary btn-lg btn-block" data-action="save">記録する</button>
+      <a class="row row-plain" href="#/golf/new">
+        <span class="row-main"><span class="row-title">ゴルフのラウンドを記録</span><span class="row-sub">スコア・パット・FWキープなど</span></span>${icon('caretRight', { size: 16 })}</a>
     </div>
   `);
 
@@ -219,15 +217,15 @@ export async function render(root, { query }, { state, navigate }) {
       <div class="attach-item ${a.error ? 'error' : ''} ${a.id ? 'ready' : ''}">
         <div class="attach-thumb">
           ${a.kind === 'image' && a.previewUrl ? html`<img src="${a.previewUrl}" alt="">`
-            : a.kind === 'video' ? icon('video', { size: 24 }) : icon('mic', { size: 24 })}
+            : a.kind === 'video' ? icon('video', { size: 20 }) : icon('mic', { size: 20 })}
         </div>
         <div class="attach-info">
           <span class="attach-name">${a.kind === 'image' ? '写真' : a.kind === 'video' ? '動画' : '音声メモ'} ・ ${fmtBytes(a.size)}</span>
           ${a.error ? html`<span class="attach-err">${a.error}</span>`
-            : a.id ? html`<span class="attach-ok">${icon('check', { size: 14, stroke: 3 })}準備OK</span>`
-            : html`<div class="progress progress-sm"><div class="progress-bar" style="--p:${Math.round(a.progress * 100)}%"></div></div>`}
+            : a.id ? html`<span class="attach-ok">アップロード済み</span>`
+            : html`<div class="progress"><div class="progress-bar" style="--p:${Math.round(a.progress * 100)}%"></div></div>`}
         </div>
-        <button class="icon-btn small" data-action="remove-attach" data-key="${a.key}" aria-label="取り消す">${icon('x', { size: 18 })}</button>
+        <button class="icon-btn" data-action="remove-attach" data-key="${a.key}" aria-label="取り消す">${icon('x', { size: 16 })}</button>
       </div>`));
   }
 
@@ -341,7 +339,7 @@ export async function render(root, { query }, { state, navigate }) {
     recognition = r;
     btn.classList.add('on');
     btn.setAttribute('aria-pressed', 'true');
-    $('span', btn).textContent = '聞き取り中…（タップで終了）';
+    $('span', btn).textContent = '聞き取り中（タップで終了）';
   }
 
   async function save() {
@@ -350,7 +348,7 @@ export async function render(root, { query }, { state, navigate }) {
     const mediaIds = attachments.filter((a) => a.id).map((a) => a.id);
     if (!form.body.trim() && !mediaIds.length) {
       textarea.focus();
-      return toast('ひとことか、写真などを添えて記録しましょう');
+      return toast('本文か添付を入力してください');
     }
     if (attachments.some((a) => a.error)) {
       const ok = await confirmSheet({ title: '一部の添付がアップロードできていません', message: 'アップロードできたものだけで記録しますか？', ok: '記録する' });
@@ -412,7 +410,10 @@ export async function render(root, { query }, { state, navigate }) {
     },
     goal: (el) => {
       form.goalId = el.dataset.id;
-      $$('.goal-pick .chip', root).forEach((b) => b.classList.toggle('on', b.dataset.id === form.goalId));
+      $$('.goal-pick .chip', root).forEach((b) => {
+        b.classList.toggle('on', b.dataset.id === form.goalId);
+        b.setAttribute('aria-pressed', String(b.dataset.id === form.goalId));
+      });
       const box = $('.goal-delta', root);
       box.hidden = !form.goalId;
       $('[data-unit]', box).textContent = goals.find((g) => g.id === form.goalId)?.unit || '';

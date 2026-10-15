@@ -12,30 +12,30 @@ function heatmap(cal) {
     <div class="heatmap-grid">${cols.map((col) => html`<div class="heatmap-col">${col.map((c) =>
       html`<span class="hm l${level(c.count)} ${c.isFuture ? 'future' : ''}" title="${fmtDate(c.date)}: ${c.count}件"></span>`)}</div>`)}</div>
   </div>
-  <div class="heatmap-legend"><span>少ない</span><i class="hm l0"></i><i class="hm l1"></i><i class="hm l2"></i><i class="hm l3"></i><span>多い</span></div>`;
+  <p class="heatmap-legend"><span>少ない</span><i class="hm l0"></i><i class="hm l1"></i><i class="hm l2"></i><i class="hm l3"></i><span>多い</span></p>`;
 }
 
 function weeklyBlock(review, canUse) {
   if (!canUse) {
-    return html`<div class="locked">
-      ${icon('lock', { size: 18 })}
-      <div><strong>AIの週間ふりかえり</strong><p>1週間の記録をAIがまとめ、来週のフォーカスを提案します。プロプランで使えます。</p>
-        <a class="link" href="#/pricing?from=weekly">プロプランを見る ${icon('chevronRight', { size: 14 })}</a></div>
-    </div>`;
+    return html`<p class="muted">1週間の記録をAIがまとめ、来週のフォーカスを提案します。プロプランで使えます。</p>
+      <a class="text-btn" href="#/pricing?from=weekly">プロプランを見る</a>`;
   }
   if (!review) return html`<p class="muted">この1週間の記録をAIがまとめます。</p>
-    <button class="btn btn-primary btn-block" data-action="weekly">${icon('sparkles', { size: 18 })}今週のふりかえりをつくる</button>`;
-  if (review.status === 'pending') return html`<div class="skeleton-lines"><i></i><i></i><i class="short"></i></div><p class="hint">AIがまとめています…</p>`;
+    <button class="btn btn-secondary" data-action="weekly">今週のふりかえりを作成</button>`;
+  if (review.status === 'pending') return html`<div class="skeleton-lines" aria-label="作成中"><i></i><i></i><i class="short"></i></div><p class="hint">まとめています</p>`;
   const d = review.data || {};
   return html`
-    <p class="eyebrow">${review.period_start ? `${fmtDate(review.period_start)} 〜 ${fmtDate(review.period_end)}` : ''}</p>
+    <p class="eyebrow">${review.period_start ? `${fmtDate(review.period_start)} – ${fmtDate(review.period_end)}` : ''}</p>
     <p class="ai-summary">${d.summary}</p>
-    ${d.highlights?.length ? html`<h3 class="ai-h">よかったこと</h3><ul class="ai-list">${d.highlights.map((t) => html`<li>${t}</li>`)}</ul>` : ''}
-    ${d.patterns?.length ? html`<h3 class="ai-h">見えてきた傾向</h3><ul class="ai-list">${d.patterns.map((t) => html`<li>${t}</li>`)}</ul>` : ''}
-    ${d.next_week_focus?.length ? html`<h3 class="ai-h">来週のフォーカス</h3><ul class="ai-actions">${d.next_week_focus.map((t) => html`<li><span class="dot"></span>${t}</li>`)}</ul>` : ''}
-    ${d.encouragement ? html`<p class="ai-cheer">${d.encouragement}</p>` : ''}
-    <button class="btn btn-ghost btn-sm" data-action="weekly">${icon('refresh', { size: 16 })}最新の内容でつくり直す</button>`;
+    ${d.highlights?.length ? html`<h3 class="sub-title">よかったこと</h3><ul class="bullets">${d.highlights.map((t) => html`<li>${t}</li>`)}</ul>` : ''}
+    ${d.patterns?.length ? html`<h3 class="sub-title">傾向</h3><ul class="bullets">${d.patterns.map((t) => html`<li>${t}</li>`)}</ul>` : ''}
+    ${d.next_week_focus?.length ? html`<h3 class="sub-title">来週のフォーカス</h3><ol class="steps">${d.next_week_focus.map((t) => html`<li>${t}</li>`)}</ol>` : ''}
+    ${d.encouragement ? html`<p class="ai-note">${d.encouragement}</p>` : ''}
+    <button class="text-btn" data-action="weekly">最新の内容で作り直す</button>`;
 }
+
+const navRow = (href, title, sub, aside = '') => html`<a class="row" href="${href}">
+  <span class="row-main"><span class="row-title">${title}</span>${sub ? html`<span class="row-sub">${sub}</span>` : ''}</span>${aside}${icon('caretRight', { size: 16 })}</a>`;
 
 export async function render(root, _params, { state, navigate, refreshMe }) {
   const [stats, weekly, linksRes, storesRes] = await Promise.all([api('/stats'), api('/insights/weekly'), api('/links'), api('/stores')]);
@@ -48,141 +48,132 @@ export async function render(root, _params, { state, navigate, refreshMe }) {
 
   const canWeekly = me.plan.features.weeklyReview;
   const earned = stats.badges.filter((b) => b.earned).length;
+  // 実績は、獲得したものと次に届くもの2つだけを並べる
+  const milestones = [...stats.badges.filter((b) => b.earned), ...stats.badges.filter((b) => !b.earned).slice(0, 2)];
   const aiLimit = me.plan.limits.aiEntryInsightsPerMonth;
   const storageLimit = me.plan.limits.storageMB * 1024 * 1024;
 
   const draw = () => mount(root, html`
     <header class="profile">
-      <div class="avatar">${[...me.user.displayName][0]}</div>
+      <span class="avatar" aria-hidden="true">${[...me.user.displayName][0]}</span>
       <div class="profile-body">
-        <h1 class="profile-name">${me.user.displayName}</h1>
-        <p class="profile-sub">${stats.since ? `${fmtDate(stats.since, { weekday: false, year: true })}から記録中` : 'これから記録をはじめましょう'}</p>
+        <h1 class="page-title page-title-sm">${me.user.displayName}</h1>
+        <p class="page-sub">${stats.since ? `${fmtDate(stats.since, { weekday: false, year: true })}から記録` : 'まだ記録はありません'}　${me.plan.label}プラン</p>
       </div>
-      <span class="plan-badge ${me.plan.id}">${me.plan.id === 'pro' ? html`${icon('gem', { size: 14 })}` : ''}${me.plan.label}</span>
     </header>
 
-    <a class="card staff-entry" href="#/golf">
-      <span class="store-icon">⛳</span>
-      <span class="link-row-main"><b>ゴルフ</b><span>ラウンドの記録・スコア分析・AIコーチ</span></span>
-      ${icon('chevronRight', { size: 16 })}
-    </a>
+    <div class="split">
+      <div class="split-main">
+        <section class="section">
+          <h2 class="section-title">積み重ね</h2>
+          <dl class="figures figures-3">
+            <div><dt>記録</dt><dd>${fmtNum(stats.totals.entries)}</dd></div>
+            <div><dt>記録した日</dt><dd>${fmtNum(stats.totals.activeDays)}</dd></div>
+            <div><dt>最長連続</dt><dd>${fmtNum(stats.streak.best)}<small>日</small></dd></div>
+            <div><dt>書いた文字</dt><dd>${fmtNum(stats.totals.chars)}</dd></div>
+            <div><dt>写真・動画・音声</dt><dd>${fmtNum(stats.totals.image + stats.totals.video + stats.totals.audio)}</dd></div>
+            <div><dt>達成した目標</dt><dd>${fmtNum(stats.totals.goalsDone)}</dd></div>
+          </dl>
+          <h3 class="sub-title">記録のカレンダー</h3>
+          ${heatmap(stats.calendar)}
+        </section>
 
-    <a class="card staff-entry growth-link" href="#/growth">
-      <span class="store-icon">${icon('sparkles', { size: 20 })}</span>
-      <span class="link-row-main"><b>成長分析</b><span>レベル・6つの指標・足りないもの${me.plan.id === 'pro' ? '' : '（プロ）'}</span></span>
-      ${icon('chevronRight', { size: 16 })}
-    </a>
+        <section class="section">
+          <div class="section-head"><h2 class="section-title">週間ふりかえり</h2>${canWeekly ? '' : html`<span class="tag">プロ</span>`}</div>
+          <div class="weekly-body">${weeklyBlock(review, canWeekly)}</div>
+        </section>
 
-    <section class="card">
-      <div class="card-head"><h2 class="card-title">${icon('target', { size: 18 })}通っている教室・お店</h2></div>
-      ${links.length ? html`<ul class="link-list">${links.map((l) => html`<li>
-        <a class="link-row" href="#/links/${l.id}">
-          <span class="store-icon">${[...l.store.name][0]}</span>
-          <span class="link-row-main"><b>${l.store.name}</b>
-            <span>${l.status === 'active' ? `連携中 ・ 共有 ${l.sharedCount}件` : '承認待ち'}${l.unreadComments ? ` ・ 新しいコメント ${l.unreadComments}件` : ''}</span></span>
-          ${l.status === 'pending' ? html`<span class="pill pill-wait">承認待ち</span>` : l.unreadComments ? html`<span class="dot-badge">${l.unreadComments}</span>` : ''}
-          ${icon('chevronRight', { size: 16 })}
-        </a></li>`)}</ul>`
-      : html`<p class="muted">レッスンに通っている教室・お店と連携すると、記録を先生に見てもらいコメントをもらえます。</p>`}
-      <a class="btn btn-soft btn-block link-add" href="#/links/new">${icon('plus', { size: 18 })}店舗IDで連携する</a>
-    </section>
-
-    <section class="card">
-      <div class="card-head"><h2 class="card-title">${icon('gem', { size: 18 })}成長の資産</h2></div>
-      <div class="asset-grid">
-        <div class="asset-tile"><strong>${fmtNum(stats.totals.entries)}</strong><span>記録</span></div>
-        <div class="asset-tile"><strong>${fmtNum(stats.totals.activeDays)}</strong><span>記録した日</span></div>
-        <div class="asset-tile accent"><strong>${fmtNum(stats.streak.best)}</strong><span>最長連続日数</span></div>
-        <div class="asset-tile"><strong>${fmtNum(stats.totals.chars)}</strong><span>書いた文字</span></div>
-        <div class="asset-tile"><strong>${fmtNum(stats.totals.image + stats.totals.video + stats.totals.audio)}</strong><span>写真・動画・音声</span></div>
-        <div class="asset-tile"><strong>${fmtNum(stats.totals.goalsDone)}</strong><span>達成した目標</span></div>
+        <section class="section">
+          <div class="section-head"><h2 class="section-title">実績</h2><span class="section-meta">${earned} / ${stats.badges.length}</span></div>
+          <ul class="milestones">${milestones.map((b) => html`
+            <li class="${b.earned ? 'earned' : ''}" title="${b.desc}">
+              <span class="milestone-mark" aria-hidden="true"></span>
+              <span class="milestone-title">${b.title}</span>
+              <span class="milestone-desc">${b.desc}</span>
+              <span class="visually-hidden">${b.earned ? '獲得済み' : '未獲得'}</span>
+            </li>`)}</ul>
+        </section>
       </div>
-      <h3 class="ai-h">${icon('calendar', { size: 16 })}記録のカレンダー</h3>
-      ${heatmap(stats.calendar)}
-    </section>
 
-    <section class="card">
-      <div class="card-head"><h2 class="card-title">${icon('sparkles', { size: 18 })}週間ふりかえり</h2>${canWeekly ? '' : html`<span class="plan-badge pro small">プロ</span>`}</div>
-      <div class="weekly-body">${weeklyBlock(review, canWeekly)}</div>
-    </section>
+      <div class="split-side">
+        <section class="section">
+          <h2 class="section-title">分析</h2>
+          <div class="list">
+            ${navRow('#/growth', '成長分析', 'レベル・6つの指標・伸ばしたい指標', me.plan.id === 'pro' ? '' : html`<span class="tag">プロ</span>`)}
+            ${navRow('#/golf', 'ゴルフ', 'ラウンドの記録・スコア分析・AIコーチ')}
+          </div>
+        </section>
 
-    <section class="card">
-      <div class="card-head"><h2 class="card-title">${icon('trophy', { size: 18 })}バッジ</h2><span class="muted small">${earned} / ${stats.badges.length}</span></div>
-      <div class="badge-grid">${stats.badges.map((b) => html`
-        <div class="badge ${b.earned ? 'earned' : ''}" title="${b.desc}">
-          <span class="badge-icon">${b.earned ? b.icon : '🔒'}</span>
-          <span class="badge-title">${b.title}</span>
-        </div>`)}</div>
-    </section>
+        <section class="section">
+          <h2 class="section-title">教室・お店</h2>
+          ${links.length ? html`<div class="list">${links.map((l) => navRow(
+            `#/links/${l.id}`,
+            l.store.name,
+            `${l.status === 'active' ? `連携中　共有 ${l.sharedCount}件` : '承認待ち'}${l.unreadComments ? `　新しいコメント ${l.unreadComments}件` : ''}`,
+            l.status === 'pending' ? html`<span class="tag">承認待ち</span>` : l.unreadComments ? html`<span class="tag tag-accent">${l.unreadComments}</span>` : '',
+          ))}</div>`
+          : html`<p class="muted">通っている教室・お店と連携すると、記録を先生に見てもらい、コメントを受け取れます。</p>`}
+          <a class="text-btn" href="#/links/new">${icon('plus', { size: 16 })}店舗IDで連携</a>
+        </section>
 
-    <section class="card">
-      <div class="card-head"><h2 class="card-title small" style="margin:0">プランと利用状況</h2>
-        <a class="link" href="#/billing">プランとお支払い ${icon('chevronRight', { size: 14 })}</a></div>
-      <div class="usage">
-        ${me.plan.id === 'pro'
-          ? html`<div class="usage-row"><span>今月のAIふりかえり</span><span>${me.usage.aiEntryInsights} / ${aiLimit}回</span></div>
-            ${progressBar(me.usage.aiEntryInsights / Math.max(1, aiLimit), { cls: 'progress-sm' })}`
-          : html`<div class="usage-row"><span>AIふりかえりの無料体験</span><span>残り ${me.ai.trialLeft} / ${me.plan.limits.aiTrialCredits}回</span></div>
-            ${progressBar(me.ai.trialLeft / Math.max(1, me.plan.limits.aiTrialCredits), { cls: 'progress-sm' })}`}
-        <div class="usage-row"><span>保存容量</span><span>${fmtBytes(me.usage.storageBytes)} / ${fmtBytes(storageLimit)}</span></div>
-        ${progressBar(me.usage.storageBytes / storageLimit, { cls: 'progress-sm' })}
-        <div class="usage-row"><span>取り組み中の目標</span><span>${me.usage.activeGoals} / ${me.plan.limits.maxActiveGoals}</span></div>
+        <section class="section">
+          <div class="section-head"><h2 class="section-title">プランと利用状況</h2><a class="section-link" href="#/billing">お支払い</a></div>
+          <div class="usage">
+            ${me.plan.id === 'pro'
+              ? html`<p class="usage-row"><span>今月のAIふりかえり</span><span class="num">${me.usage.aiEntryInsights} / ${aiLimit}回</span></p>
+                ${progressBar(me.usage.aiEntryInsights / Math.max(1, aiLimit))}`
+              : html`<p class="usage-row"><span>AIふりかえりの無料体験</span><span class="num">残り ${me.ai.trialLeft} / ${me.plan.limits.aiTrialCredits}回</span></p>
+                ${progressBar(me.ai.trialLeft / Math.max(1, me.plan.limits.aiTrialCredits))}`}
+            <p class="usage-row"><span>保存容量</span><span class="num">${fmtBytes(me.usage.storageBytes)} / ${fmtBytes(storageLimit)}</span></p>
+            ${progressBar(me.usage.storageBytes / storageLimit)}
+            <p class="usage-row"><span>取り組み中の目標</span><span class="num">${me.usage.activeGoals} / ${me.plan.limits.maxActiveGoals}</span></p>
+          </div>
+          ${me.ai.enabled ? '' : html`<p class="hint">AIは簡易モードで動作しています。管理者がAPIキーを設定すると、本格的な分析に切り替わります。</p>`}
+          ${me.plan.id === 'free' ? html`<div class="upsell">
+            <p class="upsell-title">プロプラン　月580円から${me.billing.trialAvailable ? '・7日間無料' : ''}</p>
+            <p class="upsell-text">AIのふりかえり、成長レベルと6つの指標、伸ばしたい指標の分析、AI自己分析。</p>
+            <a class="btn btn-primary" href="#/pricing">${upgradeLabel(me)}</a>
+          </div>` : ''}
+        </section>
+
+        <section class="section">
+          <h2 class="section-title">設定</h2>
+          <form class="form settings" novalidate>
+            <label class="field"><span class="field-label">ニックネーム</span>
+              <input class="input" name="displayName" maxlength="30" value="${me.user.displayName}"></label>
+            <label class="field"><span class="field-label">1週間に記録したい日数</span>
+              <span class="select"><select class="input" name="weeklyTarget">${[1, 2, 3, 4, 5, 6, 7].map((n) => html`<option value="${n}" ${n === me.user.weeklyTarget ? 'selected' : ''}>${n}日</option>`)}</select></span></label>
+            <button class="btn btn-secondary" type="submit">保存</button>
+          </form>
+          <p class="hint">${me.user.email}</p>
+        </section>
+
+        <section class="section">
+          <h2 class="section-title">アカウント</h2>
+          <details class="disclosure"><summary>パスワードを変更</summary>
+            <form class="form pw-form" novalidate>
+              <label class="field"><span class="field-label">現在のパスワード</span><input class="input" id="pw-current" name="current" type="password" autocomplete="current-password"></label>
+              <label class="field"><span class="field-label">新しいパスワード（8文字以上）</span><input class="input" id="pw-new" name="password" type="password" minlength="8" autocomplete="new-password"></label>
+              <button class="btn btn-secondary" type="submit">変更</button>
+              <p class="hint">変更すると、ほかの端末ではログアウトされます。</p>
+            </form>
+          </details>
+          <div class="list">
+            <button class="row" data-action="export"><span class="row-main"><span class="row-title">データを書き出す</span><span class="row-sub">記録・目標・ゴルフのスコア・コメントを JSON で保存</span></span></button>
+            ${navRow('#/store', '先生・スタッフの方', myStores.length ? `${myStores.map((x) => x.name).join('、')} を管理` : '店舗を登録して、生徒さんの記録を見る', myStores.some((x) => x.pendingMembers) ? html`<span class="tag">承認待ちあり</span>` : '')}
+            ${me.isAdmin ? navRow('#/admin', '運営ダッシュボード', '売上・ユーザー・システムの状態') : ''}
+          </div>
+        </section>
+
+        <nav class="footer-links" aria-label="規約">
+          <a href="#/legal/terms">利用規約</a><a href="#/legal/privacy">プライバシーポリシー</a><a href="#/legal/tokushoho">特定商取引法に基づく表記</a>
+        </nav>
+
+        <div class="quiet-actions">
+          <button class="text-btn" data-action="logout">ログアウト</button>
+          <button class="text-btn text-btn-danger" data-action="delete-account">アカウントを削除</button>
+        </div>
       </div>
-      ${me.ai.enabled ? '' : html`<p class="hint">いまはAIが簡易モードで動いています（管理者がAPIキーを設定すると本格的なAI分析になります）。</p>`}
-      ${me.plan.id === 'free' ? html`<a class="upsell" href="#/pricing">
-        <p><strong>プロプラン</strong> 月¥580〜${me.billing.trialAvailable ? '・7日間無料' : ''}</p>
-        <ul><li>AIのふりかえり</li><li>成長レベルと6つの指標</li><li>足りないものの分析</li><li>AI自己分析</li></ul>
-        <span class="btn btn-primary btn-block">${upgradeLabel(me)}</span>
-      </a>` : ''}
-    </section>
-
-    <section class="card">
-      <h2 class="card-title small">設定</h2>
-      <form class="settings" novalidate>
-        <label class="field"><span class="field-label">ニックネーム</span>
-          <input class="input" name="displayName" maxlength="30" value="${me.user.displayName}"></label>
-        <label class="field"><span class="field-label">1週間に記録したい日数</span>
-          <select class="input" name="weeklyTarget">${[1, 2, 3, 4, 5, 6, 7].map((n) => html`<option value="${n}" ${n === me.user.weeklyTarget ? 'selected' : ''}>${n}日</option>`)}</select></label>
-        <button class="btn btn-soft btn-block" type="submit">保存する</button>
-      </form>
-      <p class="muted small">${me.user.email}</p>
-    </section>
-
-    <section class="card">
-      <h2 class="card-title small">アカウント</h2>
-      <details class="pw-details"><summary>パスワードを変更する</summary>
-        <form class="pw-form" novalidate>
-          <label class="field"><span class="field-label">現在のパスワード</span><input class="input" id="pw-current" name="current" type="password" autocomplete="current-password"></label>
-          <label class="field"><span class="field-label">新しいパスワード（8文字以上）</span><input class="input" id="pw-new" name="password" type="password" minlength="8" autocomplete="new-password"></label>
-          <button class="btn btn-soft btn-block" type="submit">変更する</button>
-          <p class="hint">変更すると、ほかの端末ではログアウトされます。</p>
-        </form>
-      </details>
-      <button class="btn btn-ghost btn-block" data-action="export">${icon('book', { size: 18 })}データを書き出す（JSON）</button>
-      <p class="hint">記録・目標・ゴルフのスコア・コメントをまとめて保存できます。</p>
-    </section>
-
-    <a class="card staff-entry" href="#/store">
-      <span class="store-icon alt">${icon('user', { size: 20 })}</span>
-      <span class="link-row-main"><b>先生・スタッフの方</b>
-        <span>${myStores.length ? `${myStores.map((x) => x.name).join('、')} を管理` : '店舗を登録して、生徒さんの記録を見る'}</span></span>
-      ${myStores.some((x) => x.pendingMembers) ? html`<span class="pill pill-wait">承認待ちあり</span>` : ''}
-      ${icon('chevronRight', { size: 16 })}
-    </a>
-
-    ${me.isAdmin ? html`<a class="card staff-entry" href="#/admin">
-      <span class="store-icon alt">${icon('gem', { size: 20 })}</span>
-      <span class="link-row-main"><b>運営ダッシュボード</b><span>売上・ユーザー・システムの状態</span></span>
-      ${icon('chevronRight', { size: 16 })}
-    </a>` : ''}
-
-    <nav class="legal-nav">
-      <a href="#/legal/terms">利用規約</a><a href="#/legal/privacy">プライバシーポリシー</a><a href="#/legal/tokushoho">特定商取引法に基づく表記</a>
-    </nav>
-
-    <div class="account-actions">
-      <button class="btn btn-ghost btn-block" data-action="logout">${icon('logout', { size: 18 })}ログアウト</button>
-      <button class="btn btn-ghost btn-sm danger" data-action="delete-account">アカウントを削除</button>
     </div>
   `);
 

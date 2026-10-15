@@ -93,13 +93,13 @@ export function fmtBytes(n) {
 export const fmtNum = (n) => (Number.isInteger(n) ? n.toLocaleString('ja-JP') : Number(n.toFixed(2)).toLocaleString('ja-JP'));
 
 export const MOODS = [
-  { v: 1, emoji: '😣', label: 'つらい' },
-  { v: 2, emoji: '😕', label: 'いまいち' },
-  { v: 3, emoji: '😐', label: 'ふつう' },
-  { v: 4, emoji: '🙂', label: 'よい' },
-  { v: 5, emoji: '😄', label: 'さいこう' },
+  { v: 1, label: 'つらい' },
+  { v: 2, label: 'いまいち' },
+  { v: 3, label: 'ふつう' },
+  { v: 4, label: 'よい' },
+  { v: 5, label: 'とてもよい' },
 ];
-export const moodEmoji = (v) => MOODS.find((m) => m.v === v)?.emoji || '';
+export const moodLabel = (v) => MOODS.find((m) => m.v === v)?.label || '';
 
 /** 進捗バー */
 export function progressBar(ratio, { cls = '' } = {}) {
@@ -107,27 +107,7 @@ export function progressBar(ratio, { cls = '' } = {}) {
   return html`<div class="progress ${cls}" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><div class="progress-bar" style="--p:${pct}%"></div></div>`;
 }
 
-/** 紙吹雪（達成時の小さなお祝い） */
-export function celebrate() {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const layer = document.createElement('div');
-  layer.className = 'confetti';
-  const colors = ['#2E7D5B', '#5CB88A', '#F4A53C', '#F7C873', '#7FB3E6', '#E88FA7'];
-  for (let i = 0; i < 70; i++) {
-    const p = document.createElement('i');
-    p.style.left = `${Math.random() * 100}%`;
-    p.style.background = colors[i % colors.length];
-    p.style.animationDelay = `${Math.random() * 0.4}s`;
-    p.style.animationDuration = `${1.6 + Math.random() * 1.2}s`;
-    p.style.setProperty('--x', `${(Math.random() - 0.5) * 160}px`);
-    p.style.setProperty('--r', `${Math.random() * 720 - 360}deg`);
-    layer.appendChild(p);
-  }
-  document.body.appendChild(layer);
-  setTimeout(() => layer.remove(), 3200);
-}
-
-/** 確認ダイアログ（ボトムシート） */
+/** 確認ダイアログ（モバイルは下から、広い画面は中央に出る） */
 export function confirmSheet({ title, message = '', ok = 'OK', danger = false, input = null }) {
   return new Promise((resolve) => {
     const root = document.getElementById('overlay-root');
@@ -135,12 +115,11 @@ export function confirmSheet({ title, message = '', ok = 'OK', danger = false, i
     wrap.className = 'sheet-backdrop';
     mount(wrap, html`
       <div class="sheet" role="dialog" aria-modal="true" aria-label="${title}">
-        <div class="sheet-handle"></div>
         <h3 class="sheet-title">${title}</h3>
         ${message ? html`<p class="sheet-text">${message}</p>` : ''}
         ${input ? html`<input class="input" type="${input.type || 'text'}" placeholder="${input.placeholder || ''}" autocomplete="${input.autocomplete || 'off'}">` : ''}
         <div class="sheet-actions">
-          <button class="btn btn-ghost" data-r="cancel">キャンセル</button>
+          <button class="btn btn-secondary" data-r="cancel">キャンセル</button>
           <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-r="ok">${ok}</button>
         </div>
       </div>`);
@@ -165,13 +144,13 @@ export function upgradeLabel(me) {
   return me?.billing?.trialAvailable ? 'プロを7日間無料で試す' : 'プロにアップグレード';
 }
 
-/** ロックされた機能の上に重ねる案内カード */
+/** ロックされた機能の上に重ねる案内 */
 export function paywallCard(me, { title, text, reason = '' }) {
-  return html`<div class="paywall-card">
-    <span class="paywall-icon">🔒</span>
+  return html`<div class="paywall">
+    <p class="paywall-label">プロの機能</p>
     <p class="paywall-title">${title}</p>
     ${text ? html`<p class="paywall-text">${text}</p>` : ''}
-    <a class="btn btn-primary btn-block" href="#/pricing${reason ? `?from=${reason}` : ''}">${upgradeLabel(me)}</a>
+    <a class="btn btn-primary" href="#/pricing${reason ? `?from=${reason}` : ''}">${upgradeLabel(me)}</a>
     ${me?.billing?.trialAvailable ? html`<p class="paywall-foot">無料期間中に解約すれば、料金はかかりません</p>` : ''}
   </div>`;
 }

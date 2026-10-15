@@ -53,9 +53,9 @@ const routes = [
 ];
 
 const TABS = [
-  { id: 'home', href: '#/', icon: 'home', label: 'ホーム' },
-  { id: 'entries', href: '#/entries', icon: 'book', label: 'ふりかえり' },
-  { id: 'write', href: '#/write', icon: 'plus', label: '記録', fab: true },
+  { id: 'home', href: '#/', icon: 'house', label: '今日' },
+  { id: 'entries', href: '#/entries', icon: 'notebook', label: '記録' },
+  { id: 'write', href: '#/write', icon: 'plus', label: '追加' },
   { id: 'goals', href: '#/goals', icon: 'target', label: '目標' },
   { id: 'me', href: '#/me', icon: 'user', label: 'マイページ' },
 ];
@@ -84,12 +84,9 @@ function renderTabs(active, hidden) {
   bar.hidden = hidden;
   if (hidden) return;
   mount(bar, html`<div class="tabbar-inner">
-    ${TABS.map((t) =>
-      t.fab
-        ? html`<a class="tab tab-fab" href="${t.href}" aria-label="${t.label}"><span class="fab">${icon('plus', { size: 28, stroke: 2.4 })}</span></a>`
-        : html`<a class="tab ${active === t.id ? 'active' : ''}" href="${t.href}" ${active === t.id ? html`aria-current="page"` : ''}>
-            ${icon(t.icon, { size: 23 })}<span>${t.label}</span></a>`,
-    )}
+    <a class="tabbar-brand" href="#/">Growth Note</a>
+    ${TABS.map((t) => html`<a class="tab ${active === t.id ? 'active' : ''}" href="${t.href}" ${active === t.id ? html`aria-current="page"` : ''}>
+      ${icon(t.icon, { size: 20 })}<span>${t.label}</span></a>`)}
   </div>`);
 }
 
@@ -117,7 +114,8 @@ export async function render() {
   }
   renderTabs(r.tab, !!r.public || !!r.hideTabs || !state.me);
   const root = document.getElementById('app');
-  root.className = `app view-${r.tab || 'auth'}`;
+  root.className = `app view-${r.tab || 'auth'}${r.public || !state.me ? ' is-public' : ''}${r.hideTabs ? ' is-focus' : ''}`;
+  document.body.classList.toggle('has-nav', !r.public && !r.hideTabs && !!state.me);
   window.scrollTo(0, 0);
   try {
     const result = await r.view.render(root, { ...(r.params ? r.params(m) : {}), query }, { state, navigate, refreshMe, takeReturnTo });
@@ -131,9 +129,8 @@ export async function render() {
     console.error(err);
     if (err.status === 401) return;
     mount(root, html`<div class="empty">
-      <div class="empty-emoji">🌧️</div>
       <p>${err.message || '読み込みに失敗しました'}</p>
-      <a class="btn btn-primary" href="/">再読み込み</a>
+      <a class="btn btn-secondary" href="/">再読み込み</a>
     </div>`);
   }
 }
@@ -179,8 +176,8 @@ window.addEventListener('gn:unauthorized', () => {
   try {
     await refreshMe();
   } catch {
-    mount($('#app'), html`<div class="empty"><div class="empty-emoji">📡</div><p>サーバーに接続できませんでした</p>
-      <a class="btn btn-primary" href="/">再読み込み</a></div>`);
+    mount($('#app'), html`<div class="empty"><p>サーバーに接続できませんでした。</p>
+      <a class="btn btn-secondary" href="/">再読み込み</a></div>`);
     return;
   }
   render();

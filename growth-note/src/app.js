@@ -41,7 +41,8 @@ const SECURITY_HEADERS = {
   'X-Frame-Options': 'DENY',
   'Permissions-Policy': 'camera=(self), microphone=(self), geolocation=()',
 };
-const PAGE_CSP = "default-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
+// 文字は Google Fonts（IBM Plex Sans / IBM Plex Sans JP）から読み込む
+const PAGE_CSP = "default-src 'self'; img-src 'self' blob: data:; media-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
 
 export function createApp(config, { log = console } = {}) {
   fs.mkdirSync(config.dataDir, { recursive: true });

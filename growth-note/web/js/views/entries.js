@@ -1,30 +1,34 @@
 import { api } from '../api.js';
-import { html, mount, $, onAction, fmtRelDate, moodEmoji, toast } from '../ui.js';
+import { html, mount, $, onAction, fmtRelDate, moodLabel, toast } from '../ui.js';
 import { icon } from '../icons.js';
 
-function entryCard(e) {
+const WD = ['日', '月', '火', '水', '木', '金', '土'];
+function dayNote(ymd) {
+  const rel = fmtRelDate(ymd);
+  if (rel === '今日' || rel === '昨日') return rel;
+  const [y, m, d] = ymd.split('-').map(Number);
+  return WD[new Date(Date.UTC(y, m - 1, d)).getUTCDay()];
+}
+
+function entryRow(e) {
   const counts = { image: 0, video: 0, audio: 0 };
   e.media.forEach((m) => counts[m.kind]++);
   const firstImage = e.media.find((m) => m.kind === 'image');
-  return html`<a class="card entry-row" href="#/entries/${e.id}">
-    <div class="entry-row-main">
-      <div class="entry-row-top">
-        <span class="entry-row-date">${fmtRelDate(e.localDate)}</span>
-        ${e.mood ? html`<span class="entry-row-mood">${moodEmoji(e.mood)}</span>` : ''}
-        ${e.goal ? html`<span class="pill pill-sm">${e.goal.icon} ${e.goal.title}</span>` : ''}
-        ${e.shares?.length ? html`<span class="pill pill-sm pill-share">${icon('user', { size: 11 })}${e.shares.map((x) => x.storeName).join('・')}に共有</span>` : ''}
-        ${e.comments?.length ? html`<span class="pill pill-sm pill-accent">コメント ${e.comments.length}</span>` : ''}
-      </div>
-      <p class="entry-row-text">${e.body || (e.insight?.summary ?? '添付のみの記録')}</p>
+  const mediaText = [counts.image && `写真${counts.image}`, counts.video && `動画${counts.video}`, counts.audio && `音声${counts.audio}`].filter(Boolean).join('・');
+  const meta = [
+    e.mood ? moodLabel(e.mood) : null,
+    e.goal ? e.goal.title : null,
+    mediaText || null,
+    e.shares?.length ? `${e.shares.map((x) => x.storeName).join('・')}に共有` : null,
+  ].filter(Boolean);
+  return html`<a class="entry-row" href="#/entries/${e.id}">
+    <span class="entry-row-date"><b>${Number(e.localDate.slice(8))}</b><small>${dayNote(e.localDate)}</small></span>
+    <span class="entry-row-main">
+      <span class="entry-row-text">${e.body || (e.insight?.summary ?? '添付のみの記録')}</span>
       ${e.insight?.status === 'done' && e.insight.summary && e.body && !e.body.trim().startsWith(e.insight.summary.replace(/…$/, '')) ? html`
-        <p class="entry-row-ai">${icon('sparkles', { size: 14 })}${e.insight.summary}</p>` : ''}
-      <div class="entry-row-foot">
-        ${counts.image ? html`<span>${icon('image', { size: 14 })}${counts.image}</span>` : ''}
-        ${counts.video ? html`<span>${icon('video', { size: 14 })}${counts.video}</span>` : ''}
-        ${counts.audio ? html`<span>${icon('mic', { size: 14 })}${counts.audio}</span>` : ''}
-        ${(e.insight?.data?.tags || []).map((t) => html`<span class="tag tag-sm"># ${t}</span>`)}
-      </div>
-    </div>
+        <span class="entry-row-ai">AI　${e.insight.summary}</span>` : ''}
+      ${meta.length || e.comments?.length ? html`<span class="entry-row-meta">${meta.join('　')}${e.comments?.length ? html`<span class="tag tag-accent">コメント ${e.comments.length}</span>` : ''}</span>` : ''}
+    </span>
     ${firstImage ? html`<img class="entry-row-thumb" src="${firstImage.url}" alt="" loading="lazy">` : ''}
   </a>`;
 }
@@ -43,15 +47,14 @@ export async function render(root, { query }) {
 
   mount(root, html`
     <header class="page-head">
-      <div>
-        <p class="eyebrow">これまでの積み重ね</p>
-        <h1 class="page-title">ふりかえり</h1>
+      <div class="page-head-main">
+        <h1 class="page-title">記録</h1>
       </div>
-      <a class="btn btn-soft btn-sm" href="#/growth">${icon('target', { size: 16 })}成長分析</a>
+      <a class="text-btn" href="#/growth">成長分析</a>
     </header>
     <div class="search">
-      ${icon('search', { size: 18 })}
-      <input class="search-input" type="search" placeholder="キーワードで記録を探す" value="${q}" enterkeyhint="search" aria-label="記録を検索">
+      ${icon('search', { size: 16 })}
+      <input class="search-input" type="search" placeholder="キーワードで探す" value="${q}" enterkeyhint="search" aria-label="記録を検索">
     </div>
     <div class="entry-list"></div>
     <div class="list-more"></div>
@@ -63,23 +66,26 @@ export async function render(root, { query }) {
   function draw() {
     if (!items.length) {
       mount(listEl, q
-        ? html`<div class="empty"><div class="empty-emoji">🔍</div><p>「${q}」に一致する記録は見つかりませんでした</p></div>`
+        ? html`<div class="empty"><p>「${q}」に一致する記録はありません。</p></div>`
         : html`<div class="empty">
-            <div class="empty-emoji">📖</div>
-            <p>まだ記録がありません。<br>最初の1件を残してみましょう。</p>
-            <a class="btn btn-primary" href="#/write">${icon('plus', { size: 18 })}記録する</a>
+            <p>まだ記録がありません。</p>
+            <a class="btn btn-primary" href="#/write">記録を追加</a>
           </div>`);
       mount(moreEl, '');
       return;
     }
-    let lastMonth = '';
-    mount(listEl, items.map((e) => {
+    // 月ごとにまとめる
+    const groups = [];
+    for (const e of items) {
       const m = e.localDate.slice(0, 7);
-      const head = m !== lastMonth ? html`<h2 class="month-head">${monthLabel(e.localDate)}</h2>` : '';
-      lastMonth = m;
-      return html`${head}${entryCard(e)}`;
-    }));
-    mount(moreEl, cursor ? html`<button class="btn btn-ghost btn-block" data-action="more">もっと見る</button>` : html`<p class="list-end">${q ? `${items.length}件見つかりました` : 'ここまでがすべての記録です 🌱'}</p>`);
+      if (!groups.length || groups[groups.length - 1].m !== m) groups.push({ m, items: [] });
+      groups[groups.length - 1].items.push(e);
+    }
+    mount(listEl, groups.map((g) => html`<section class="month">
+      <h2 class="month-head">${monthLabel(g.m)}</h2>
+      <div class="list">${g.items.map(entryRow)}</div>
+    </section>`));
+    mount(moreEl, cursor ? html`<button class="btn btn-secondary btn-block" data-action="more">さらに読み込む</button>` : html`<p class="list-end">${q ? `${items.length}件` : 'すべての記録を表示しました'}</p>`);
   }
 
   async function load(reset) {

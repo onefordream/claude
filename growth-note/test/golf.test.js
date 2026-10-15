@@ -125,7 +125,7 @@ describe('ラウンド記録の API', () => {
     assert.equal(fin.status, 200);
     assert.equal(fin.data.firstRound, true);
     const entry = (await c('GET', `/api/entries/${fin.data.entryId}`)).data.entry;
-    assert.match(entry.body, /^⛳ 青山カントリー（18H） 90（\+18）/);
+    assert.match(entry.body, /^ゴルフ｜青山カントリー（18H） 90（\+18）/);
     assert.match(entry.body, /後半パターが入らなかった/);
     assert.equal(entry.golf.score, 90);
 

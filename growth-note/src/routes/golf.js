@@ -20,7 +20,7 @@ export function roundSummaryText(round, st) {
     st.girPct != null && `パーオン${st.girPct}%`,
     st.ob != null && `OB${st.ob}`,
   ].filter(Boolean);
-  return `⛳ ${round.course_name}（${st.holesPlayed}H） ${st.score}（${toPar}）${parts.length ? `｜${parts.join(' / ')}` : ''}`;
+  return `ゴルフ｜${round.course_name}（${st.holesPlayed}H） ${st.score}（${toPar}）${parts.length ? `｜${parts.join(' / ')}` : ''}`;
 }
 
 export function registerGolfRoutes(router, app) {

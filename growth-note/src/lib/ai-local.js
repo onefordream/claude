@@ -44,9 +44,8 @@ export function localEntryInsight({ entry, mediaCounts = {}, goal = null, streak
   const tags = TOPICS.filter((t) => t.re.test(text)).map((t) => t.tag).slice(0, 3);
 
   const encouragement =
-    streak >= 7 ? `${streak}日連続、すばらしい積み重ねです。` :
-    streak >= 2 ? 'いい流れができています。この調子で。' :
-    '記録おつかれさまでした。また明日も一言残しましょう。';
+    streak >= 2 ? `${streak}日続けて記録しています。` :
+    '今日の記録を残しました。';
 
   return {
     summary,
@@ -75,7 +74,7 @@ export function localWeeklyReview({ entries, activeDays, streak }) {
       ...(streak >= 3 ? [`現在${streak}日連続で記録中です。`] : []),
     ],
     next_week_focus: ['記録する時間帯を決めておく', ...(topTags[0] ? [`「${topTags[0]}」で、来週達成したい小さな目標を1つ決める`] : ['来週取り組みたいことを1つ目標に登録する'])],
-    encouragement: '1週間おつかれさまでした。来週も自分のペースでいきましょう。',
+    encouragement: '1週間の記録をまとめました。来週も自分のペースで続けてください。',
   };
 }
 

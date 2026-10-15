@@ -1,0 +1,138 @@
+/* =========================================================
+   Growth Note — デザイントークン（唯一の定義元）
+   色・角丸・余白・文字・動き・影は、すべてここで定義した変数だけを使う。
+   app.css にトークン外の値を直接書かない。
+   ========================================================= */
+:root {
+  /* ---- 色: モノトーン＋アクセント1色 ---- */
+  --bg: #FAFAF9;
+  --surface: #FFFFFF;
+  --surface-hover: #F4F4F2;     /* ホバー・押下時の背景 */
+  --text: #111111;
+  --text-2: #5C5C5C;            /* 補足 */
+  --text-3: #9A9A9A;            /* 無効・注釈 */
+  --line: #E6E6E3;
+  --line-strong: #CFCFCB;       /* 入力欄・強めの区切り */
+
+  --accent: #1F4D3A;            /* CTA・進捗・選択状態だけに使う */
+  --accent-ink: #FFFFFF;        /* アクセント上の文字 */
+  --accent-hover: #183D2E;
+  --accent-tint: rgba(31, 77, 58, 0.07); /* 選択状態の背景 */
+
+  --success: #3D6B55;
+  --warning: #8A6A2E;
+  --error: #9B4A40;
+
+  /* データ表示（ヒートマップ・グラフ）のモノトーン階調 */
+  --data-0: #EEEEEB;
+  --data-1: #C9C9C5;
+  --data-2: #8F8F8B;
+  --data-3: #3A3A38;
+
+  --overlay: rgba(17, 17, 17, 0.32);
+  --shadow-float: 0 8px 24px rgba(17, 17, 17, 0.08); /* モーダル・トーストだけ */
+
+  /* ---- 文字 ---- */
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  --fs-12: 12px;
+  --fs-14: 14px;
+  --fs-16: 16px;
+  --fs-20: 20px;
+  --fs-28: 28px;
+  --fs-40: 40px;
+  --fw-regular: 400;
+  --fw-semibold: 600;
+  --lh-body: 1.7;
+  --lh-head: 1.3;
+  --lh-tight: 1;
+  --ls-head: -0.01em;
+  --ls-small: 0.02em;
+
+  /* ---- 余白（4px 基準） ---- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* ---- 角丸 ---- */
+  --radius-1: 2px;              /* 基本 */
+  --radius-2: 4px;              /* 入力欄・ボタンの上限 */
+  --radius-round: 999px;        /* アバター・ドット専用 */
+
+  /* ---- 線 ---- */
+  --hairline: 1px;
+  --rule: 2px;                  /* 進捗線・選択の下線 */
+
+  /* ---- サイズ ---- */
+  --icon-16: 16px;
+  --icon-20: 20px;
+  --control-h: 40px;
+  --control-h-lg: 48px;
+  --tabbar-h: 56px;
+  --sidebar-w: 224px;
+  --content-max: 720px;
+  --wide-max: 1104px;
+  --dot: 8px;
+
+  /* ---- 動き ---- */
+  --dur: 160ms;
+  --ease: ease-out;
+
+  color-scheme: light;
+}
+
+/* ダークモード: 純黒ではなく #0E0E0E 系。考え方はライトと同じ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E0E0E;
+    --surface: #161616;
+    --surface-hover: #1D1D1C;
+    --text: #ECECEA;
+    --text-2: #A3A3A0;
+    --text-3: #6B6B68;
+    --line: #2A2A28;
+    --line-strong: #3B3B39;
+    --accent: #86B59D;
+    --accent-ink: #0E0E0E;
+    --accent-hover: #9CC4AF;
+    --accent-tint: rgba(134, 181, 157, 0.1);
+    --success: #8DB5A0;
+    --warning: #C4A76E;
+    --error: #CF8E85;
+    --data-0: #222221;
+    --data-1: #3D3D3B;
+    --data-2: #77776F;
+    --data-3: #D6D6D2;
+    --overlay: rgba(0, 0, 0, 0.56);
+    --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.4);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E0E0E;
+  --surface: #161616;
+  --surface-hover: #1D1D1C;
+  --text: #ECECEA;
+  --text-2: #A3A3A0;
+  --text-3: #6B6B68;
+  --line: #2A2A28;
+  --line-strong: #3B3B39;
+  --accent: #86B59D;
+  --accent-ink: #0E0E0E;
+  --accent-hover: #9CC4AF;
+  --accent-tint: rgba(134, 181, 157, 0.1);
+  --success: #8DB5A0;
+  --warning: #C4A76E;
+  --error: #CF8E85;
+  --data-0: #222221;
+  --data-1: #3D3D3B;
+  --data-2: #77776F;
+  --data-3: #D6D6D2;
+  --overlay: rgba(0, 0, 0, 0.56);
+  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.4);
+  color-scheme: dark;
+}

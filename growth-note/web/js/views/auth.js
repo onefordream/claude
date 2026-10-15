@@ -1,15 +1,15 @@
 import { api } from '../api.js';
 import { html, mount, $, toast } from '../ui.js';
 
-function hero(lead) {
+function hero(title, lead = '') {
   return html`<div class="auth-hero">
-    <a class="auth-logo" href="#/welcome" aria-label="Growth Note のご紹介">🌱</a>
-    <h1 class="auth-title">Growth Note</h1>
-    <p class="auth-lead">${lead}</p>
+    <a class="wordmark" href="#/welcome">Growth Note</a>
+    <h1 class="page-title">${title}</h1>
+    ${lead ? html`<p class="page-sub">${lead}</p>` : ''}
   </div>`;
 }
 
-const legalLinks = html`<p class="auth-legal">
+const legalLinks = html`<p class="footer-links">
   <a href="#/legal/terms">利用規約</a><a href="#/legal/privacy">プライバシーポリシー</a><a href="#/legal/tokushoho">特定商取引法に基づく表記</a></p>`;
 
 async function submitWith(form, fn) {
@@ -33,16 +33,15 @@ export async function render(root, { mode, query }, { state, navigate, takeRetur
   // ---- パスワードを忘れたとき ----
   if (mode === 'forgot') {
     mount(root, html`<section class="auth">
-      ${hero('パスワードの再設定')}
-      <form class="card auth-card" novalidate>
-        <p class="muted small">登録したメールアドレスに、パスワードを再設定するためのリンクを送ります。</p>
+      ${hero('パスワードの再設定', '登録したメールアドレスに、再設定用のリンクを送ります。')}
+      <form class="form" novalidate>
         <label class="field"><span class="field-label">メールアドレス</span>
           <input class="input" id="forgot-email" name="email" type="email" inputmode="email" autocomplete="email" required placeholder="you@example.com"></label>
         <p class="form-error" role="alert" hidden></p>
-        <button class="btn btn-primary btn-block btn-lg" type="submit">再設定のリンクを送る</button>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">リンクを送る</button>
       </form>
-      <div class="sent card" hidden><p class="sent-title">メールを確認してください</p>
-        <p class="muted small">登録されているメールアドレスなら、再設定のリンクを送りました。届かないときは迷惑メールフォルダもご確認ください。リンクの有効期限は1時間です。</p></div>
+      <div class="notice sent" hidden><p class="notice-title">メールを確認してください</p>
+        <p class="notice-text">登録されているメールアドレスであれば、再設定のリンクを送りました。届かない場合は迷惑メールフォルダもご確認ください。リンクの有効期限は1時間です。</p></div>
       <p class="auth-switch"><a href="#/login">ログインに戻る</a></p>
     </section>`);
     const form = $('form', root);
@@ -62,11 +61,11 @@ export async function render(root, { mode, query }, { state, navigate, takeRetur
     const token = query.get('token') || '';
     mount(root, html`<section class="auth">
       ${hero('新しいパスワードを設定')}
-      <form class="card auth-card" novalidate>
+      <form class="form" novalidate>
         <label class="field"><span class="field-label">新しいパスワード（8文字以上）</span>
           <input class="input" id="reset-password" name="password" type="password" minlength="8" autocomplete="new-password" required></label>
         <p class="form-error" role="alert" ${token ? 'hidden' : ''}>${token ? '' : 'リンクが正しくありません。メールのリンクをもう一度開いてください。'}</p>
-        <button class="btn btn-primary btn-block btn-lg" type="submit" ${token ? '' : 'disabled'}>パスワードを変更する</button>
+        <button class="btn btn-primary btn-block btn-lg" type="submit" ${token ? '' : 'disabled'}>パスワードを変更</button>
       </form>
       <p class="auth-switch"><a href="#/forgot">リンクを送り直す</a></p>
     </section>`);
@@ -86,17 +85,9 @@ export async function render(root, { mode, query }, { state, navigate, takeRetur
   const isSignup = mode === 'signup';
   mount(root, html`
     <section class="auth">
-      ${hero(html`毎日のひとことが、<br>あなたの成長の資産になる。`)}
+      ${hero(isSignup ? 'アカウントを作成' : 'ログイン', isSignup ? '記録・目標・継続日数は無料で使えます。' : '')}
 
-      ${isSignup ? html`
-        <ul class="auth-points">
-          <li><span>✏️</span>一言・写真・声で、30秒で記録</li>
-          <li><span>✨</span>AIが要約して、次の一歩を提案</li>
-          <li><span>🔥</span>続けた日数と成長が目に見える</li>
-        </ul>` : ''}
-
-      <form class="card auth-card" novalidate>
-        <h2 class="auth-card-title">${isSignup ? '無料ではじめる' : 'おかえりなさい'}</h2>
+      <form class="form" novalidate>
         ${isSignup ? html`
           <label class="field">
             <span class="field-label">ニックネーム</span>
@@ -110,19 +101,19 @@ export async function render(root, { mode, query }, { state, navigate, takeRetur
           <span class="field-label">パスワード${isSignup ? '（8文字以上）' : ''}</span>
           <input class="input" id="auth-password" name="password" type="password" minlength="8" autocomplete="${isSignup ? 'new-password' : 'current-password'}" required>
         </label>
-        ${isSignup ? html`<label class="agree">
+        ${isSignup ? html`<label class="check-field">
           <input type="checkbox" id="auth-agree" name="agree">
           <span><a href="#/legal/terms" target="_blank">利用規約</a>と<a href="#/legal/privacy" target="_blank">プライバシーポリシー</a>に同意します</span>
         </label>` : ''}
         <p class="form-error" role="alert" hidden></p>
-        <button class="btn btn-primary btn-block btn-lg" type="submit">${isSignup ? '同意して無料ではじめる' : 'ログイン'}</button>
-        ${isSignup ? '' : html`<a class="link block" href="#/forgot">パスワードを忘れた方</a>`}
+        <button class="btn btn-primary btn-block btn-lg" type="submit">${isSignup ? '同意して登録' : 'ログイン'}</button>
+        ${isSignup ? '' : html`<a class="text-btn" href="#/forgot">パスワードを忘れた場合</a>`}
       </form>
 
       <p class="auth-switch">
         ${isSignup
-          ? html`すでにアカウントをお持ちの方は <a href="#/login">ログイン</a>`
-          : html`はじめての方は <a href="#/signup">新規登録（無料）</a>`}
+          ? html`アカウントをお持ちの場合は <a href="#/login">ログイン</a>`
+          : html`はじめての場合は <a href="#/signup">アカウントを作成</a>`}
       </p>
       ${legalLinks}
     </section>`);

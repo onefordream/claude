@@ -1,21 +1,21 @@
 import { api } from '../api.js';
-import { html, mount, $, $$, onAction, toast, fmtDate, jstToday, celebrate } from '../ui.js';
+import { html, mount, $, $$, onAction, toast, fmtDate, jstToday } from '../ui.js';
 import { icon } from '../icons.js';
 
 const yen = (n) => `¥${n.toLocaleString('ja-JP')}`;
 
 const ROWS = [
   ['記録（文章・写真・動画・音声）', '無制限', '無制限'],
-  ['継続日数・バッジ・目標・検索', '✓', '✓'],
-  ['教室・お店との連携', '✓', '✓'],
-  ['ひとことフィードバック', '✓', '✓'],
+  ['継続日数・実績・目標・検索', 'あり', 'あり'],
+  ['教室・お店との連携', 'あり', 'あり'],
+  ['ひとことフィードバック', 'あり', 'あり'],
   ['AIのふりかえり（記録ごと）', '3回まで体験', '毎回'],
-  ['成長レベル・6つの指標', '—', '✓'],
-  ['足りないものの分析・推移グラフ', '—', '✓'],
+  ['成長レベル・6つの指標', '—', 'あり'],
+  ['伸ばしたい指標の分析・推移グラフ', '—', 'あり'],
   ['AI自己分析', '—', '月8回'],
-  ['ゴルフ：ラウンド記録・スコアカード', '✓', '✓'],
-  ['ゴルフ：能力チャート・伸びしろ分析・AIコーチ', '—', '✓'],
-  ['AIの週間ふりかえり', '—', '✓'],
+  ['ゴルフ：ラウンド記録・スコアカード', 'あり', 'あり'],
+  ['ゴルフ：能力チャート・伸びしろ分析・AIコーチ', '—', 'あり'],
+  ['AIの週間ふりかえり', '—', 'あり'],
   ['同時に持てる目標', '3つ', '無制限'],
   ['保存容量', '1GB', '20GB'],
 ];
@@ -39,8 +39,8 @@ async function renderPricing(root, query, { state, refreshMe }) {
   const priceBox = () => {
     const p = pricing[interval];
     return html`<div class="price">
-      <span class="price-amount num">${yen(p.amount)}</span><span class="price-unit">/ ${interval === 'year' ? '年' : '月'}（税込）</span>
-      ${interval === 'year' ? html`<p class="price-sub">月あたり ${yen(Math.round(p.amount / 12))} ・ ${p.note}</p>` : html`<p class="price-sub">いつでも解約できます</p>`}
+      <p class="metric"><span class="metric-value">${yen(p.amount)}</span><span class="metric-unit">/ ${interval === 'year' ? '年' : '月'}（税込）</span></p>
+      ${interval === 'year' ? html`<p class="hint">月あたり ${yen(Math.round(p.amount / 12))}　${p.note}</p>` : html`<p class="hint">いつでも解約できます</p>`}
     </div>`;
   };
 
@@ -50,7 +50,7 @@ async function renderPricing(root, query, { state, refreshMe }) {
     const per = interval === 'year' ? '1年' : '1か月';
     const trialEnd = fmtDate(addDaysLocal(pricing.trialDays), { year: true });
     return html`
-      <div><dt>料金</dt><dd>${yen(p.amount)}／${interval === 'year' ? '年' : '月'}（税込）</dd></div>
+      <div><dt>料金</dt><dd>${yen(p.amount)} / ${interval === 'year' ? '年' : '月'}（税込）</dd></div>
       <div><dt>お支払い</dt><dd>${billing.trialAvailable ? `無料体験の終了日（${trialEnd}）に初回の料金を請求します` : 'お申し込み時に請求します'}</dd></div>
       <div><dt>更新</dt><dd>解約するまで${per}ごとに自動で更新し、そのつど請求します</dd></div>
       <div><dt>解約</dt><dd>マイページの「プランとお支払い」からいつでも。${billing.trialAvailable ? '無料体験中に解約すれば料金はかかりません。' : ''}支払い済みの期間は使えます（返金はありません）</dd></div>`;
@@ -58,60 +58,59 @@ async function renderPricing(root, query, { state, refreshMe }) {
 
   mount(root, html`
     <header class="page-head with-back">
-      <a class="icon-btn" href="#/me" aria-label="戻る">${icon('chevronLeft', { size: 22 })}</a>
-      <div><h1 class="page-title small">プロプラン</h1></div><span></span>
+      <a class="icon-btn" href="#/me" aria-label="戻る">${icon('caretLeft', { size: 20 })}</a>
+      <div class="page-head-main"><p class="eyebrow">プロプラン</p><h1 class="page-title">記録を、<br>成長の地図に。</h1></div>
     </header>
 
-    <section class="pricing-hero">
-      ${fromText ? html`<p class="pill pill-wait">${fromText}</p>` : ''}
-      <h2 class="pricing-title">記録を、成長の地図に。</h2>
-      <p class="muted">AIがあなたの記録を読み解き、いまのレベルと足りないものをグラフで見せてくれます。</p>
-      <ul class="pricing-points">
-        <li>${icon('sparkles', { size: 18 })}<span><b>AIのふりかえり</b>記録するたびに、要約・気づき・次の一歩</span></li>
-        <li>${icon('target', { size: 18 })}<span><b>成長レベルと6つの指標</b>継続力・振り返り力などをレーダーで</span></li>
-        <li>${icon('bulb', { size: 18 })}<span><b>足りないものがわかる</b>伸びしろと、今週やることを具体的に</span></li>
-        <li>${icon('user', { size: 18 })}<span><b>AI自己分析</b>強み・傾向・この1か月のテーマをまとめて</span></li>
-      </ul>
+    ${fromText ? html`<p class="notice notice-text">${fromText}</p>` : ''}
+    <section class="section">
+      <p class="lead-line">AIが記録を読み解き、いまのレベルと伸ばしたい指標をグラフで示します。</p>
+      <dl class="def-list">
+        <div><dt>AIのふりかえり</dt><dd>記録するたびに、要約・気づき・次の一歩</dd></div>
+        <div><dt>成長レベルと6つの指標</dt><dd>継続力・振り返り力などをレーダーチャートで</dd></div>
+        <div><dt>伸ばしたい指標</dt><dd>伸びしろと、今週やることを具体的に</dd></div>
+        <div><dt>AI自己分析</dt><dd>強み・傾向・この1か月のテーマをまとめて</dd></div>
+      </dl>
     </section>
 
-    ${isPro ? html`<section class="card pro-now">
-        <p><b>プロプランをご利用中です</b></p>
-        <a class="btn btn-soft btn-block" href="#/billing">プランとお支払いを見る</a>
+    ${isPro ? html`<section class="section">
+        <p class="notice-title">プロプランを利用中です</p>
+        <a class="btn btn-secondary" href="#/billing">プランとお支払い</a>
       </section>`
-    : html`<section class="card plan-card">
-        <div class="interval-toggle" role="radiogroup" aria-label="お支払いの間隔">
+    : html`<section class="section plan-box">
+        <div class="seg" role="radiogroup" aria-label="お支払いの間隔">
           <button class="${interval === 'month' ? 'on' : ''}" data-action="interval" data-v="month" role="radio" aria-checked="false">月額</button>
-          <button class="on" data-action="interval" data-v="year" role="radio" aria-checked="true">年額 <span class="save">2か月分おトク</span></button>
+          <button class="on" data-action="interval" data-v="year" role="radio" aria-checked="true">年額</button>
         </div>
         <div class="price-slot">${priceBox()}</div>
         <button class="btn btn-primary btn-block btn-lg" data-action="checkout">${billing.trialAvailable ? `${pricing.trialDays}日間無料で試す` : 'プロにする'}</button>
         <div class="final-confirm" aria-label="お申し込み内容の確認">
-          <p class="fc-title">お申し込み内容</p>
-          <dl class="price-slot-terms">${confirmRows()}</dl>
-          <p class="fc-note">「${billing.trialAvailable ? `${pricing.trialDays}日間無料で試す` : 'プロにする'}」を押すと、決済ページ（Stripe）に移ります。お申し込みにより<a href="#/legal/terms">利用規約</a>に同意したものとみなします。<a href="#/legal/tokushoho">特定商取引法に基づく表記</a></p>
+          <p class="sub-title">お申し込み内容</p>
+          <dl class="kv price-slot-terms">${confirmRows()}</dl>
+          <p class="hint">「${billing.trialAvailable ? `${pricing.trialDays}日間無料で試す` : 'プロにする'}」を押すと、決済ページ（Stripe）に移ります。お申し込みにより<a href="#/legal/terms">利用規約</a>に同意したものとみなします。<a href="#/legal/tokushoho">特定商取引法に基づく表記</a></p>
         </div>
-        ${billing.mode === 'demo' ? html`<p class="demo-note">デモ決済モード：実際の請求は発生しません</p>` : ''}
-        ${billing.mode === 'unavailable' ? html`<p class="demo-note">有料プランは準備中です</p>` : ''}
+        ${billing.mode === 'demo' ? html`<p class="hint">デモ決済モードです。実際の請求は発生しません。</p>` : ''}
+        ${billing.mode === 'unavailable' ? html`<p class="hint">有料プランは準備中です。</p>` : ''}
       </section>`}
 
-    <section class="card">
-      <h2 class="card-title small">フリーとプロのちがい</h2>
-      <div class="compare-table" role="table">
-        <div class="ct-row ct-head" role="row"><span role="columnheader"></span><span role="columnheader">フリー</span><span role="columnheader" class="pro-col">プロ</span></div>
-        ${ROWS.map(([k, f, p]) => html`<div class="ct-row" role="row"><span role="cell">${k}</span><span role="cell" class="${f === '—' ? 'no' : ''}">${f}</span><span role="cell" class="pro-col">${p}</span></div>`)}
-      </div>
+    <section class="section">
+      <h2 class="section-title">フリーとプロの違い</h2>
+      <table class="data-table compare">
+        <thead><tr><th scope="col"><span class="visually-hidden">機能</span></th><th scope="col">フリー</th><th scope="col">プロ</th></tr></thead>
+        <tbody>${ROWS.map(([k, f, p]) => html`<tr><th scope="row">${k}</th><td class="${f === '—' ? 'muted' : ''}">${f}</td><td>${p}</td></tr>`)}</tbody>
+      </table>
     </section>
 
-    <section class="card faq">
-      <h2 class="card-title small">よくある質問</h2>
-      ${FAQ.map(([q, a]) => html`<details><summary>${q}</summary><p>${a}</p></details>`)}
+    <section class="section">
+      <h2 class="section-title">よくある質問</h2>
+      <div class="faq">${FAQ.map(([q, a]) => html`<details class="disclosure"><summary>${q}</summary><p>${a}</p></details>`)}</div>
     </section>
   `);
 
   return onAction(root, {
     interval: (el) => {
       interval = el.dataset.v;
-      $$('.interval-toggle button', root).forEach((b) => {
+      $$('.plan-box .seg button', root).forEach((b) => {
         b.classList.toggle('on', b.dataset.v === interval);
         b.setAttribute('aria-checked', String(b.dataset.v === interval));
       });
@@ -155,34 +154,32 @@ async function renderBilling(root, success, { state, refreshMe, navigate }) {
 
   mount(root, html`
     <header class="page-head with-back">
-      <a class="icon-btn" href="#/me" aria-label="戻る">${icon('chevronLeft', { size: 22 })}</a>
-      <div><h1 class="page-title small">${success ? 'ようこそ、プロへ' : 'プランとお支払い'}</h1></div><span></span>
+      <a class="icon-btn" href="#/me" aria-label="戻る">${icon('caretLeft', { size: 20 })}</a>
+      <div class="page-head-main"><h1 class="page-title page-title-sm">プランとお支払い</h1></div>
     </header>
 
-    ${success && isPro ? html`<section class="celebrate">
-      <div class="celebrate-burst">💎</div>
-      <h2 class="celebrate-title">プロが使えるようになりました</h2>
-      <p class="celebrate-sub">さっそく、あなたの成長を見てみましょう</p>
-    </section>
-    <a class="btn btn-primary btn-block btn-lg" href="#/growth">${icon('target', { size: 20 })}成長分析を見る</a>` : ''}
-    ${success && !isPro ? html`<section class="card"><p>お支払いを確認しています。反映まで少し時間がかかることがあります。</p>
-      <button class="btn btn-soft btn-block" data-action="reload">再読み込み</button></section>` : ''}
+    ${success && isPro ? html`<section class="confirm" role="status">
+      <p class="confirm-title">${icon('check', { size: 16 })}プロプランが有効になりました</p>
+      <p class="confirm-facts">成長分析・AIのふりかえり・ゴルフ分析が使えます。</p>
+      <a class="btn btn-primary" href="#/growth">成長分析を開く</a>
+    </section>` : ''}
+    ${success && !isPro ? html`<section class="notice"><p class="notice-text">お支払いを確認しています。反映まで少し時間がかかることがあります。</p>
+      <button class="btn btn-secondary btn-sm" data-action="reload">再読み込み</button></section>` : ''}
 
-    <section class="card billing-card">
-      <p class="eyebrow">現在のプラン</p>
-      <p class="billing-plan">${st.label}</p>
-      ${st.sub ? html`<p class="muted small">${st.sub}</p>` : ''}
-      ${billing.mode === 'demo' && billing.provider === 'demo' ? html`<p class="demo-note">デモ決済の契約です（請求は発生していません）</p>` : ''}
-      <div class="billing-actions">
-        ${!isPro ? html`<a class="btn btn-primary btn-block" href="#/pricing">プロプランを見る</a>` : ''}
-        ${isPro && billing.provider === 'stripe' ? html`<button class="btn btn-soft btn-block" data-action="portal">お支払い方法の変更・解約</button>` : ''}
-        ${isPro && billing.provider === 'demo' && !billing.cancelAtPeriodEnd ? html`<button class="btn btn-ghost btn-block" data-action="demo-cancel">解約する（期間の終わりでフリーに戻る）</button>` : ''}
-        ${isPro && billing.provider === 'demo' ? html`<button class="btn btn-ghost btn-sm danger" data-action="demo-cancel-now">今すぐフリーに戻す（デモ）</button>` : ''}
+    <section class="section">
+      <p class="section-label">現在のプラン</p>
+      <p class="lead-value">${st.label}</p>
+      ${st.sub ? html`<p class="hint">${st.sub}</p>` : ''}
+      ${billing.mode === 'demo' && billing.provider === 'demo' ? html`<p class="hint">デモ決済の契約です。請求は発生していません。</p>` : ''}
+      <div class="btn-stack">
+        ${!isPro ? html`<a class="btn ${success ? 'btn-secondary' : 'btn-primary'}" href="#/pricing">プロプランを見る</a>` : ''}
+        ${isPro && billing.provider === 'stripe' ? html`<button class="btn btn-secondary" data-action="portal">お支払い方法の変更・解約</button>` : ''}
+        ${isPro && billing.provider === 'demo' && !billing.cancelAtPeriodEnd ? html`<button class="btn btn-secondary" data-action="demo-cancel">解約する（期間の終わりにフリーへ）</button>` : ''}
+        ${isPro && billing.provider === 'demo' ? html`<button class="text-btn text-btn-danger" data-action="demo-cancel-now">今すぐフリーに戻す（デモ）</button>` : ''}
       </div>
     </section>
-    <p class="hint center">フリーに戻っても、記録・写真・目標はそのまま残ります。</p>
+    <p class="hint">フリーに戻っても、記録・写真・目標はそのまま残ります。</p>
   `);
-  if (success && isPro) celebrate();
 
   return onAction(root, {
     portal: async (el) => {

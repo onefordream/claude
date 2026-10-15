@@ -5,8 +5,8 @@ import { icon } from '../icons.js';
 // 生徒側: 通っている教室・お店と連携する
 
 const SHARE_OPTIONS = [
-  { v: 'selected', title: '選んだ記録だけ共有', desc: '記録を書くときに、共有するかどうかを毎回選べます（おすすめ）' },
-  { v: 'all', title: 'これからの記録をすべて共有', desc: '新しく書く記録が自動で共有されます。あとから個別に外せます' },
+  { v: 'selected', title: '選んだ記録だけ共有', desc: '記録を書くときに、共有するかどうかを毎回選べます。' },
+  { v: 'all', title: 'これからの記録をすべて共有', desc: '新しく書く記録が自動で共有されます。あとから個別に外せます。' },
 ];
 
 function shareOptions(current) {
@@ -20,13 +20,16 @@ function shareOptions(current) {
   </div>`;
 }
 
-const CONSENT = html`<div class="consent">
-  <div><p class="consent-h">${icon('check', { size: 16, stroke: 2.6 })}店舗に見えるもの</p>
-    <ul><li>あなたが共有した記録（本文・写真・動画・音声・気分）</li><li>ニックネーム</li><li>共有した記録から数えた継続日数</li></ul></div>
-  <div><p class="consent-h no">${icon('lock', { size: 16 })}店舗に見えないもの</p>
-    <ul><li>共有していない記録</li><li>AIのふりかえり・目標</li><li>メールアドレス</li></ul></div>
-  <p class="consent-foot">連携はいつでも解除できます。解除すると、その時点から店舗は記録を見られなくなります。</p>
-</div>`;
+const CONSENT = html`<section class="section">
+  <h2 class="section-title">店舗に見える範囲</h2>
+  <div class="consent">
+    <div><p class="sub-title">見えるもの</p>
+      <ul class="bullets"><li>あなたが共有した記録（本文・写真・動画・音声・気分）</li><li>ニックネーム</li><li>共有した記録から数えた継続日数</li></ul></div>
+    <div><p class="sub-title">見えないもの</p>
+      <ul class="bullets"><li>共有していない記録</li><li>AIのふりかえり・目標</li><li>メールアドレス</li></ul></div>
+  </div>
+  <p class="hint">連携はいつでも解除できます。解除した時点から、店舗は記録を見られなくなります。</p>
+</section>`;
 
 function bindRadio(root, onChange) {
   $$('input[name=shareMode]', root).forEach((r) => r.addEventListener('change', () => {
@@ -41,38 +44,34 @@ async function renderNew(root, query, { navigate }) {
 
   const draw = () => mount(root, html`
     <header class="page-head with-back">
-      <a class="icon-btn" href="#/me" aria-label="戻る">${icon('chevronLeft', { size: 22 })}</a>
-      <div><h1 class="page-title small">教室・お店と連携</h1></div>
-      <span></span>
+      <a class="icon-btn" href="#/me" aria-label="戻る">${icon('caretLeft', { size: 20 })}</a>
+      <div class="page-head-main"><h1 class="page-title page-title-sm">教室・お店と連携</h1></div>
     </header>
 
     ${!store ? html`
-      <section class="card link-intro">
-        <div class="link-intro-icon">${icon('target', { size: 28 })}</div>
-        <p>レッスンに通っている教室・お店から案内された<b>店舗ID</b>を入力すると、記録を先生に見てもらえるようになります。</p>
-      </section>
-      <form class="card" id="lookup-form" novalidate>
+      <p class="lead-line">通っている教室・お店から案内された店舗IDを入力すると、記録を先生に見てもらえるようになります。</p>
+      <form class="form" id="lookup-form" novalidate>
         <label class="field">
           <span class="field-label">店舗ID</span>
-          <input class="input code-input" id="store-code" name="code" placeholder="例: K7QM-4XPA" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="${query.get('code') || ''}">
+          <input class="input code-input" id="store-code" name="code" placeholder="K7QM-4XPA" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12" value="${query.get('code') || ''}">
         </label>
         <p class="form-error" role="alert" hidden></p>
-        <button class="btn btn-primary btn-block btn-lg" type="submit">確認する</button>
+        <button class="btn btn-primary btn-block btn-lg" type="submit">確認</button>
       </form>`
     : html`
-      <section class="card store-preview">
-        <span class="store-badge">${(store.category || '教室')}</span>
-        <h2 class="store-name">${store.name}</h2>
+      <section class="section">
+        <p class="eyebrow">${store.category || '教室'}</p>
+        <p class="lead-value">${store.name}</p>
         ${store.description ? html`<p class="muted">${store.description}</p>` : ''}
         ${store.requireApproval ? html`<p class="hint">この店舗は承認制です。先生が承認すると連携が始まります。</p>` : ''}
-        <button class="link small-link" data-action="change">別の店舗IDを入力する</button>
+        <button class="text-btn" data-action="change">別の店舗IDを入力</button>
       </section>
-      <section class="card">
-        <h2 class="card-title small">共有のしかた</h2>
+      <section class="section">
+        <h2 class="section-title">共有のしかた</h2>
         ${shareOptions(shareMode)}
       </section>
-      <section class="card">${CONSENT}</section>
-      <button class="btn btn-primary btn-block btn-lg" data-action="link">${icon('check', { size: 20, stroke: 2.6 })}この店舗と連携する</button>`}
+      ${CONSENT}
+      <button class="btn btn-primary btn-block btn-lg" data-action="link">この店舗と連携</button>`}
   `);
 
   draw();
@@ -139,27 +138,24 @@ async function renderDetail(root, id, { navigate }) {
 
   const draw = () => mount(root, html`
     <header class="page-head with-back">
-      <a class="icon-btn" href="#/me" aria-label="戻る">${icon('chevronLeft', { size: 22 })}</a>
-      <div><h1 class="page-title small">連携中の教室・お店</h1></div>
-      <span></span>
+      <a class="icon-btn" href="#/me" aria-label="戻る">${icon('caretLeft', { size: 20 })}</a>
+      <div class="page-head-main"><p class="eyebrow">${link.store.category || '教室'}</p><h1 class="page-title page-title-sm">${link.store.name}</h1></div>
     </header>
-    <section class="card store-preview">
-      <span class="store-badge">${link.store.category || '教室'}</span>
-      <h2 class="store-name">${link.store.name}</h2>
+    <section class="section">
       ${link.store.description ? html`<p class="muted">${link.store.description}</p>` : ''}
-      <div class="link-status">
+      <p class="status-line">
         ${link.status === 'active'
-          ? html`<span class="pill">${icon('check', { size: 14, stroke: 3 })}連携中</span><span class="muted small">共有した記録 ${link.sharedCount ?? 0}件</span>`
-          : html`<span class="pill pill-wait">承認待ち</span><span class="muted small">先生が承認すると共有できるようになります</span>`}
-      </div>
+          ? html`<span class="status status-success">連携中</span><span class="hint">共有した記録 ${link.sharedCount ?? 0}件</span>`
+          : html`<span class="status status-warning">承認待ち</span><span class="hint">先生が承認すると共有できるようになります</span>`}
+      </p>
     </section>
-    <section class="card">
-      <h2 class="card-title small">共有のしかた</h2>
+    <section class="section">
+      <h2 class="section-title">共有のしかた</h2>
       ${shareOptions(link.shareMode)}
     </section>
-    <section class="card">${CONSENT}</section>
-    <div class="danger-zone">
-      <button class="btn btn-ghost btn-sm danger" data-action="unlink">${link.status === 'active' ? '連携を解除する' : '申請を取り消す'}</button>
+    ${CONSENT}
+    <div class="quiet-actions">
+      <button class="text-btn text-btn-danger" data-action="unlink">${link.status === 'active' ? '連携を解除' : '申請を取り消す'}</button>
     </div>
   `);
   draw();

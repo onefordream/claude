@@ -2,8 +2,8 @@
 // 古い画面が残り続けないよう、常にネットワークを優先し、つながらないときだけ保存済みのものを使う。
 // API（/api/）とアップロードしたファイルは一切キャッシュしない。
 
-const CACHE = 'gn-shell-v1';
-const SHELL = ['/', '/css/app.css', '/js/app.js', '/icon.svg', '/manifest.webmanifest'];
+const CACHE = 'gn-shell-v2';
+const SHELL = ['/', '/css/tokens.css', '/css/app.css', '/js/app.js', '/icon.svg', '/manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

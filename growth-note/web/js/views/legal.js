@@ -108,11 +108,11 @@ export async function render(root, { page }, { state }) {
   const body = page === 'terms' ? terms(operator, pricing) : page === 'privacy' ? privacy(operator) : tokushoho(operator, pricing);
   mount(root, html`
     <header class="page-head with-back">
-      <a class="icon-btn" href="${state.me ? '#/me' : '#/welcome'}" aria-label="戻る">${icon('chevronLeft', { size: 22 })}</a>
-      <div><h1 class="page-title small">${TITLES[page]}</h1></div><span></span>
+      <a class="icon-btn" href="${state.me ? '#/me' : '#/welcome'}" aria-label="戻る">${icon('caretLeft', { size: 20 })}</a>
+      <div class="page-head-main"><h1 class="page-title page-title-sm">${TITLES[page]}</h1></div>
     </header>
-    <article class="card legal">${body}
-      ${page !== 'tokushoho' ? html`<p class="legal-date">制定日：${termsVersion.replace(/-/g, '/')}</p>` : ''}
+    <article class="legal">${body}
+      ${page !== 'tokushoho' ? html`<p class="hint">制定日：${termsVersion.replace(/-/g, '/')}</p>` : ''}
     </article>
-    <nav class="legal-nav">${Object.entries(TITLES).filter(([k]) => k !== page).map(([k, t]) => html`<a href="#/legal/${k}">${t}</a>`)}</nav>`);
+    <nav class="footer-links">${Object.entries(TITLES).filter(([k]) => k !== page).map(([k, t]) => html`<a href="#/legal/${k}">${t}</a>`)}</nav>`);
 }
