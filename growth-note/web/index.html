@@ -9,7 +9,12 @@
   <title>Growth Note</title>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/icon.svg">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Growth Note｜AIが伴走する成長記録ノート">
+  <meta property="og:description" content="毎日のひとことが、成長の資産になる。記録して、AIと振り返って、成長をグラフで見る。ゴルフのスコア分析にも対応。">
+  <meta property="og:image" content="/og.png">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Growth Note">
   <link rel="stylesheet" href="/css/app.css">
@@ -22,5 +27,6 @@
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
   <div id="overlay-root"></div>
   <script type="module" src="/js/app.js"></script>
+  <script src="/js/sw-register.js" defer></script>
 </body>
 </html>

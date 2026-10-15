@@ -22,6 +22,10 @@ services:
         value: "1"
       # Stripe を使うときは、ダッシュボードの Environment で次を設定する:
       # STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET / STRIPE_PRICE_MONTHLY / STRIPE_PRICE_YEARLY / APP_URL
+      # 販売前に設定するもの（Environment で設定。値は README を参照）:
+      # OPERATOR_NAME / OPERATOR_REPRESENTATIVE / OPERATOR_ADDRESS / OPERATOR_PHONE / OPERATOR_EMAIL（特定商取引法の表記）
+      # RESEND_API_KEY / MAIL_FROM（パスワード再設定メール）
+      # ADMIN_EMAILS（運営ダッシュボード）/ ERROR_WEBHOOK_URL（エラー通知）/ ANTHROPIC_API_KEY（AI）
     # データを残したい場合は、上の plan を starter（有料）にして、次のディスク設定を有効にする
     # disk:
     #   name: growth-note-data

@@ -221,9 +221,17 @@ export function createApp(config, { log = console } = {}) {
       'Last-Modified': stat.mtime.toUTCString(),
     };
     if (ext === '.html') headers['Content-Security-Policy'] = PAGE_CSP;
+    if (rel === '/sw.js') headers['Cache-Control'] = 'no-store';
     if (req.headers['if-modified-since'] && new Date(req.headers['if-modified-since']) >= new Date(stat.mtime.toUTCString())) {
       res.writeHead(304, headers);
       return res.end();
+    }
+    // SNS のシェア画像は絶対URLでないと読まれないため、公開URLを差し込む
+    if (ext === '.html' && config.appUrl) {
+      const html = fs.readFileSync(file, 'utf8').replace('content="/og.png"', `content="${config.appUrl}/og.png"`);
+      headers['Content-Length'] = Buffer.byteLength(html);
+      res.writeHead(200, headers);
+      return res.end(req.method === 'HEAD' ? undefined : html);
     }
     res.writeHead(200, headers);
     if (req.method === 'HEAD') return res.end();
@@ -232,6 +240,8 @@ export function createApp(config, { log = console } = {}) {
 
   const server = http.createServer((req, res) => {
     for (const [k, v] of Object.entries(SECURITY_HEADERS)) res.setHeader(k, v);
+    // 本番（HTTPS）では、以後ずっと HTTPS で接続させる
+    if (config.cookieSecure) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
     const url = new URL(req.url, 'http://localhost');
     if (url.pathname.startsWith('/api/')) handleApi(req, res, url);
     else serveStatic(req, res, url);
