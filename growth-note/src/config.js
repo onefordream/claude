@@ -33,6 +33,25 @@ export function loadConfig(overrides = {}) {
     },
     // Stripe 未設定でも課金の流れを試せるデモ決済。本番では明示的に BILLING_DEMO=1 のときだけ
     billingDemo: env.BILLING_DEMO ? env.BILLING_DEMO === '1' : env.NODE_ENV !== 'production',
+    // メール送信（パスワード再設定など）。RESEND_API_KEY が未設定ならサーバーのログに出すだけ
+    mail: {
+      resendApiKey: env.RESEND_API_KEY || '',
+      from: env.MAIL_FROM || 'Growth Note <no-reply@example.com>',
+    },
+    // 特定商取引法に基づく表記・お問い合わせ先に表示する運営者情報
+    operator: {
+      name: env.OPERATOR_NAME || '',
+      representative: env.OPERATOR_REPRESENTATIVE || '',
+      address: env.OPERATOR_ADDRESS || '',
+      phone: env.OPERATOR_PHONE || '',
+      email: env.OPERATOR_EMAIL || '',
+    },
+    // 運営者の管理画面を使えるメールアドレス（カンマ区切り）
+    adminEmails: (env.ADMIN_EMAILS || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
+    // サーバーエラーを Slack / Discord などに通知する Webhook URL
+    errorWebhookUrl: env.ERROR_WEBHOOK_URL || '',
+    workerConcurrency: Number(env.WORKER_CONCURRENCY || 4),
+    backupKeepDays: Number(env.BACKUP_KEEP_DAYS || 7),
     workerIntervalMs: 1500,
     ...overrides,
   };

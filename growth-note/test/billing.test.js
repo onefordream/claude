@@ -90,7 +90,7 @@ describe('無料 → 体験 → ロック → デモ決済でプロ', () => {
 
   test('流れ全体', async () => {
     const c = client(ctx.base);
-    await c('POST', '/api/auth/signup', { email: 'f@example.com', password: 'password123', displayName: 'F' });
+    await c('POST', '/api/auth/signup', { email: 'f@example.com', password: 'password123', agree: true, displayName: 'F' });
     assert.equal((await c('GET', '/api/me')).data.ai.trialLeft, 3);
 
     // 成長分析: 記録が足りないうちは準備中、無料なので数値は返らない
@@ -205,7 +205,7 @@ describe('Stripe 連携（偽の Stripe サーバーで確認）', () => {
 
   test('決済ページ作成 → Webhook でプロ → 二重通知は無視 → 解約で無料', async () => {
     const c = client(ctx.base);
-    await c('POST', '/api/auth/signup', { email: 's@example.com', password: 'password123', displayName: 'S' });
+    await c('POST', '/api/auth/signup', { email: 's@example.com', password: 'password123', agree: true, displayName: 'S' });
     const me = (await c('GET', '/api/me')).data;
     assert.equal(me.billing.mode, 'stripe');
 

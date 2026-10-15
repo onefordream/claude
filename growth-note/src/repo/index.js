@@ -53,6 +53,15 @@ export function createRepos(db) {
     findByEmail(email) {
       return q('SELECT * FROM users WHERE email = ?').get(email);
     },
+    acceptTerms(id, version) {
+      q('UPDATE users SET terms_version = ?, terms_accepted_at = ?, updated_at = ? WHERE id = ?').run(version, nowIso(), nowIso(), id);
+    },
+    setPassword(id, passwordHash) {
+      q('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?').run(passwordHash, nowIso(), id);
+    },
+    count() {
+      return q('SELECT COUNT(*) AS c FROM users').get().c;
+    },
     update(id, { displayName, weeklyTarget }) {
       q(`UPDATE users SET display_name = COALESCE(?, display_name), weekly_target = COALESCE(?, weekly_target),
          updated_at = ? WHERE id = ?`).run(displayName ?? null, weeklyTarget ?? null, nowIso(), id);
@@ -81,6 +90,27 @@ export function createRepos(db) {
     },
     removeExpired() {
       q('DELETE FROM sessions WHERE expires_at <= ?').run(nowIso());
+      q('DELETE FROM password_resets WHERE expires_at <= ?').run(nowIso());
+    },
+    /** パスワード変更時など: その人のすべての端末からログアウトさせる（keepId だけ残す） */
+    removeAllForUser(userId, keepId = null) {
+      q('DELETE FROM sessions WHERE user_id = ? AND id != COALESCE(?, \'\')').run(userId, keepId);
+    },
+    findByHash(tokenHash) {
+      return q('SELECT * FROM sessions WHERE token_hash = ?').get(tokenHash);
+    },
+  };
+
+  const passwordResets = {
+    create(userId, tokenHash, expiresAt) {
+      q('INSERT INTO password_resets (token_hash, user_id, expires_at, created_at) VALUES (?, ?, ?, ?)').run(tokenHash, userId, expiresAt, nowIso());
+    },
+    findValid(tokenHash) {
+      return q('SELECT * FROM password_resets WHERE token_hash = ? AND used_at IS NULL AND expires_at > ?').get(tokenHash, nowIso());
+    },
+    /** 使ったトークンと、同じ人の未使用トークンをまとめて無効にする */
+    consume(userId) {
+      q('UPDATE password_resets SET used_at = ? WHERE user_id = ? AND used_at IS NULL').run(nowIso(), userId);
     },
   };
 
@@ -428,5 +458,5 @@ export function createRepos(db) {
     }));
   }
 
-  return { db, users, sessions, billing, media, insights, goals, entries, jobs, ...storeRepos, ...golfRepos, golfSummaries, tx: (fn) => tx(db, fn) };
+  return { db, users, sessions, passwordResets, billing, media, insights, goals, entries, jobs, ...storeRepos, ...golfRepos, golfSummaries, tx: (fn) => tx(db, fn) };
 }

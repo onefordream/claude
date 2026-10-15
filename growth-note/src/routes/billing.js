@@ -43,6 +43,20 @@ export function registerBillingRoutes(router, app) {
     return `${proto}://${ctx.req.headers.host}`;
   }
 
+  /** 退会時に呼ばれる: Stripe の契約が生きていれば即時解約して請求を止める */
+  app.cancelSubscriptionForDeletion = async (userId) => {
+    const sub = repo.billing.subscription(userId);
+    if (!sub || sub.provider !== 'stripe' || !sub.provider_subscription_id) return;
+    if (!['active', 'trialing', 'past_due', 'incomplete', 'unpaid'].includes(sub.status)) return;
+    if (!stripe) throw new Error('Stripe is not configured');
+    try {
+      await stripe.cancelSubscription(sub.provider_subscription_id);
+    } catch (err) {
+      // すでに解約済み（404）なら問題なし
+      if (!(err instanceof StripeError && err.status === 404)) throw err;
+    }
+  };
+
   router.get('/api/billing', async (ctx) => {
     sendJson(ctx.res, 200, { billing: billingSummary(repo, ctx.user.id, config), pricing: PRICING });
   });

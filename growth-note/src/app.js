@@ -18,6 +18,11 @@ import { registerStoreRoutes } from './routes/stores.js';
 import { registerGrowthRoutes } from './routes/growth.js';
 import { registerGolfRoutes } from './routes/golf.js';
 import { registerBillingRoutes, billingSummary } from './routes/billing.js';
+import { registerAccountRoutes } from './routes/account.js';
+import { createMailer } from './lib/mailer.js';
+import { createNotifier } from './lib/notify.js';
+import { TERMS_VERSION } from './lib/legal.js';
+import { PRICING } from './lib/plans.js';
 
 const STATIC_TYPES = {
   '.html': 'text/html; charset=utf-8',
@@ -44,11 +49,22 @@ export function createApp(config, { log = console } = {}) {
   const repo = createRepos(db);
   const storage = createLocalStorage(config.dataDir);
   const ai = createAi(config.ai);
-  const worker = createWorker({ repo, ai, storage, intervalMs: config.workerIntervalMs, log });
+  const notify = createNotifier(config.errorWebhookUrl, { log });
+  const reportError = (message) => {
+    log.error?.(`[error] ${message}`);
+    notify(message);
+  };
+  const worker = createWorker({
+    repo, ai, storage, log, reportError, db,
+    intervalMs: config.workerIntervalMs, concurrency: config.workerConcurrency,
+    backup: { dir: path.join(config.dataDir, 'backups'), keepDays: config.backupKeepDays },
+  });
+  const mailer = createMailer(config.mail, { log });
   const closers = [];
 
   const app = {
-    config, db, repo, storage, ai, worker,
+    config, db, repo, storage, ai, worker, mailer, reportError,
+    isAdmin: (user) => !!user && config.adminEmails.includes(String(user.email).toLowerCase()),
     onClose: (fn) => closers.push(fn),
     me: (user) => {
       const me = publicMe(repo, user);
@@ -57,6 +73,8 @@ export function createApp(config, { log = console } = {}) {
         ...me,
         ai: { enabled: ai.enabled, trialLeft: Math.max(0, me.plan.limits.aiTrialCredits - trialUsed) },
         billing: billingSummary(repo, user.id, config),
+        termsOutdated: user.terms_version !== TERMS_VERSION,
+        isAdmin: app.isAdmin(user),
       };
     },
   };
@@ -71,7 +89,12 @@ export function createApp(config, { log = console } = {}) {
   registerGrowthRoutes(router, app);
   registerGolfRoutes(router, app);
   registerBillingRoutes(router, app);
+  registerAccountRoutes(router, app);
   router.get('/api/health', async (ctx) => sendJson(ctx.res, 200, { ok: true }), { auth: false });
+  // ログイン前の画面（紹介ページ・法務ページ）で使う公開情報
+  router.get('/api/public/config', async (ctx) => {
+    sendJson(ctx.res, 200, { operator: { ...config.operator, backupDays: config.backupKeepDays }, pricing: PRICING, termsVersion: TERMS_VERSION });
+  }, { auth: false });
 
   function clientIp(req) {
     if (config.trustProxy) {
@@ -133,7 +156,10 @@ export function createApp(config, { log = console } = {}) {
       await route.handler(ctx);
     } catch (err) {
       const status = err instanceof HttpError ? err.status : 500;
-      if (status === 500) log.error?.(`[api] ${req.method} ${url.pathname}`, err);
+      if (status === 500) {
+        log.error?.(`[api] ${req.method} ${url.pathname}`, err);
+        notify(`500 ${req.method} ${url.pathname}: ${err?.message || err}`);
+      }
       if (res.headersSent) {
         res.destroy();
         return;

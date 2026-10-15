@@ -46,7 +46,7 @@ function client() {
 
 async function signup(email, name) {
   const c = client();
-  const r = await c('POST', '/api/auth/signup', { email, password: 'password123', displayName: name });
+  const r = await c('POST', '/api/auth/signup', { email, password: 'password123', agree: true, displayName: name });
   assert.equal(r.status, 201);
   return c;
 }

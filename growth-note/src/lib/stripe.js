@@ -41,6 +41,7 @@ export function createStripe({ secretKey, apiBase = 'https://api.stripe.com' }) 
     createCheckoutSession: (params) => request('POST', '/checkout/sessions', params),
     createPortalSession: (params) => request('POST', '/billing_portal/sessions', params),
     retrieveSubscription: (id) => request('GET', `/subscriptions/${encodeURIComponent(id)}`),
+    cancelSubscription: (id) => request('DELETE', `/subscriptions/${encodeURIComponent(id)}`),
   };
 }
 

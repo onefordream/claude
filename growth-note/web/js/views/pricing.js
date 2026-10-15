@@ -44,6 +44,18 @@ async function renderPricing(root, query, { state, refreshMe }) {
     </div>`;
   };
 
+  // 特定商取引法の「最終確認画面」で示す内容（料金・支払時期・自動更新・解約方法）
+  const confirmRows = () => {
+    const p = pricing[interval];
+    const per = interval === 'year' ? '1年' : '1か月';
+    const trialEnd = fmtDate(addDaysLocal(pricing.trialDays), { year: true });
+    return html`
+      <div><dt>料金</dt><dd>${yen(p.amount)}／${interval === 'year' ? '年' : '月'}（税込）</dd></div>
+      <div><dt>お支払い</dt><dd>${billing.trialAvailable ? `無料体験の終了日（${trialEnd}）に初回の料金を請求します` : 'お申し込み時に請求します'}</dd></div>
+      <div><dt>更新</dt><dd>解約するまで${per}ごとに自動で更新し、そのつど請求します</dd></div>
+      <div><dt>解約</dt><dd>マイページの「プランとお支払い」からいつでも。${billing.trialAvailable ? '無料体験中に解約すれば料金はかかりません。' : ''}支払い済みの期間は使えます（返金はありません）</dd></div>`;
+  };
+
   mount(root, html`
     <header class="page-head with-back">
       <a class="icon-btn" href="#/me" aria-label="戻る">${icon('chevronLeft', { size: 22 })}</a>
@@ -73,7 +85,11 @@ async function renderPricing(root, query, { state, refreshMe }) {
         </div>
         <div class="price-slot">${priceBox()}</div>
         <button class="btn btn-primary btn-block btn-lg" data-action="checkout">${billing.trialAvailable ? `${pricing.trialDays}日間無料で試す` : 'プロにする'}</button>
-        <p class="hint center">${billing.trialAvailable ? `無料期間（〜${fmtDate(addDaysLocal(pricing.trialDays))}）中に解約すれば料金はかかりません。` : 'いつでも解約できます。'}</p>
+        <div class="final-confirm" aria-label="お申し込み内容の確認">
+          <p class="fc-title">お申し込み内容</p>
+          <dl class="price-slot-terms">${confirmRows()}</dl>
+          <p class="fc-note">「${billing.trialAvailable ? `${pricing.trialDays}日間無料で試す` : 'プロにする'}」を押すと、決済ページ（Stripe）に移ります。お申し込みにより<a href="#/legal/terms">利用規約</a>に同意したものとみなします。<a href="#/legal/tokushoho">特定商取引法に基づく表記</a></p>
+        </div>
         ${billing.mode === 'demo' ? html`<p class="demo-note">デモ決済モード：実際の請求は発生しません</p>` : ''}
         ${billing.mode === 'unavailable' ? html`<p class="demo-note">有料プランは準備中です</p>` : ''}
       </section>`}
@@ -100,6 +116,7 @@ async function renderPricing(root, query, { state, refreshMe }) {
         b.setAttribute('aria-checked', String(b.dataset.v === interval));
       });
       mount($('.price-slot', root), priceBox());
+      mount($('.price-slot-terms', root), confirmRows());
     },
     checkout: async (el) => {
       el.classList.add('loading');

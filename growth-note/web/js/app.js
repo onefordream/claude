@@ -15,13 +15,22 @@ import * as growthView from './views/growth.js';
 import * as pricingView from './views/pricing.js';
 import * as golfView from './views/golf.js';
 import * as golfRoundView from './views/golf-round.js';
+import * as welcomeView from './views/welcome.js';
+import * as legalView from './views/legal.js';
+import * as adminView from './views/admin.js';
 
 // アプリ全体の状態（ログインユーザーなど）
 export const state = { me: null };
 
 const routes = [
+  { re: /^\/welcome$/, view: welcomeView, public: true },
   { re: /^\/login$/, view: authView, public: true, params: () => ({ mode: 'login' }) },
   { re: /^\/signup$/, view: authView, public: true, params: () => ({ mode: 'signup' }) },
+  { re: /^\/forgot$/, view: authView, public: true, params: () => ({ mode: 'forgot' }) },
+  // パスワード再設定と法務ページは、ログインしていてもいなくても開ける
+  { re: /^\/reset$/, view: authView, open: true, params: () => ({ mode: 'reset' }) },
+  { re: /^\/legal\/(terms|privacy|tokushoho)$/, view: legalView, open: true, tab: 'me', params: (m) => ({ page: m[1] }) },
+  { re: /^\/admin$/, view: adminView, tab: 'me' },
   { re: /^\/$/, view: homeView, tab: 'home' },
   { re: /^\/write$/, view: writeView, tab: 'write', hideTabs: true },
   { re: /^\/entries$/, view: entriesView, tab: 'entries' },
@@ -91,7 +100,11 @@ export async function render() {
   if (!match) return navigate('/', { replace: true });
   const { r, m } = match;
 
-  if (!r.public && !state.me) return navigate('/login', { replace: true });
+  if (!r.public && !r.open && !state.me) {
+    // ログイン後に元のページ（店舗の招待リンクなど）へ戻れるように覚えておく
+    if (path !== '/') setReturnTo(location.hash.slice(1));
+    return navigate(path === '/' ? '/welcome' : '/login', { replace: true });
+  }
   if (r.public && state.me) return navigate('/', { replace: true });
 
   if (cleanup) {
@@ -102,12 +115,12 @@ export async function render() {
     }
     cleanup = null;
   }
-  renderTabs(r.tab, !!r.public || !!r.hideTabs);
+  renderTabs(r.tab, !!r.public || !!r.hideTabs || !state.me);
   const root = document.getElementById('app');
   root.className = `app view-${r.tab || 'auth'}`;
   window.scrollTo(0, 0);
   try {
-    const result = await r.view.render(root, { ...(r.params ? r.params(m) : {}), query }, { state, navigate, refreshMe });
+    const result = await r.view.render(root, { ...(r.params ? r.params(m) : {}), query }, { state, navigate, refreshMe, takeReturnTo });
     if (seq !== renderSeq) {
       result?.();
       return;
@@ -122,6 +135,25 @@ export async function render() {
       <p>${err.message || '読み込みに失敗しました'}</p>
       <a class="btn btn-primary" href="/">再読み込み</a>
     </div>`);
+  }
+}
+
+const RETURN_KEY = 'gn:return-to';
+function setReturnTo(path) {
+  try {
+    sessionStorage.setItem(RETURN_KEY, path);
+  } catch {
+    /* noop */
+  }
+}
+/** ログイン・登録のあとに戻る先（なければホーム） */
+export function takeReturnTo() {
+  try {
+    const v = sessionStorage.getItem(RETURN_KEY);
+    sessionStorage.removeItem(RETURN_KEY);
+    return v && v.startsWith('/') && !v.startsWith('//') ? v : null;
+  } catch {
+    return null;
   }
 }
 

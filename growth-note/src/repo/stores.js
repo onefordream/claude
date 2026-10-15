@@ -90,6 +90,17 @@ export function createStoreRepos(db, { tx }) {
     remove(id) {
       q('DELETE FROM stores WHERE id = ?').run(id);
     },
+    /** 退会時: オーナーの店舗は、ほかのスタッフがいれば引き継ぎ、いなければ削除する */
+    handOverOrDelete(userId) {
+      tx(() => {
+        const owned = q(`SELECT store_id FROM store_staff WHERE user_id = ? AND role = 'owner'`).all(userId);
+        for (const { store_id: storeId } of owned) {
+          const next = q(`SELECT user_id FROM store_staff WHERE store_id = ? AND user_id != ? ORDER BY created_at LIMIT 1`).get(storeId, userId);
+          if (next) q(`UPDATE store_staff SET role = 'owner' WHERE store_id = ? AND user_id = ?`).run(storeId, next.user_id);
+          else q('DELETE FROM stores WHERE id = ?').run(storeId);
+        }
+      });
+    },
   };
 
   const links = {

@@ -101,7 +101,7 @@ describe('ラウンド記録の API', () => {
 
   test('ホール入力 → 終了で成長ノートに記録 → 分析（無料はロック、プロで解放）→ AIコーチ', async () => {
     const c = client();
-    await c('POST', '/api/auth/signup', { email: 'golfer@example.com', password: 'password123', displayName: 'ゴルファー' });
+    await c('POST', '/api/auth/signup', { email: 'golfer@example.com', password: 'password123', agree: true, displayName: 'ゴルファー' });
 
     const created = await c('POST', '/api/golf/rounds', { courseName: '青山カントリー', holesCount: 18 });
     assert.equal(created.status, 201);
@@ -173,8 +173,8 @@ describe('ラウンド記録の API', () => {
   test('他人のラウンドは見られない', async () => {
     const a = client();
     const b = client();
-    await a('POST', '/api/auth/signup', { email: 'ga@example.com', password: 'password123' });
-    await b('POST', '/api/auth/signup', { email: 'gb@example.com', password: 'password123' });
+    await a('POST', '/api/auth/signup', { email: 'ga@example.com', password: 'password123', agree: true });
+    await b('POST', '/api/auth/signup', { email: 'gb@example.com', password: 'password123', agree: true });
     const r = (await a('POST', '/api/golf/rounds', { courseName: 'X' })).data.round;
     assert.equal((await b('GET', `/api/golf/rounds/${r.id}`)).status, 404);
     assert.equal((await b('PUT', `/api/golf/rounds/${r.id}/holes/1`, { score: 4 })).status, 404);

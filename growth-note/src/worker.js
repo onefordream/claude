@@ -6,7 +6,7 @@ import { entitlementsOf, userStats, growthReport, golfAnalysisData } from './ser
 
 const MAX_ATTEMPTS = 3;
 
-export function createWorker({ repo, ai, storage, intervalMs = 1500, log = console }) {
+export function createWorker({ repo, ai, storage, intervalMs = 1500, log = console, reportError = () => {}, db = null, concurrency = 4, backup = null }) {
   let timer = null;
   let running = false;
   let lastCleanup = 0;
@@ -143,6 +143,7 @@ export function createWorker({ repo, ai, storage, intervalMs = 1500, log = conso
         repo.jobs.retry(job.id, err.message, new Date(Date.now() + delay));
       } else {
         log.error?.(`[worker] job ${job.id} (${job.type}) failed: ${err.stack || err.message}`);
+        reportError(`ジョブ失敗 ${job.type} #${job.id}: ${err.message}`);
         repo.jobs.fail(job.id, err.message);
         if (job.payload?.insightId && job.user_id) {
           repo.insights.setResult(job.user_id, job.payload.insightId, { status: 'failed', error: err.message });
@@ -164,13 +165,47 @@ export function createWorker({ repo, ai, storage, intervalMs = 1500, log = conso
     }
     repo.sessions.removeExpired();
     repo.jobs.purgeOld(new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+    await dailyBackup();
+  }
+
+  /**
+   * 1日1回、データベースを丸ごとコピーして残す（VACUUM INTO は書き込み中でも一貫したコピーを作れる）。
+   * 古いものは keepDays 日分を残して消す。写真・動画のファイルは別途バックアップが必要。
+   */
+  async function dailyBackup() {
+    if (!backup || !db) return;
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    await fs.mkdir(backup.dir, { recursive: true });
+    const today = jstDate();
+    const file = path.join(backup.dir, `growth-note-${today}.db`);
+    try {
+      await fs.access(file);
+    } catch {
+      try {
+        db.exec(`VACUUM INTO '${file.replace(/'/g, "''")}'`);
+        log.info?.(`[backup] ${file}`);
+      } catch (err) {
+        reportError(`バックアップ失敗: ${err.message}`);
+        return;
+      }
+    }
+    const keepFrom = addDays(today, -(backup.keepDays - 1));
+    for (const name of await fs.readdir(backup.dir)) {
+      const m = /^growth-note-(\d{4}-\d{2}-\d{2})\.db$/.exec(name);
+      if (m && m[1] < keepFrom) await fs.rm(path.join(backup.dir, name), { force: true });
+    }
   }
 
   async function tick() {
     if (running) return;
     running = true;
     try {
-      while (await runOne()) { /* キューが空になるまで続ける */ }
+      // 複数のジョブを同時に処理する（AI の応答待ちで後ろの人が待たされないように）
+      const lane = async () => {
+        while (await runOne()) { /* キューが空になるまで続ける */ }
+      };
+      await Promise.all(Array.from({ length: Math.max(1, concurrency) }, lane));
       if (Date.now() - lastCleanup > 60 * 60 * 1000) {
         lastCleanup = Date.now();
         await cleanup();
@@ -198,6 +233,7 @@ export function createWorker({ repo, ai, storage, intervalMs = 1500, log = conso
     },
     tick,
     cleanup,
+    dailyBackup,
   };
 }
 

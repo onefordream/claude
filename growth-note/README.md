@@ -162,10 +162,25 @@ test/                  日付・継続日数・API（データ分離、アップ
 - **課金の見据え方**: `subscriptions` テーブル（plan / status / current_period_end / provider_*）と `lib/plans.js` の
   エンタイトルメント（`can()` / `limit()`）。決済を導入する際は、Stripe 等の Webhook で `subscriptions` を更新するだけで機能差が有効になる。
 
+## 販売前の設定（環境変数）
+
+| 環境変数 | 内容 |
+|---|---|
+| `OPERATOR_NAME` / `OPERATOR_REPRESENTATIVE` / `OPERATOR_ADDRESS` / `OPERATOR_PHONE` / `OPERATOR_EMAIL` | 特定商取引法に基づく表記・プライバシーポリシーに表示（未設定だと【未設定】と表示される） |
+| `RESEND_API_KEY` / `MAIL_FROM` | パスワード再設定メールの送信（未設定ならサーバーのログに出すだけ） |
+| `APP_URL` | 公開URL（メールのリンク・決済の戻り先） |
+| `ADMIN_EMAILS` | 運営ダッシュボード（`/#/admin`）を見られるメールアドレス（カンマ区切り） |
+| `ERROR_WEBHOOK_URL` | サーバーエラーを Slack / Discord に通知 |
+| `WORKER_CONCURRENCY` | AI 処理の同時実行数（既定 4） |
+| `BACKUP_KEEP_DAYS` | 毎日のDBバックアップ（`DATA_DIR/backups`）を残す日数（既定 7） |
+
+- 利用規約・プライバシーポリシー・特定商取引法に基づく表記は `web/js/views/legal.js`。**公開前に専門家の確認を推奨**。
+  改定したら `src/lib/legal.js` の `TERMS_VERSION` を更新すると、ユーザーに再同意の案内が出る。
+- 退会時は Stripe の契約を先に解約し（失敗したら退会させない）、オーナーの店舗はスタッフに引き継ぐ。
+
 ## 本番運用の前にやること（未実装）
 
-- パスワード再設定（メール送信の仕組みが必要）
 - 決済（Stripe Checkout + Webhook → `subscriptions` 更新）
 - HTTPS 終端（リバースプロキシ / PaaS）と `NODE_ENV=production`
-- DB・アップロードのバックアップ
+- 写真・動画のバックアップ（DB は毎日自動でバックアップ済み）
 - オフライン対応（Service Worker）

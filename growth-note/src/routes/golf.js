@@ -44,6 +44,15 @@ export function registerGolfRoutes(router, app) {
     };
   }
 
+  /** 終了済みのラウンドを修正したら、成長ノートの記録の要約も最新にする */
+  function syncEntry(userId, roundId) {
+    const round = repo.golf.get(userId, roundId);
+    if (!round || round.status !== 'done' || !round.entry_id || !repo.entries.get(userId, round.entry_id)) return;
+    const { stats } = present(userId, round);
+    if (stats.score == null) return;
+    repo.entries.update(userId, round.entry_id, { body: `${roundSummaryText(round, stats)}${round.note ? `\n\n${round.note}` : ''}` });
+  }
+
   router.get('/api/golf/courses', async (ctx) => {
     sendJson(ctx.res, 200, { courses: repo.golf.courses(ctx.user.id), defaultPars: DEFAULT_PARS });
   });
@@ -106,6 +115,7 @@ export function registerGolfRoutes(router, app) {
       pars[no - 1] = par;
       repo.golf.update(userId, round.id, { pars });
     }
+    syncEntry(userId, round.id);
     sendJson(ctx.res, 200, present(userId, repo.golf.get(userId, round.id)));
   });
 
@@ -144,6 +154,7 @@ export function registerGolfRoutes(router, app) {
       f.totals = totals;
     }
     repo.golf.update(userId, round.id, f);
+    syncEntry(userId, round.id);
     sendJson(ctx.res, 200, present(userId, repo.golf.get(userId, round.id)));
   });
 

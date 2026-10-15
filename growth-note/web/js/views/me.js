@@ -148,6 +148,20 @@ export async function render(root, _params, { state, navigate, refreshMe }) {
       <p class="muted small">${me.user.email}</p>
     </section>
 
+    <section class="card">
+      <h2 class="card-title small">アカウント</h2>
+      <details class="pw-details"><summary>パスワードを変更する</summary>
+        <form class="pw-form" novalidate>
+          <label class="field"><span class="field-label">現在のパスワード</span><input class="input" id="pw-current" name="current" type="password" autocomplete="current-password"></label>
+          <label class="field"><span class="field-label">新しいパスワード（8文字以上）</span><input class="input" id="pw-new" name="password" type="password" minlength="8" autocomplete="new-password"></label>
+          <button class="btn btn-soft btn-block" type="submit">変更する</button>
+          <p class="hint">変更すると、ほかの端末ではログアウトされます。</p>
+        </form>
+      </details>
+      <button class="btn btn-ghost btn-block" data-action="export">${icon('book', { size: 18 })}データを書き出す（JSON）</button>
+      <p class="hint">記録・目標・ゴルフのスコア・コメントをまとめて保存できます。</p>
+    </section>
+
     <a class="card staff-entry" href="#/store">
       <span class="store-icon alt">${icon('user', { size: 20 })}</span>
       <span class="link-row-main"><b>先生・スタッフの方</b>
@@ -156,6 +170,16 @@ export async function render(root, _params, { state, navigate, refreshMe }) {
       ${icon('chevronRight', { size: 16 })}
     </a>
 
+    ${me.isAdmin ? html`<a class="card staff-entry" href="#/admin">
+      <span class="store-icon alt">${icon('gem', { size: 20 })}</span>
+      <span class="link-row-main"><b>運営ダッシュボード</b><span>売上・ユーザー・システムの状態</span></span>
+      ${icon('chevronRight', { size: 16 })}
+    </a>` : ''}
+
+    <nav class="legal-nav">
+      <a href="#/legal/terms">利用規約</a><a href="#/legal/privacy">プライバシーポリシー</a><a href="#/legal/tokushoho">特定商取引法に基づく表記</a>
+    </nav>
+
     <div class="account-actions">
       <button class="btn btn-ghost btn-block" data-action="logout">${icon('logout', { size: 18 })}ログアウト</button>
       <button class="btn btn-ghost btn-sm danger" data-action="delete-account">アカウントを削除</button>
@@ -163,6 +187,17 @@ export async function render(root, _params, { state, navigate, refreshMe }) {
   `);
 
   const bindSettings = () => {
+    $('form.pw-form', root).addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target;
+      try {
+        await api('/me/password', { method: 'POST', body: { current: f.current.value, password: f.password.value } });
+        f.reset();
+        toast('パスワードを変更しました');
+      } catch (err) {
+        toast(err.message, { type: 'error' });
+      }
+    });
     $('form.settings', root).addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
@@ -202,10 +237,29 @@ export async function render(root, _params, { state, navigate, refreshMe }) {
       state.me = null;
       navigate('/login', { replace: true });
     },
+    export: async (el) => {
+      el.classList.add('loading');
+      try {
+        const res = await fetch('/api/me/export', { credentials: 'same-origin' });
+        if (!res.ok) throw new Error('書き出しに失敗しました');
+        const url = URL.createObjectURL(await res.blob());
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = /filename="([^"]+)"/.exec(res.headers.get('content-disposition') || '')?.[1] || 'growth-note.json';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (err) {
+        toast(err.message, { type: 'error' });
+      } finally {
+        el.classList.remove('loading');
+      }
+    },
     'delete-account': async () => {
       const pw = await confirmSheet({
         title: 'アカウントを削除しますか？',
-        message: 'すべての記録・写真・目標が完全に削除され、元に戻せません。続けるにはパスワードを入力してください。',
+        message: 'すべての記録・写真・目標・ゴルフのスコアが完全に削除され、元に戻せません。プロプランをご利用中の場合は自動で解約されます（返金はありません）。オーナーの店舗は、ほかのスタッフに引き継がれます（いなければ削除されます）。必要なら先に「データを書き出す」で保存してください。続けるにはパスワードを入力してください。',
         ok: '削除する',
         danger: true,
         input: { type: 'password', placeholder: 'パスワード', autocomplete: 'current-password' },

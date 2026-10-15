@@ -152,6 +152,12 @@ export async function render(root, _params, { navigate, state }) {
       </button>
     </section>
 
+    ${me.termsOutdated ? html`<section class="card terms-banner">
+      <p><b>利用規約・プライバシーポリシーを改定しました</b></p>
+      <p class="muted small"><a href="#/legal/terms">利用規約</a>と<a href="#/legal/privacy">プライバシーポリシー</a>をご確認のうえ、同意をお願いします。</p>
+      <button class="btn btn-primary btn-sm" data-action="accept-terms">同意する</button>
+    </section>` : ''}
+
     ${golfCard(golf)}
 
     ${growthCard(g, me)}
@@ -197,6 +203,10 @@ export async function render(root, _params, { navigate, state }) {
   mount(root, view());
 
   return onAction(root, {
+    'accept-terms': async (el) => {
+      state.me = await api('/me/accept-terms', { method: 'POST', body: {} });
+      el.closest('.terms-banner').remove();
+    },
     'toggle-step': (el) => {
       const done = !stepDone(today, h.todayStep.text);
       setStepDone(today, h.todayStep.text, done);

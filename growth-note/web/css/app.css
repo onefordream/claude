@@ -1025,3 +1025,78 @@ a.upsell .btn { margin-top: 12px; }
 .golf-entry-score small { font-size: 11px; font-weight: 800; }
 .golf-entry-main { flex: 1; display: flex; flex-direction: column; color: var(--ink); min-width: 0; }
 .golf-entry-main span { font-size: 12px; color: var(--ink-2); }
+
+/* =========================================================
+   紹介ページ・法務・アカウント・管理
+   ========================================================= */
+.auth-logo { text-decoration: none; }
+.agree { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--ink-2); margin: 4px 0 14px; cursor: pointer; }
+.agree input { width: 20px; height: 20px; accent-color: var(--brand); flex-shrink: 0; margin-top: 1px; }
+.agree a, .fc-note a, .terms-banner a { color: var(--brand); font-weight: 700; text-decoration: underline; }
+.auth-legal { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; font-size: 11.5px; }
+.auth-legal a { color: var(--ink-3); }
+.sent { text-align: center; display: flex; flex-direction: column; gap: 6px; }
+.sent-title { font-weight: 800; font-size: 16px; }
+
+.legal { font-size: 14px; line-height: 1.85; color: var(--ink-2); }
+.legal h2 { font-size: 15px; color: var(--ink); margin: 22px 0 6px; }
+.legal h2:first-of-type { margin-top: 16px; }
+.legal p { margin-bottom: 6px; }
+.legal ol, .legal ul { padding-left: 1.3em; list-style: revert; display: flex; flex-direction: column; gap: 4px; }
+.legal-date { margin-top: 20px; font-size: 12px; color: var(--ink-3); text-align: right; }
+.legal-table-wrap { overflow-x: auto; }
+.legal-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.legal-table th, .legal-table td { text-align: left; vertical-align: top; padding: 11px 6px; border-bottom: 1px solid var(--line); }
+.legal-table th { width: 34%; color: var(--ink); font-weight: 700; }
+.legal-table tr:last-child th, .legal-table tr:last-child td { border-bottom: 0; }
+.legal-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: 12px; }
+.legal-nav a { color: var(--ink-3); text-decoration: underline; }
+
+.pw-details summary { font-size: 14px; font-weight: 700; cursor: pointer; padding: 6px 0 10px; }
+.pw-form { padding-bottom: 10px; }
+.terms-banner { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; background: var(--accent-soft); box-shadow: none; }
+
+.final-confirm { background: var(--surface-2); border-radius: 14px; padding: 12px 14px; font-size: 12.5px; }
+.fc-title { font-weight: 800; color: var(--ink); margin-bottom: 6px; font-size: 13px; }
+.final-confirm dl { margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.final-confirm dl > div { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; }
+.final-confirm dt { font-weight: 800; color: var(--ink-2); }
+.final-confirm dd { margin: 0; color: var(--ink-2); }
+.fc-note { margin-top: 10px; color: var(--ink-3); font-size: 11.5px; line-height: 1.7; }
+
+/* 紹介ページ */
+.app.view-auth .lp-hero { padding-top: 3vh; }
+.lp-hero { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 4px 8px; }
+.lp-logo { width: 72px; height: 72px; border-radius: 22px; display: grid; place-items: center; font-size: 38px; background: var(--brand-soft); box-shadow: var(--shadow); }
+.lp-title { font-size: clamp(26px, 7vw, 34px); font-weight: 900; line-height: 1.4; text-wrap: balance; }
+.lp-lead { color: var(--ink-2); font-size: 15px; }
+.lp-cta { display: flex; flex-direction: column; gap: 4px; width: 100%; max-width: 340px; margin-top: 8px; }
+.lp-features { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 10px; }
+.lp-feature { display: flex; gap: 12px; align-items: flex-start; }
+.lp-f-icon { font-size: 26px; width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--surface-2); flex-shrink: 0; }
+.lp-feature h2 { font-size: 15px; font-weight: 800; margin-bottom: 2px; }
+.lp-feature p { font-size: 13px; color: var(--ink-2); }
+.lp-steps ol { display: flex; flex-direction: column; gap: 10px; counter-reset: step; }
+.lp-steps li { display: flex; flex-direction: column; padding-left: 40px; position: relative; counter-increment: step; }
+.lp-steps li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 28px; height: 28px; border-radius: 50%; background: var(--brand); color: var(--brand-ink); display: grid; place-items: center; font-weight: 800; font-size: 14px; }
+.lp-steps li span { font-size: 13px; color: var(--ink-2); }
+.lp-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.lp-plan { border: 1.5px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+.lp-plan.pro { border-color: var(--brand-2); background: var(--brand-soft); }
+.lp-price { font-size: 22px; font-weight: 900; }
+.lp-final { text-align: center; display: flex; flex-direction: column; gap: 12px; padding: 10px 0; }
+.lp-final h2 { font-size: 20px; font-weight: 900; }
+.lp-footer { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; font-size: 12px; color: var(--ink-3); padding-bottom: 12px; }
+.lp-footer a { color: var(--ink-3); text-decoration: underline; }
+.lp-footer p { width: 100%; text-align: center; }
+
+/* 管理 */
+.mini-bars { display: grid; grid-template-columns: repeat(14, 1fr); gap: 4px; height: 90px; align-items: end; }
+.mini-bar { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; }
+.mini-bar i { display: block; width: 100%; border-radius: 4px 4px 0 0; background: var(--brand-2); }
+.mini-bar small { font-size: 9px; color: var(--ink-3); }
+.sys-list li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.sys-list li:last-child { border-bottom: 0; }
+.sys-list b.ok { color: var(--brand-strong); }
+.sys-list b.warn { color: var(--warn); }
+.asset-tile .stat-sub { display: block; margin-top: 2px; }

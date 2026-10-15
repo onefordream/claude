@@ -47,7 +47,7 @@ function client() {
 
 async function signup(email) {
   const c = client();
-  const r = await c('POST', '/api/auth/signup', { email, password: 'password123', displayName: 'テスト' });
+  const r = await c('POST', '/api/auth/signup', { email, password: 'password123', agree: true, displayName: 'テスト' });
   assert.equal(r.status, 201);
   return c;
 }
@@ -65,13 +65,13 @@ const waitFor = async (fn, ms = 3000) => {
 test('登録・ログイン・ログアウト', async () => {
   const c = await signup('a@example.com');
   assert.equal((await c('GET', '/api/me')).data.plan.id, 'free');
-  const dup = await client()('POST', '/api/auth/signup', { email: 'A@example.com', password: 'password123' });
+  const dup = await client()('POST', '/api/auth/signup', { email: 'A@example.com', password: 'password123', agree: true });
   assert.equal(dup.status, 409);
   await c('POST', '/api/auth/logout', {});
   assert.equal((await c('GET', '/api/me')).status, 401);
   const bad = await c('POST', '/api/auth/login', { email: 'a@example.com', password: 'wrong-pass' });
   assert.equal(bad.status, 401);
-  const ok = await c('POST', '/api/auth/login', { email: 'a@example.com', password: 'password123' });
+  const ok = await c('POST', '/api/auth/login', { email: 'a@example.com', password: 'password123', agree: true });
   assert.equal(ok.status, 200);
 });
 
@@ -147,7 +147,7 @@ test('メディア: アップロード・配信・Range・上限超過はボデ�
   // 生の http.request で送るため、ログインし直して Cookie を取り出す
   const login = await fetch(base + '/api/auth/login', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ email: 'd@example.com', password: 'password123' }),
+    body: JSON.stringify({ email: 'd@example.com', password: 'password123', agree: true }),
   });
   const sid = login.headers.get('set-cookie').split(';')[0];
   const status = await new Promise((resolve, reject) => {
@@ -208,7 +208,7 @@ test('CSRF: 別オリジンからの書き込みは拒否', async () => {
   const r = await fetch(base + '/api/auth/signup', {
     method: 'POST',
     headers: { 'content-type': 'application/json', origin: 'https://evil.example' },
-    body: JSON.stringify({ email: 'z@example.com', password: 'password123' }),
+    body: JSON.stringify({ email: 'z@example.com', password: 'password123', agree: true }),
   });
   assert.equal(r.status, 403);
 });

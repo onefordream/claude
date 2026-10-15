@@ -263,6 +263,20 @@ const MIGRATIONS = [
     PRIMARY KEY (round_id, hole_no)
   );
   `,
+  // v5: 利用規約への同意・パスワード再設定
+  `
+  ALTER TABLE users ADD COLUMN terms_version TEXT;
+  ALTER TABLE users ADD COLUMN terms_accepted_at TEXT;
+
+  CREATE TABLE password_resets (
+    token_hash TEXT PRIMARY KEY,               -- メールで送るトークンのハッシュだけを保存
+    user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at TEXT NOT NULL,
+    used_at    TEXT,
+    created_at TEXT NOT NULL
+  );
+  CREATE INDEX password_resets_user ON password_resets(user_id);
+  `,
 ];
 
 export function openDb(file) {
