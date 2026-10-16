@@ -2,9 +2,13 @@ services:
   - type: web
     name: shadow-golf-karte
     runtime: node
-    plan: free
+    plan: starter
     branch: claude/golf-lesson-ai-system-yb0k0m
     startCommand: npm start
+    disk:
+      name: shadow-golf-karte-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: SESSION_SECRET
         generateValue: true
@@ -24,3 +28,5 @@ services:
         sync: false
       - key: ANTHROPIC_MODEL
         value: claude-sonnet-5
+      - key: DATA_DIR
+        value: /var/data
