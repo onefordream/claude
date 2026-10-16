@@ -26,25 +26,54 @@ export function logoIcon(size = 28) {
   `;
 }
 
+const STUDENT_BOTTOM_NAV = [
+  { href: '/dashboard', key: 'dashboard', icon: '🏠', label: 'ホーム' },
+  { href: '/records', key: 'records', icon: '📘', label: '成長ノート' },
+  { href: '/practice', key: 'practice', icon: '✍️', label: '自主練' },
+  { href: '/rounds', key: 'rounds', icon: '⛳', label: 'ラウンド' },
+  { href: '/videos', key: 'videos', icon: '🎬', label: '動画' },
+];
+
+function studentBottomNav(active) {
+  const [left, right] = [STUDENT_BOTTOM_NAV.slice(0, 2), STUDENT_BOTTOM_NAV.slice(2)];
+  const item = (i) => `
+    <a href="${i.href}" class="bottom-nav-item ${active === i.key ? 'active' : ''}">
+      <span class="bottom-nav-icon">${i.icon}</span>
+      <span class="bottom-nav-label">${i.label}</span>
+    </a>`;
+
+  return `
+    <nav class="bottom-nav">
+      ${left.map(item).join('')}
+      <button type="button" class="bottom-nav-fab" id="record-fab" aria-label="記録を追加">+</button>
+      ${right.map(item).join('')}
+    </nav>
+    <div class="record-sheet-overlay" id="record-sheet-overlay" hidden>
+      <div class="record-sheet">
+        <p class="record-sheet-title">何を記録しますか？</p>
+        <a href="/records/new" class="record-sheet-option">📘 レッスンの記録</a>
+        <a href="/practice/new" class="record-sheet-option">✍️ 自主練・自習の記録</a>
+        <a href="/rounds" class="record-sheet-option">⛳ ラウンドの記録</a>
+        <button type="button" class="record-sheet-cancel" id="record-sheet-cancel">キャンセル</button>
+      </div>
+    </div>`;
+}
+
 export function layout({ title, user, active, body, flash }) {
+  const isStudent = user && user.role === 'student';
+
   const nav = user
     ? `
       <nav class="nav">
         <a href="/dashboard" class="brand">${logoIcon(26)}<span>${escapeHtml(brand.studioName)}</span></a>
         <div class="nav-links">
-          ${user.role === 'student'
+          ${!isStudent
             ? `
-              <a href="/dashboard" class="${active === 'dashboard' ? 'active' : ''}">ホーム</a>
-              <a href="/records" class="${active === 'records' ? 'active' : ''}">ゴルフ成長ノート</a>
-              <a href="/practice" class="${active === 'practice' ? 'active' : ''}">自主練記録</a>
-              <a href="/rounds" class="${active === 'rounds' ? 'active' : ''}">ラウンド記録</a>
-              <a href="/videos" class="${active === 'videos' ? 'active' : ''}">レッスン動画</a>
-            `
-            : `
               <a href="/admin" class="${active === 'admin' ? 'active' : ''}">生徒一覧</a>
               <a href="/videos" class="${active === 'videos' ? 'active' : ''}">レッスン動画</a>
               <a href="/admin/instructors" class="${active === 'instructors' ? 'active' : ''}">指導者管理</a>
-            `}
+            `
+            : ''}
           <span class="nav-user">${escapeHtml(user.name)}さん${user.role === 'instructor' ? '（指導者）' : ''}</span>
           <form method="post" action="/logout" class="inline-form">
             <button type="submit" class="link-button">ログアウト</button>
@@ -71,12 +100,13 @@ export function layout({ title, user, active, body, flash }) {
   }
 </style>
 </head>
-<body>
+<body class="${isStudent ? 'has-bottom-nav' : ''}">
 ${nav}
 <main class="container">
 ${flashHtml}
 ${body}
 </main>
+${isStudent ? studentBottomNav(active) : ''}
 <script src="/static/client.js"></script>
 </body>
 </html>`;

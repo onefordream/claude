@@ -2,7 +2,30 @@ document.addEventListener('DOMContentLoaded', () => {
   setupAiSuggestButton();
   setupScoreChartTooltip();
   setupUploadGuard();
+  setupRecordSheet();
 });
+
+// The bottom-nav "+" button opens a small sheet to pick which kind of
+// record to create (lesson / practice / round), instead of each record
+// type needing its own nav entry.
+function setupRecordSheet() {
+  const fab = document.getElementById('record-fab');
+  const overlay = document.getElementById('record-sheet-overlay');
+  const cancelBtn = document.getElementById('record-sheet-cancel');
+  if (!fab || !overlay) return;
+
+  fab.addEventListener('click', () => {
+    overlay.hidden = false;
+  });
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      overlay.hidden = true;
+    });
+  }
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.hidden = true;
+  });
+}
 
 function setupAiSuggestButton() {
   const btn = document.getElementById('ask-ai-btn');

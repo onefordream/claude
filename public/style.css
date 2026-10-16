@@ -59,6 +59,100 @@ a:hover { text-decoration: underline; }
   margin: 0 auto;
   padding: 2rem 1.25rem 4rem;
 }
+body.has-bottom-nav .container { padding-bottom: 6rem; }
+
+/* Student bottom navigation with a center "create record" button, in place
+   of the top nav links (mirrors the tab-bar + FAB pattern of most mobile
+   apps, which reads more natural on a phone than a row of text links). */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom));
+  z-index: 50;
+}
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  flex: 1;
+  padding: 0.3rem 0;
+  color: var(--muted);
+  font-size: 0.68rem;
+  text-decoration: none;
+}
+.bottom-nav-item:hover { text-decoration: none; }
+.bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
+.bottom-nav-item.active { color: var(--green-700); font-weight: 700; }
+
+.bottom-nav-fab {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  margin: -1.3rem 0.4rem 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--green-700);
+  color: white;
+  font-size: 1.9rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(13, 59, 46, 0.35);
+  cursor: pointer;
+}
+.bottom-nav-fab:hover { background: var(--green-900); }
+
+.record-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 20, 17, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+}
+.record-sheet-overlay[hidden] { display: none; }
+.record-sheet {
+  width: 100%;
+  max-width: 480px;
+  background: var(--card);
+  border-radius: 16px 16px 0 0;
+  padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.record-sheet-title { margin: 0 0 0.2rem; font-weight: 700; color: var(--ink); }
+.record-sheet-option {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.record-sheet-option:hover { background: var(--green-100); text-decoration: none; }
+.record-sheet-cancel {
+  margin-top: 0.2rem;
+  padding: 0.75rem;
+  border: none;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
 
 .auth-card {
   max-width: 420px;
