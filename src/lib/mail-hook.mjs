@@ -21,7 +21,9 @@ function esc(str) {
   return String(str ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
 
-async function send({ to, subject, html, replyTo }) {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function send({ to, subject, html, replyTo }, retriesLeft = 2) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { sent: false, reason: "not-configured" };
 
@@ -31,6 +33,10 @@ async function send({ to, subject, html, replyTo }) {
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from: FROM_EMAIL, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
     });
+    if (res.status === 429 && retriesLeft > 0) {
+      await sleep(1200);
+      return send({ to, subject, html, replyTo }, retriesLeft - 1);
+    }
     if (!res.ok) {
       console.error("[mail-hook] send failed", res.status, await res.text().catch(() => ""));
       return { sent: false, reason: `http-${res.status}` };
@@ -133,22 +139,19 @@ export async function sendBroadcast({ recipients, subject, bodyText }) {
   if (!process.env.RESEND_API_KEY) return { sent: 0, failed: 0, total: recipients.length, reason: "not-configured" };
 
   const bodyHtml = esc(bodyText).replace(/\n/g, "<br />");
-  const CHUNK_SIZE = 10;
+  // Resend のレート制限（1秒あたり2件）に収まるよう、1件ずつ間隔を空けて送信する。
+  const SEND_INTERVAL_MS = 550;
   const results = [];
 
-  for (let i = 0; i < recipients.length; i += CHUNK_SIZE) {
-    const chunk = recipients.slice(i, i + CHUNK_SIZE);
-    const chunkResults = await Promise.all(
-      chunk.map((r) =>
-        send({
-          to: r.email,
-          subject,
-          html: `<p>${esc(r.name)} 様</p><p>${bodyHtml}</p>`,
-          replyTo: ADMIN_EMAIL,
-        }).then((res) => ({ email: r.email, ...res }))
-      )
-    );
-    results.push(...chunkResults);
+  for (const r of recipients) {
+    const res = await send({
+      to: r.email,
+      subject,
+      html: `<p>${esc(r.name)} 様</p><p>${bodyHtml}</p>`,
+      replyTo: ADMIN_EMAIL,
+    });
+    results.push({ email: r.email, ...res });
+    await sleep(SEND_INTERVAL_MS);
   }
 
   const sent = results.filter((r) => r.sent).length;
