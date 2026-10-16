@@ -26,34 +26,60 @@ export function logoIcon(size = 28) {
   `;
 }
 
+// A small set of hand-drawn line icons (24x24, single stroke weight) used
+// throughout the student UI in place of emoji — emoji render inconsistently
+// across platforms and read as a default/unstyled choice rather than a
+// considered one.
+const ICON_PATHS = {
+  home: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-5h4v5h3a1 1 0 0 0 1-1v-9"/>',
+  note: '<path d="M12 6.5c-1.6-1.2-3.8-1.8-6.2-1.5A1 1 0 0 0 5 6v12a1 1 0 0 0 1.2 1c2-.3 3.9.2 5.3 1.3 1.4-1.1 3.3-1.6 5.3-1.3a1 1 0 0 0 1.2-1V6a1 1 0 0 0-.8-1c-2.4-.3-4.6.3-6.2 1.5Z"/><path d="M12 6.5V20"/>',
+  pencil: '<path d="M4 20l1-4.2L15.6 5.2a2 2 0 0 1 2.8 0l.4.4a2 2 0 0 1 0 2.8L8.2 19 4 20Z"/><path d="M14 7l3 3"/>',
+  flag: '<path d="M6 21V4"/><path d="M6 4.5 16 7 6 9.5Z" fill="currentColor" stroke="none"/>',
+  play: '<circle cx="12" cy="12" r="8.5"/><path d="M10 9l5 3-5 3V9Z" fill="currentColor" stroke="none"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  flame: '<path d="M12 3.5c.6 2.4-1.8 3.6-2.6 5.6A3.6 3.6 0 0 0 9 11a3 3 0 0 0 6 0c0-.9-.3-1.5-.7-2 1 .6 2.7 2.1 2.7 4.8A5 5 0 0 1 7 14.3C7 9.6 11 7.2 12 3.5Z"/>',
+  chat: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v9A1.5 1.5 0 0 1 18.5 16H9l-4 4v-4H5.5A1.5 1.5 0 0 1 4 14.5v-9Z"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="12.5" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="16" cy="10" r="1" fill="currentColor" stroke="none"/>',
+  chevronRight: '<path d="M9 5l7 7-7 7"/>',
+  chevronLeft: '<path d="M15 5l-7 7 7 7"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>',
+  sparkle: '<path d="M12 3l1.8 5.4L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.6L12 3Z" fill="currentColor" stroke="none"/>',
+};
+
+export function icon(name, { size = 20, className = '' } = {}) {
+  const paths = ICON_PATHS[name];
+  if (!paths) return '';
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="icon ${className}" aria-hidden="true">${paths}</svg>`;
+}
+
 const STUDENT_BOTTOM_NAV = [
-  { href: '/dashboard', key: 'dashboard', icon: '🏠', label: 'ホーム' },
-  { href: '/records', key: 'records', icon: '📘', label: '成長ノート' },
-  { href: '/practice', key: 'practice', icon: '✍️', label: '自主練' },
-  { href: '/rounds', key: 'rounds', icon: '⛳', label: 'ラウンド' },
-  { href: '/videos', key: 'videos', icon: '🎬', label: '動画' },
+  { href: '/dashboard', key: 'dashboard', icon: 'home', label: 'ホーム' },
+  { href: '/records', key: 'records', icon: 'note', label: '成長ノート' },
+  { href: '/practice', key: 'practice', icon: 'pencil', label: '自主練' },
+  { href: '/rounds', key: 'rounds', icon: 'flag', label: 'ラウンド' },
+  { href: '/videos', key: 'videos', icon: 'play', label: '動画' },
 ];
 
 function studentBottomNav(active) {
   const [left, right] = [STUDENT_BOTTOM_NAV.slice(0, 2), STUDENT_BOTTOM_NAV.slice(2)];
   const item = (i) => `
     <a href="${i.href}" class="bottom-nav-item ${active === i.key ? 'active' : ''}">
-      <span class="bottom-nav-icon">${i.icon}</span>
+      <span class="bottom-nav-icon">${icon(i.icon, { size: 22 })}</span>
       <span class="bottom-nav-label">${i.label}</span>
     </a>`;
 
   return `
     <nav class="bottom-nav">
       ${left.map(item).join('')}
-      <button type="button" class="bottom-nav-fab" id="record-fab" aria-label="記録を追加">+</button>
+      <button type="button" class="bottom-nav-fab" id="record-fab" aria-label="記録を追加">${icon('plus', { size: 24 })}</button>
       ${right.map(item).join('')}
     </nav>
     <div class="record-sheet-overlay" id="record-sheet-overlay" hidden>
       <div class="record-sheet">
-        <p class="record-sheet-title">何を記録しますか？</p>
-        <a href="/records/new" class="record-sheet-option">📘 レッスンの記録</a>
-        <a href="/practice/new" class="record-sheet-option">✍️ 自主練・自習の記録</a>
-        <a href="/rounds" class="record-sheet-option">⛳ ラウンドの記録</a>
+        <p class="record-sheet-title">何を記録しますか</p>
+        <a href="/records/new" class="record-sheet-option">${icon('note', { size: 20 })}<span>レッスンの記録</span></a>
+        <a href="/practice/new" class="record-sheet-option">${icon('pencil', { size: 20 })}<span>自主練・自習の記録</span></a>
+        <a href="/rounds" class="record-sheet-option">${icon('flag', { size: 20 })}<span>ラウンドの記録</span></a>
         <button type="button" class="record-sheet-cancel" id="record-sheet-cancel">キャンセル</button>
       </div>
     </div>`;
@@ -90,6 +116,9 @@ export function layout({ title, user, active, body, flash }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(title)} | ${escapeHtml(brand.studioName)} ${escapeHtml(brand.tagline)}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
 <style>
   :root {

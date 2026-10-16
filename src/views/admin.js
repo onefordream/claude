@@ -1,4 +1,4 @@
-import { layout, escapeHtml, nl2br } from './layout.js';
+import { layout, escapeHtml, nl2br, icon } from './layout.js';
 import { goalCard } from './student.js';
 
 function usageSummary({ studentCount, videoTotal, dataDirConfigured, diskFree, diskUsedPercent }) {
@@ -167,7 +167,7 @@ export function studentDetailPage({ user, flash, student, records, practiceRecor
     body: `
       <div class="page-header">
         <h1>${escapeHtml(student.name)}さんの記録</h1>
-        <a href="/admin">← 生徒一覧に戻る</a>
+        <a href="/admin" class="back-link">${icon('chevronLeft', { size: 14 })}<span>生徒一覧に戻る</span></a>
       </div>
       <p class="muted">${escapeHtml(student.email)}</p>
 

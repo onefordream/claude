@@ -1,4 +1,4 @@
-import { layout, escapeHtml, nl2br } from './layout.js';
+import { layout, escapeHtml, nl2br, icon } from './layout.js';
 import { renderScoreChart } from './chart.js';
 import { jstToday, addDays } from '../lib/date.js';
 
@@ -68,12 +68,12 @@ function practiceMeta(record) {
 export function goalCard(goal, { readOnly = false } = {}) {
   if (!goal) {
     return readOnly
-      ? `<div class="card goal-card goal-card-empty"><h2><span class="card-icon card-icon-goal">🎯</span>現在の目標</h2><p class="muted">まだ目標が設定されていません。</p></div>`
+      ? `<div class="card goal-card goal-card-empty"><h2>${icon('target', { size: 20 })}現在の目標</h2><p class="muted">まだ目標が設定されていません。</p></div>`
       : `
         <div class="card goal-card goal-card-empty">
-          <h2><span class="card-icon card-icon-goal">🎯</span>目標を設定しましょう</h2>
+          <h2>${icon('target', { size: 20 })}目標を設定しましょう</h2>
           <p class="muted">「発表会で失敗しない」「毎週3回練習する」など、達成したい目標と期限を決めておくと、日々の記録にも目的が生まれます。</p>
-          <a href="/goals/new" class="btn btn-primary">＋ 目標を設定する</a>
+          <a href="/goals/new" class="btn btn-primary">${icon('plus', { size: 16 })}目標を設定する</a>
         </div>`;
   }
 
@@ -98,7 +98,7 @@ export function goalCard(goal, { readOnly = false } = {}) {
 
   return `
     <div class="card goal-card">
-      <h2><span class="card-icon card-icon-goal">🎯</span>現在の目標</h2>
+      <h2>${icon('target', { size: 20 })}現在の目標</h2>
       <p class="goal-content">${escapeHtml(goal.content)}</p>
       ${progressBar}
       ${dueLine}
@@ -106,7 +106,7 @@ export function goalCard(goal, { readOnly = false } = {}) {
         readOnly
           ? ''
           : `<form method="post" action="/goals/${goal.id}/achieve" class="inline-form goal-achieve-form">
-               <button type="submit" class="btn btn-primary">🎉 目標達成！</button>
+               <button type="submit" class="btn btn-primary">${icon('sparkle', { size: 16 })}目標達成</button>
              </form>`
       }
     </div>`;
@@ -135,27 +135,28 @@ export function newGoalPage({ user, flash, values = {} }) {
 }
 
 const RECORD_KIND = {
-  lesson: { label: 'レッスン', icon: '📘', cls: 'kind-lesson' },
-  self_practice: { label: '自主練・自習', icon: '✍️', cls: 'kind-practice' },
+  lesson: { label: 'レッスン', icon: 'note', cls: 'kind-lesson' },
+  self_practice: { label: '自主練・自習', icon: 'pencil', cls: 'kind-practice' },
 };
 
 function recentRecordCard(r) {
   const kind = RECORD_KIND[r.record_type] || RECORD_KIND.lesson;
   const snippet = r.content.length > 56 ? `${r.content.slice(0, 56)}…` : r.content;
   const meta = [];
-  if (r.duration_minutes) meta.push(`⏱ ${r.duration_minutes}分`);
-  if (r.ball_count) meta.push(`🎯 ${r.ball_count}球`);
-  if (r.video_count > 0) meta.push(`🎬 動画${r.video_count > 1 ? ` ×${r.video_count}` : ''}`);
+  if (r.duration_minutes) meta.push(`${icon('clock', { size: 13 })}<span>${r.duration_minutes}分</span>`);
+  if (r.ball_count) meta.push(`${icon('target', { size: 13 })}<span>${r.ball_count}球</span>`);
+  if (r.video_count > 0)
+    meta.push(`${icon('play', { size: 13 })}<span>動画${r.video_count > 1 ? ` ×${r.video_count}` : ''}</span>`);
 
   return `
     <a href="/records/${r.id}" class="record-card ${kind.cls}">
       <div class="record-card-top">
-        <span class="record-kind-tag"><span aria-hidden="true">${kind.icon}</span>${kind.label}</span>
+        <span class="record-kind-tag">${icon(kind.icon, { size: 14 })}${kind.label}</span>
         <span class="record-card-date">${formatRelativeDate(r.record_date)}</span>
       </div>
       <p class="record-card-snippet">${escapeHtml(snippet)}</p>
       <div class="record-card-bottom">
-        ${meta.length ? `<span class="record-card-meta">${meta.map(escapeHtml).join(' ・ ')}</span>` : '<span></span>'}
+        ${meta.length ? `<span class="record-card-meta">${meta.join('')}</span>` : '<span></span>'}
         ${r.record_type === 'lesson' ? aiStatusBadge(r) : ''}
       </div>
     </a>`;
@@ -178,10 +179,10 @@ export function dashboardPage({
     ? `<div class="record-card-grid">${recentCombined.map(recentRecordCard).join('')}</div>`
     : `
       <div class="empty-state">
-        <div class="empty-state-icon">📔</div>
+        <div class="empty-state-icon">${icon('note', { size: 24 })}</div>
         <p class="empty-state-title">まだ記録がありません</p>
         <p class="muted">今日教わったこと、気づいたことを一言だけでも残してみましょう。<br>積み重ねが、あとで見返せる自分の資産になります。</p>
-        <a href="/records/new" class="btn btn-primary">＋ 最初の記録を書く</a>
+        <a href="/records/new" class="btn btn-primary">${icon('plus', { size: 16 })}最初の記録を書く</a>
       </div>`;
 
   return layout({
@@ -197,7 +198,7 @@ export function dashboardPage({
           <p class="hero-message">${escapeHtml(todayMessage)}</p>
         </div>
         <div class="hero-streak">
-          <div class="hero-streak-flame" aria-hidden="true">🔥</div>
+          <div class="hero-streak-flame">${icon('flame', { size: 22 })}</div>
           <div class="hero-streak-num">${streak}</div>
           <div class="hero-streak-label">日連続</div>
         </div>
@@ -213,20 +214,20 @@ export function dashboardPage({
 
       <section class="action-grid">
         <a href="/records/new" class="action-card action-card-lesson">
-          <div class="action-icon">📘</div>
+          <div class="action-icon">${icon('note', { size: 22 })}</div>
           <div class="action-body">
             <div class="action-title">レッスンを記録する</div>
             <div class="action-desc">教わったことをメモ・写真・動画で残す</div>
           </div>
-          <div class="action-arrow" aria-hidden="true">›</div>
+          <div class="action-arrow">${icon('chevronRight', { size: 18 })}</div>
         </a>
         <a href="/practice/new" class="action-card action-card-practice">
-          <div class="action-icon">✍️</div>
+          <div class="action-icon">${icon('pencil', { size: 22 })}</div>
           <div class="action-body">
             <div class="action-title">自主練・自習を記録する</div>
             <div class="action-desc">一人で取り組んだ内容を書き留める</div>
           </div>
-          <div class="action-arrow" aria-hidden="true">›</div>
+          <div class="action-arrow">${icon('chevronRight', { size: 18 })}</div>
         </a>
       </section>
 
@@ -234,7 +235,7 @@ export function dashboardPage({
 
       <div class="card ai-coach-card">
         <div class="ai-coach-head">
-          <div class="ai-coach-avatar" aria-hidden="true">🤖</div>
+          <div class="ai-coach-avatar">${icon('chat', { size: 20 })}</div>
           <div>
             <h2>AIコーチに相談する</h2>
             <p class="muted">これまでの記録を踏まえて、今日やるべきことを一緒に考えます</p>
@@ -291,7 +292,7 @@ export function recordsListPage({ user, flash, records }) {
     body: `
       <div class="page-header">
         <h1>ゴルフ成長ノート</h1>
-        <a href="/records/new" class="btn btn-primary">＋ 新しい記録</a>
+        <a href="/records/new" class="btn btn-primary">${icon('plus', { size: 16 })}新しい記録</a>
       </div>
       <div class="card"><ul class="list">${rows}</ul></div>
     `,
@@ -351,7 +352,7 @@ export function practiceListPage({ user, flash, records }) {
     body: `
       <div class="page-header">
         <h1>自主練記録一覧</h1>
-        <a href="/practice/new" class="btn btn-primary">＋ 新しい記録</a>
+        <a href="/practice/new" class="btn btn-primary">${icon('plus', { size: 16 })}新しい記録</a>
       </div>
       <div class="card"><ul class="list">${rows}</ul></div>
     `,
@@ -413,7 +414,7 @@ export function recordDetailPage({ user, flash, record, videos, readOnly = false
     record.ai_status === 'done'
       ? `
       <div class="ai-box">
-        <h3>🤖 AIによる要約</h3>
+        <h3>${icon('chat', { size: 17 })}AIによる要約</h3>
         <p>${nl2br(record.ai_summary)}</p>
         ${record.ai_next_issues ? `<h4>次回の課題</h4><p>${nl2br(record.ai_next_issues)}</p>` : ''}
       </div>`
@@ -424,7 +425,7 @@ export function recordDetailPage({ user, flash, record, videos, readOnly = false
       : `<div class="ai-box ai-box-muted"><p class="muted">AI要約を処理中です。少し時間を置いて再読み込みしてください。</p></div>`;
 
   const backHref = readOnly ? `/admin/students/${record.user_id}` : isPractice ? '/practice' : '/records';
-  const backLabel = readOnly ? '← 生徒ページに戻る' : '← 一覧に戻る';
+  const backLabel = `${icon('chevronLeft', { size: 14 })}<span>${readOnly ? '生徒ページに戻る' : '一覧に戻る'}</span>`;
 
   const metaLine = [];
   if (record.duration_minutes) metaLine.push(`練習時間: ${record.duration_minutes}分`);
@@ -438,7 +439,7 @@ export function recordDetailPage({ user, flash, record, videos, readOnly = false
     body: `
       <div class="page-header">
         <h1>${fmtDate(record.record_date)} の${isPractice ? '自主練記録' : '練習記録'}${readOnly ? `（${escapeHtml(ownerName)}さん）` : ''} ${typeBadge(record)}</h1>
-        <a href="${backHref}">${backLabel}</a>
+        <a href="${backHref}" class="back-link">${backLabel}</a>
       </div>
 
       <div class="card">

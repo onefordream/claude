@@ -276,9 +276,9 @@ function weeklyActivity(userId) {
 }
 
 function pickTodayMessage({ streak, recordedToday, weeklyCount, hasGoal }) {
-  if (recordedToday && streak >= 7) return `🔥 ${streak}日連続!今日も記録できました。すばらしい継続力です`;
+  if (recordedToday && streak >= 7) return `${streak}日連続!今日も記録できました。すばらしい継続力です`;
   if (recordedToday) return '今日の記録、お疲れさまでした。積み重ねが力になります';
-  if (streak >= 2) return `🔥 ${streak}日連続更新中。今日も記録して続けましょう`;
+  if (streak >= 2) return `${streak}日連続更新中。今日も記録して続けましょう`;
   if (weeklyCount > 0) return `今週はすでに${weeklyCount}件記録しています。この調子で`;
   if (hasGoal) return '目標に向けて、今日の一歩を記録してみましょう';
   return '今日から始めましょう。小さな記録も、積み重なれば成長の資産になります';
@@ -820,7 +820,7 @@ function handleAchieveGoal(ctx) {
   redirect(ctx.res, '/goals/new', [
     encodeFlash(
       'success',
-      'おめでとうございます🎊見事目標達成されましたね👏では次の目標を設定して更なる高みを目指しましょう🔥'
+      'おめでとうございます。見事目標達成されましたね。では次の目標を設定して、更なる高みを目指しましょう'
     ),
   ]);
 }
