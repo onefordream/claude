@@ -112,6 +112,8 @@ ensureColumn('lesson_records', 'duration_minutes', 'INTEGER');
 ensureColumn('lesson_records', 'ball_count', 'INTEGER');
 ensureColumn('round_records', 'putts', 'INTEGER');
 ensureColumn('users', 'furigana', 'TEXT');
+ensureColumn('users', 'is_owner', 'INTEGER NOT NULL DEFAULT 0');
+ensureColumn('users', 'is_suspended', 'INTEGER NOT NULL DEFAULT 0');
 
 export function run(sql, params = []) {
   const stmt = db.prepare(sql);

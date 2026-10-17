@@ -357,6 +357,7 @@ input:focus, textarea:focus, select:focus {
 .video-library-card video { width: 100%; border-radius: var(--radius-sm); background: black; margin-bottom: 0.5rem; }
 .video-library-card h3 { margin: 0.25rem 0; }
 .link-button-danger { color: var(--danger); }
+.account-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
 
 .type-badge { font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 999px; }
 .type-badge-lesson { background: var(--green-100); color: var(--green-900); }

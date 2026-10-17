@@ -78,6 +78,7 @@ export function instructorListPage({ user, flash, instructors }) {
 }
 
 export function studentListPage({ user, flash, students, q = '', usage = null }) {
+  const isOwner = Boolean(user.is_owner);
   const rows = students.length
     ? students
         .map(
@@ -86,6 +87,7 @@ export function studentListPage({ user, flash, students, q = '', usage = null })
         <a href="/admin/students/${s.id}">
           <span class="list-title">${escapeHtml(s.name)}${s.furigana ? ` <span class="muted furigana">(${escapeHtml(s.furigana)})</span>` : ''}</span>
           <span class="muted">${escapeHtml(s.email)}</span>
+          ${s.is_suspended ? '<span class="badge badge-warn">停止中</span>' : ''}
           <span class="badge">記録 ${s.record_count}件</span>
           <span class="list-date">${s.last_date ? '最終: ' + s.last_date : '記録なし'}</span>
         </a>
@@ -102,10 +104,10 @@ export function studentListPage({ user, flash, students, q = '', usage = null })
     body: `
       <div class="page-header">
         <h1>生徒一覧</h1>
-        <a href="/admin/export" class="btn btn-secondary">全データをエクスポート</a>
+        ${isOwner ? `<a href="/admin/export" class="btn btn-secondary">全データをエクスポート</a>` : ''}
       </div>
       <p class="muted">生徒がこれまでどんなレッスン・練習をしてきたかを確認できます。</p>
-      ${usage ? usageSummary(usage) : ''}
+      ${isOwner && usage ? usageSummary(usage) : ''}
       <form method="get" action="/admin" class="search-form">
         <input type="text" name="q" placeholder="名前・フリガナで検索" value="${escapeHtml(q)}">
         <button type="submit" class="btn btn-secondary">検索</button>
@@ -117,6 +119,7 @@ export function studentListPage({ user, flash, students, q = '', usage = null })
 }
 
 export function studentDetailPage({ user, flash, student, records, practiceRecords, rounds, goal }) {
+  const isOwner = Boolean(user.is_owner);
   const recordsHtml = records.length
     ? records
         .map(
@@ -166,18 +169,34 @@ export function studentDetailPage({ user, flash, student, records, practiceRecor
     flash,
     body: `
       <div class="page-header">
-        <h1>${escapeHtml(student.name)}さんの記録</h1>
+        <h1>${escapeHtml(student.name)}さんの記録${student.is_suspended ? ' <span class="badge badge-warn">停止中</span>' : ''}</h1>
         <a href="/admin" class="back-link">${icon('chevronLeft', { size: 14 })}<span>生徒一覧に戻る</span></a>
       </div>
       <p class="muted">${escapeHtml(student.email)}</p>
 
+      ${
+        isOwner
+          ? `
       <div class="card account-tools">
         <h2>アカウント管理</h2>
         <p class="muted">生徒がパスワードを忘れた場合、ここで新しいパスワードを発行できます。発行後、表示されたパスワードを生徒本人に伝えてください。</p>
         <form method="post" action="/admin/students/${student.id}/reset-password" onsubmit="return confirm('${escapeHtml(student.name)}さんの新しいパスワードを発行しますか？現在のパスワードは使えなくなります。');">
           <button type="submit" class="btn btn-secondary">パスワードを再発行する</button>
         </form>
-      </div>
+
+        <h2 style="margin-top:1.1rem">アカウントの停止・削除</h2>
+        <p class="muted">停止すると、解除するまでログインできなくなります(記録は残ります)。削除は元に戻せません。</p>
+        <div class="account-actions">
+          <form method="post" action="/admin/students/${student.id}/suspend" onsubmit="return confirm('${escapeHtml(student.name)}さんのアカウントを${student.is_suspended ? '復帰' : '停止'}しますか？');" class="inline-form">
+            <button type="submit" class="btn btn-secondary">${student.is_suspended ? '停止を解除する' : 'アカウントを停止する'}</button>
+          </form>
+          <form method="post" action="/admin/students/${student.id}/delete" onsubmit="return confirm('${escapeHtml(student.name)}さんのアカウントと全ての記録を完全に削除します。この操作は元に戻せません。本当によろしいですか？');" class="inline-form">
+            <button type="submit" class="link-button link-button-danger">アカウントを削除する</button>
+          </form>
+        </div>
+      </div>`
+          : ''
+      }
 
       ${goalCard(goal, { readOnly: true })}
 

@@ -108,11 +108,17 @@ export function layout({ title, user, active, body, flash }) {
           ${!isStudent
             ? `
               <a href="/admin" class="${active === 'admin' ? 'active' : ''}">生徒一覧</a>
+              ${
+                user.is_owner
+                  ? `
               <a href="/videos" class="${active === 'videos' ? 'active' : ''}">レッスン動画</a>
               <a href="/admin/instructors" class="${active === 'instructors' ? 'active' : ''}">指導者管理</a>
+              `
+                  : ''
+              }
             `
             : ''}
-          <span class="nav-user">${escapeHtml(user.name)}さん${user.role === 'instructor' ? '（指導者）' : ''}</span>
+          <span class="nav-user">${escapeHtml(user.name)}さん${user.role === 'instructor' ? (user.is_owner ? '（代表）' : '（指導者）') : ''}</span>
           <form method="post" action="/logout" class="inline-form">
             <button type="submit" class="link-button">ログアウト</button>
           </form>

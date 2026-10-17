@@ -84,8 +84,8 @@ function ensureOwnerSeed() {
   if (!email || !password) return;
   const existing = findUserByEmail(email);
   if (existing) return;
-  createUser({ name, email, password, role: 'instructor' });
-  console.log(`[seed] instructor account created: ${email}`);
+  createUser({ name, email, password, role: 'instructor', isOwner: true });
+  console.log(`[seed] owner instructor account created: ${email}`);
 }
 
 const MIME_TYPES = {
@@ -380,14 +380,14 @@ const routes = [
   { method: 'POST', pattern: /^\/goals\/(?<id>\d+)\/achieve$/, handler: requireStudent(handleAchieveGoal) },
   { method: 'POST', pattern: /^\/ai\/suggest$/, handler: requireStudent(handleAiSuggest) },
   { method: 'GET', pattern: /^\/videos$/, handler: requireAuth(handleVideoLibrary) },
-  { method: 'POST', pattern: /^\/videos$/, handler: requireInstructor(handleUploadLibraryVideo) },
+  { method: 'POST', pattern: /^\/videos$/, handler: requireOwner(handleUploadLibraryVideo) },
   {
     method: 'POST',
     pattern: /^\/videos\/(?<id>\d+)\/delete$/,
-    handler: requireInstructor(handleDeleteLibraryVideo),
+    handler: requireOwner(handleDeleteLibraryVideo),
   },
   { method: 'GET', pattern: /^\/admin$/, handler: requireInstructor(handleStudentList) },
-  { method: 'GET', pattern: /^\/admin\/export$/, handler: requireInstructor(handleExportData) },
+  { method: 'GET', pattern: /^\/admin\/export$/, handler: requireOwner(handleExportData) },
   {
     method: 'GET',
     pattern: /^\/admin\/students\/(?<id>\d+)$/,
@@ -396,19 +396,29 @@ const routes = [
   {
     method: 'POST',
     pattern: /^\/admin\/students\/(?<id>\d+)\/reset-password$/,
-    handler: requireInstructor(handleResetStudentPassword),
+    handler: requireOwner(handleResetStudentPassword),
   },
-  { method: 'GET', pattern: /^\/admin\/instructors$/, handler: requireInstructor(handleInstructorList) },
-  { method: 'POST', pattern: /^\/admin\/instructors$/, handler: requireInstructor(handleCreateInstructor) },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/students\/(?<id>\d+)\/suspend$/,
+    handler: requireOwner(handleToggleStudentSuspend),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/students\/(?<id>\d+)\/delete$/,
+    handler: requireOwner(handleDeleteStudent),
+  },
+  { method: 'GET', pattern: /^\/admin\/instructors$/, handler: requireOwner(handleInstructorList) },
+  { method: 'POST', pattern: /^\/admin\/instructors$/, handler: requireOwner(handleCreateInstructor) },
   {
     method: 'POST',
     pattern: /^\/admin\/instructors\/(?<id>\d+)\/reset-password$/,
-    handler: requireInstructor(handleResetInstructorPassword),
+    handler: requireOwner(handleResetInstructorPassword),
   },
   {
     method: 'POST',
     pattern: /^\/admin\/instructors\/(?<id>\d+)\/delete$/,
-    handler: requireInstructor(handleDeleteInstructor),
+    handler: requireOwner(handleDeleteInstructor),
   },
 ];
 
@@ -427,6 +437,16 @@ function requireStudent(handler) {
 function requireInstructor(handler) {
   return requireAuth((ctx) => {
     if (ctx.user.role !== 'instructor') return redirect(ctx.res, '/dashboard');
+    return handler(ctx);
+  });
+}
+
+// For studio-level administration (video library, staff accounts, data
+// export, usage stats, account suspension/deletion) — only the originally
+// seeded "representative" account, not every instructor added later.
+function requireOwner(handler) {
+  return requireInstructor((ctx) => {
+    if (!ctx.user.is_owner) return redirect(ctx.res, '/admin');
     return handler(ctx);
   });
 }
@@ -463,6 +483,13 @@ async function handleLogin(ctx) {
       ctx.res,
       401,
       loginPage({ flash: { type: 'error', message: 'メールアドレスまたはパスワードが正しくありません。' } })
+    );
+  }
+  if (user.is_suspended) {
+    return sendHtml(
+      ctx.res,
+      403,
+      loginPage({ flash: { type: 'error', message: 'このアカウントは停止されています。詳しくは指導者にお問い合わせください。' } })
     );
   }
   const session = createSession(user.id);
@@ -864,6 +891,9 @@ async function handleAiSuggest(ctx) {
 }
 
 function handleVideoLibrary(ctx) {
+  // Non-owner instructors are scoped to student search only — the video
+  // library (and its upload/delete actions) is a studio-level concern.
+  if (ctx.user.role === 'instructor' && !ctx.user.is_owner) return redirect(ctx.res, '/admin');
   const videos = all(`SELECT * FROM library_videos ORDER BY created_at DESC, id DESC`);
   sendHtml(ctx.res, 200, videoLibraryPage({ user: ctx.user, flash: ctx.flash, videos }), [clearFlashCookie()]);
 }
@@ -992,20 +1022,23 @@ function handleStudentList(ctx) {
   const where = q ? `AND (u.name LIKE ? OR u.furigana LIKE ?)` : '';
   const params = q ? [`%${q}%`, `%${q}%`] : [];
   const students = all(
-    `SELECT u.id, u.name, u.email, u.furigana,
+    `SELECT u.id, u.name, u.email, u.furigana, u.is_suspended,
             (SELECT COUNT(*) FROM lesson_records lr WHERE lr.user_id = u.id) AS record_count,
             (SELECT MAX(record_date) FROM lesson_records lr WHERE lr.user_id = u.id) AS last_date
      FROM users u WHERE u.role = 'student' ${where} ORDER BY u.name`,
     params
   );
-  const rawUsage = getStorageUsage();
-  const usage = {
-    studentCount: rawUsage.studentCount,
-    videoTotal: formatBytes(rawUsage.videoTotalBytes),
-    dataDirConfigured: Boolean(process.env.DATA_DIR),
-    diskFree: rawUsage.disk ? formatBytes(rawUsage.disk.freeBytes) : null,
-    diskUsedPercent: rawUsage.disk ? Math.round((rawUsage.disk.usedBytes / rawUsage.disk.totalBytes) * 100) : null,
-  };
+  let usage = null;
+  if (ctx.user.is_owner) {
+    const rawUsage = getStorageUsage();
+    usage = {
+      studentCount: rawUsage.studentCount,
+      videoTotal: formatBytes(rawUsage.videoTotalBytes),
+      dataDirConfigured: Boolean(process.env.DATA_DIR),
+      diskFree: rawUsage.disk ? formatBytes(rawUsage.disk.freeBytes) : null,
+      diskUsedPercent: rawUsage.disk ? Math.round((rawUsage.disk.usedBytes / rawUsage.disk.totalBytes) * 100) : null,
+    };
+  }
   sendHtml(ctx.res, 200, studentListPage({ user: ctx.user, flash: ctx.flash, students, q, usage }), [
     clearFlashCookie(),
   ]);
@@ -1055,6 +1088,48 @@ function handleResetStudentPassword(ctx) {
       `${student.name}さんの新しいパスワードを発行しました：${tempPassword}　このパスワードを生徒本人に伝えてください。`
     ),
   ]);
+}
+
+// Suspension is reversible: a suspended student can't log in, but nothing
+// about their account or records is touched, so re-activating restores
+// them exactly as they were.
+function handleToggleStudentSuspend(ctx) {
+  const student = get(`SELECT * FROM users WHERE id = ? AND role = 'student'`, [ctx.params.id]);
+  if (!student) {
+    ctx.res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return ctx.res.end('生徒が見つかりません');
+  }
+  const nextSuspended = student.is_suspended ? 0 : 1;
+  run(`UPDATE users SET is_suspended = ? WHERE id = ?`, [nextSuspended, student.id]);
+  run(`DELETE FROM sessions WHERE user_id = ?`, [student.id]);
+  redirect(ctx.res, `/admin/students/${student.id}`, [
+    encodeFlash(
+      'success',
+      nextSuspended ? `${student.name}さんのアカウントを停止しました。` : `${student.name}さんのアカウント停止を解除しました。`
+    ),
+  ]);
+}
+
+// A permanent, irreversible delete — all of the student's records, rounds,
+// goals, videos (DB rows) and sessions cascade via the FK ON DELETE CASCADE
+// defined in db.js. The video *files* on disk don't cascade, so they're
+// unlinked explicitly first to avoid leaving orphaned files behind.
+function handleDeleteStudent(ctx) {
+  const student = get(`SELECT * FROM users WHERE id = ? AND role = 'student'`, [ctx.params.id]);
+  if (!student) {
+    ctx.res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return ctx.res.end('生徒が見つかりません');
+  }
+  const videos = all(
+    `SELECT v.filename FROM videos v JOIN lesson_records lr ON lr.id = v.lesson_record_id WHERE lr.user_id = ?`,
+    [student.id]
+  );
+  for (const v of videos) {
+    const filePath = join(UPLOADS_DIR, v.filename);
+    if (existsSync(filePath)) unlinkSync(filePath);
+  }
+  run(`DELETE FROM users WHERE id = ?`, [student.id]);
+  redirect(ctx.res, '/admin', [encodeFlash('success', `${student.name}さんのアカウントを削除しました。`)]);
 }
 
 function handleInstructorList(ctx) {
