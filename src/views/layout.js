@@ -44,6 +44,7 @@ const ICON_PATHS = {
   clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
   target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>',
   sparkle: '<path d="M12 3l1.8 5.4L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.6L12 3Z" fill="currentColor" stroke="none"/>',
+  person: '<circle cx="12" cy="8.5" r="3.5"/><path d="M4.5 20c0-3.6 3.4-6.2 7.5-6.2s7.5 2.6 7.5 6.2"/>',
 };
 
 export function icon(name, { size = 20, className = '' } = {}) {
@@ -52,34 +53,45 @@ export function icon(name, { size = 20, className = '' } = {}) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="icon ${className}" aria-hidden="true">${paths}</svg>`;
 }
 
+// Plus button is first, My Page is last — everything else keeps its order
+// in between. All seven items share one flat, compact visual treatment
+// (no raised FAB) per the "コンパクトに統一感重視" direction.
 const STUDENT_BOTTOM_NAV = [
-  { href: '/dashboard', key: 'dashboard', icon: 'home', label: 'ホーム' },
-  { href: '/records', key: 'records', icon: 'note', label: '成長ノート' },
+  { href: '/records', key: 'records', icon: 'note', label: 'ノート' },
   { href: '/practice', key: 'practice', icon: 'pencil', label: '自主練' },
   { href: '/rounds', key: 'rounds', icon: 'flag', label: 'ラウンド' },
   { href: '/videos', key: 'videos', icon: 'play', label: '動画' },
 ];
 
 function studentBottomNav(active) {
-  const [left, right] = [STUDENT_BOTTOM_NAV.slice(0, 2), STUDENT_BOTTOM_NAV.slice(2)];
   const item = (i) => `
     <a href="${i.href}" class="bottom-nav-item ${active === i.key ? 'active' : ''}">
-      <span class="bottom-nav-icon">${icon(i.icon, { size: 22 })}</span>
+      <span class="bottom-nav-icon">${icon(i.icon, { size: 20 })}</span>
       <span class="bottom-nav-label">${i.label}</span>
     </a>`;
 
   return `
     <nav class="bottom-nav">
-      ${left.map(item).join('')}
-      <button type="button" class="bottom-nav-fab" id="record-fab" aria-label="記録を追加">${icon('plus', { size: 24 })}</button>
-      ${right.map(item).join('')}
+      <button type="button" class="bottom-nav-item bottom-nav-add" id="record-fab" aria-label="記録を追加">
+        <span class="bottom-nav-icon">${icon('plus', { size: 20 })}</span>
+        <span class="bottom-nav-label">記録</span>
+      </button>
+      <a href="/dashboard" class="bottom-nav-item ${active === 'dashboard' ? 'active' : ''}">
+        <span class="bottom-nav-icon">${icon('home', { size: 20 })}</span>
+        <span class="bottom-nav-label">ホーム</span>
+      </a>
+      ${STUDENT_BOTTOM_NAV.map(item).join('')}
+      <a href="/mypage" class="bottom-nav-item ${active === 'mypage' ? 'active' : ''}">
+        <span class="bottom-nav-icon">${icon('person', { size: 20 })}</span>
+        <span class="bottom-nav-label">マイページ</span>
+      </a>
     </nav>
     <div class="record-sheet-overlay" id="record-sheet-overlay" hidden>
       <div class="record-sheet">
         <p class="record-sheet-title">何を記録しますか</p>
-        <a href="/records/new" class="record-sheet-option">${icon('note', { size: 20 })}<span>レッスンの記録</span></a>
-        <a href="/practice/new" class="record-sheet-option">${icon('pencil', { size: 20 })}<span>自主練・自習の記録</span></a>
-        <a href="/rounds" class="record-sheet-option">${icon('flag', { size: 20 })}<span>ラウンドの記録</span></a>
+        <a href="/records/new" class="record-sheet-option">${icon('note', { size: 18 })}<span>レッスンの記録</span></a>
+        <a href="/practice/new" class="record-sheet-option">${icon('pencil', { size: 18 })}<span>自主練・自習の記録</span></a>
+        <a href="/rounds" class="record-sheet-option">${icon('flag', { size: 18 })}<span>ラウンドの記録</span></a>
         <button type="button" class="record-sheet-cancel" id="record-sheet-cancel">キャンセル</button>
       </div>
     </div>`;
@@ -118,7 +130,7 @@ export function layout({ title, user, active, body, flash }) {
 <title>${escapeHtml(title)} | ${escapeHtml(brand.studioName)} ${escapeHtml(brand.tagline)}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
 <style>
   :root {

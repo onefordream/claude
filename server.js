@@ -47,6 +47,7 @@ import {
   recordDetailPage,
   roundsPage,
   newGoalPage,
+  mypagePage,
 } from './src/views/student.js';
 import { studentListPage, studentDetailPage, instructorListPage } from './src/views/admin.js';
 import { videoLibraryPage } from './src/views/videos.js';
@@ -364,6 +365,7 @@ const routes = [
   { method: 'GET', pattern: /^\/privacy$/, handler: (ctx) => sendHtml(ctx.res, 200, privacyPage({ user: ctx.user, flash: ctx.flash }), [clearFlashCookie()]) },
   { method: 'POST', pattern: /^\/logout$/, handler: handleLogout },
   { method: 'GET', pattern: /^\/dashboard$/, handler: requireAuth(handleDashboard) },
+  { method: 'GET', pattern: /^\/mypage$/, handler: requireStudent(handleMypage) },
   { method: 'GET', pattern: /^\/records$/, handler: requireStudent(handleRecordsList) },
   { method: 'GET', pattern: /^\/records\/new$/, handler: requireStudent(handleNewRecordPage) },
   { method: 'POST', pattern: /^\/records$/, handler: requireStudent(handleCreateRecord) },
@@ -558,6 +560,19 @@ function handleDashboard(ctx) {
       }),
       recentCombined,
     }),
+    [clearFlashCookie()]
+  );
+}
+
+function handleMypage(ctx) {
+  if (ctx.user.role === 'instructor') return redirect(ctx.res, '/admin');
+  const stats = studentStats(ctx.user.id);
+  const { streak } = computeStreak(ctx.user.id);
+  const memberSince = (ctx.user.created_at || '').slice(0, 10);
+  sendHtml(
+    ctx.res,
+    200,
+    mypagePage({ user: ctx.user, flash: ctx.flash, stats: { ...stats, streak }, memberSince }),
     [clearFlashCookie()]
   );
 }

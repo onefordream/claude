@@ -527,3 +527,40 @@ export function roundsPage({ user, flash, rounds, stats, values = {} }) {
     `,
   });
 }
+
+export function mypagePage({ user, flash, stats, memberSince }) {
+  const initial = (user.name || '').trim().slice(0, 1).toUpperCase();
+  return layout({
+    title: 'マイページ',
+    user,
+    active: 'mypage',
+    flash,
+    body: `
+      <h1>マイページ</h1>
+
+      <div class="card mypage-profile">
+        <div class="mypage-avatar">${escapeHtml(initial)}</div>
+        <div>
+          <div class="mypage-name">${escapeHtml(user.name)}${user.furigana ? ` <span class="muted furigana">(${escapeHtml(user.furigana)})</span>` : ''}</div>
+          <div class="mypage-email">${escapeHtml(user.email)}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>記録の状況</h2>
+        <div class="mypage-row"><span class="mypage-row-label">レッスン記録</span><span class="mypage-row-value">${stats.recordCount}件</span></div>
+        <div class="mypage-row"><span class="mypage-row-label">自主練記録</span><span class="mypage-row-value">${stats.practiceCount}件</span></div>
+        <div class="mypage-row"><span class="mypage-row-label">連続記録日数</span><span class="mypage-row-value">${stats.streak}日</span></div>
+        <div class="mypage-row"><span class="mypage-row-label">利用開始</span><span class="mypage-row-value">${escapeHtml(memberSince)}</span></div>
+      </div>
+
+      <div class="card">
+        <h2>アカウント</h2>
+        <p class="muted">パスワードを忘れた場合は、指導者にお申し出ください。</p>
+        <form method="post" action="/logout">
+          <button type="submit" class="btn btn-secondary">ログアウト</button>
+        </form>
+      </div>
+    `,
+  });
+}
