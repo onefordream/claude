@@ -83,7 +83,17 @@ function ensureOwnerSeed() {
   const name = process.env.OWNER_NAME || 'スタジオ管理者';
   if (!email || !password) return;
   const existing = findUserByEmail(email);
-  if (existing) return;
+  if (existing) {
+    // Deployments that were already running before is_owner existed have
+    // this account sitting at the column's DEFAULT 0 — without this, the
+    // studio's own representative silently loses owner-only access after
+    // an otherwise unrelated update.
+    if (!existing.is_owner) {
+      run(`UPDATE users SET is_owner = 1 WHERE id = ?`, [existing.id]);
+      console.log(`[seed] granted owner status to existing account: ${email}`);
+    }
+    return;
+  }
   createUser({ name, email, password, role: 'instructor', isOwner: true });
   console.log(`[seed] owner instructor account created: ${email}`);
 }
