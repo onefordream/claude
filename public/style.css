@@ -637,30 +637,30 @@ input:focus, textarea:focus, select:focus {
 
 /* ---------- hole entry screen ---------- */
 
-.hole-strip {
-  display: flex;
-  gap: 0.4rem;
-  overflow-x: auto;
-  padding: 0.3rem 0.1rem 0.6rem;
-  margin-bottom: 0.6rem;
-}
-.hole-strip-item {
-  flex-shrink: 0;
+/* The always-visible scorecard strip: every hole's score stays on screen
+   (2 rows of up to 9) instead of scrolling out of view, so the student can
+   check an earlier hole without leaving the entry screen. */
+.scorecard-strip { margin-bottom: 0.6rem; }
+.sc-strip-row { display: grid; grid-template-columns: repeat(9, 1fr); gap: 0.25rem; margin-bottom: 0.25rem; }
+.sc-strip-cell {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 2.4rem;
   padding: 0.3rem 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--card);
-  font-size: var(--fs-sm);
+  font-size: var(--fs-xs);
   cursor: pointer;
 }
-.hole-strip-item.filled { border-color: var(--green-500); }
-.hole-strip-item.active { background: var(--green-700); border-color: var(--green-700); color: #fff; }
-.hole-strip-no { font-size: 0.65rem; opacity: 0.8; }
-.hole-strip-score { font-weight: 700; }
+.sc-strip-cell.filled { border-color: var(--green-500); }
+.sc-strip-cell.sc-ok { border-color: var(--green-700); background: var(--green-100); }
+.sc-strip-cell.sc-miss { border-color: var(--warn); background: var(--accent-amber-soft); }
+.sc-strip-cell.active { background: var(--green-700); border-color: var(--green-700); color: #fff; }
+.sc-strip-no { font-size: 0.6rem; opacity: 0.8; }
+.sc-strip-score { font-weight: 700; }
+
+.hole-save-status { min-height: 1.2em; font-size: var(--fs-xs); text-align: center; }
 
 .hole-totals {
   display: flex;
@@ -746,6 +746,36 @@ input:focus, textarea:focus, select:focus {
 .stats-table > div { display: flex; justify-content: space-between; padding: 0.5rem 0.1rem; border-bottom: 1px solid var(--border-soft); font-size: var(--fs-base); }
 .stats-table > div:last-child { border-bottom: none; }
 .round-photo { max-width: 100%; border-radius: var(--radius-sm); }
+
+.scorecard-table-wrap { overflow-x: auto; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: var(--radius); }
+.scorecard-table { border-collapse: collapse; width: 100%; font-size: var(--fs-xs); }
+.scorecard-table th, .scorecard-table td {
+  padding: 0.35rem 0.4rem;
+  text-align: center;
+  border-bottom: 1px solid var(--border-soft);
+  border-right: 1px solid var(--border-soft);
+  white-space: nowrap;
+}
+.scorecard-table th:first-child, .scorecard-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: var(--card);
+  text-align: left;
+  font-weight: 700;
+  color: var(--ink-soft);
+  z-index: 1;
+}
+.scorecard-table .sc-head-row th { background: var(--green-100); color: var(--green-900); font-weight: 700; }
+.scorecard-table .sc-sub { background: var(--border-soft); font-weight: 700; }
+.scorecard-table .sc-score-row td { font-weight: 700; }
+.sc-score.score-eagle { color: #fff; background: var(--green-700); border-radius: 50%; }
+.sc-score.score-birdie { color: var(--green-700); }
+.sc-score.score-par { color: var(--ink); }
+.sc-score.score-bogey { color: var(--warn); }
+.sc-score.score-double { color: var(--danger); font-weight: 800; }
+.sc-score.sc-empty { color: var(--muted); font-weight: 400; }
+.scorecard-table .sc-ok { color: var(--green-700); font-weight: 700; }
+.scorecard-table .sc-miss { color: var(--warn); }
 
 .analysis-link-card {
   display: flex;

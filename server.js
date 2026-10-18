@@ -447,8 +447,8 @@ const routes = [
   { method: 'POST', pattern: /^\/rounds$/, handler: requireStudent(handleCreateRoundStart) },
   { method: 'GET', pattern: /^\/rounds\/(?<id>\d+)$/, handler: requireStudent(handleRoundShow) },
   { method: 'GET', pattern: /^\/rounds\/(?<id>\d+)\/edit$/, handler: requireStudent(handleRoundEdit) },
-  { method: 'GET', pattern: /^\/rounds\/(?<id>\d+)\/holes\/(?<n>\d+)$/, handler: requireStudent(handleHoleEntryPage) },
-  { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/holes\/(?<n>\d+)$/, handler: requireStudent(handleSaveHole) },
+  { method: 'GET', pattern: /^\/rounds\/(?<id>\d+)\/holes$/, handler: requireStudent(handleHoleEntryPage) },
+  { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/holes\/save$/, handler: requireStudent(handleSaveHoleAjax) },
   { method: 'GET', pattern: /^\/rounds\/(?<id>\d+)\/total$/, handler: requireStudent(handleTotalEntryPage) },
   { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/total$/, handler: requireStudent(handleSaveTotalEntry) },
   { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/finish$/, handler: requireStudent(handleFinishRound) },
@@ -909,21 +909,6 @@ function holeSummariesFor(roundId, holes, pars) {
   return list;
 }
 
-function holeEntryTotals(holeSummaries) {
-  const played = holeSummaries.filter((h) => h.strokes != null);
-  return {
-    holesIn: played.length,
-    totalScore: played.reduce((s, h) => s + h.strokes, 0),
-    toPar: played.reduce((s, h) => s + (h.strokes - h.par), 0),
-    totalPutts: played.filter((h) => h.putts != null).reduce((s, h) => s + h.putts, 0),
-  };
-}
-
-function firstUnansweredHole(holeSummaries) {
-  const unanswered = holeSummaries.find((h) => h.strokes == null);
-  return unanswered ? unanswered.hole_no : holeSummaries.length;
-}
-
 function handleRoundsPage(ctx) {
   const rounds = all(`SELECT * FROM rounds WHERE user_id = ? ORDER BY play_date DESC, id DESC`, [ctx.user.id]);
   const { combined } = buildRoundAnalysis(ctx.user.id);
@@ -966,7 +951,7 @@ async function handleCreateRoundStart(ctx) {
   const roundId = Number(result.lastInsertRowid);
 
   if (entryMode === 'hole') {
-    redirect(ctx.res, `/rounds/${roundId}/holes/1`);
+    redirect(ctx.res, `/rounds/${roundId}/holes`);
   } else {
     redirect(ctx.res, `/rounds/${roundId}/total`);
   }
@@ -980,10 +965,7 @@ function handleRoundShow(ctx) {
   const pars = JSON.parse(round.pars);
 
   if (round.status === 'in_progress') {
-    if (round.entry_mode === 'hole') {
-      const summaries = holeSummariesFor(round.id, round.holes, pars);
-      return redirect(ctx.res, `/rounds/${round.id}/holes/${firstUnansweredHole(summaries)}`);
-    }
+    if (round.entry_mode === 'hole') return redirect(ctx.res, `/rounds/${round.id}/holes`);
     return redirect(ctx.res, `/rounds/${round.id}/total`);
   }
 
@@ -993,7 +975,7 @@ function handleRoundShow(ctx) {
     `SELECT rc.*, u.name AS author_name FROM round_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.round_id = ? ORDER BY rc.id`,
     [round.id]
   );
-  sendHtml(ctx.res, 200, roundDetailPage({ user: ctx.user, flash: ctx.flash, round, aggregate, comments }), [
+  sendHtml(ctx.res, 200, roundDetailPage({ user: ctx.user, flash: ctx.flash, round, holes, aggregate, comments }), [
     clearFlashCookie(),
   ]);
 }
@@ -1001,19 +983,16 @@ function handleRoundShow(ctx) {
 function handleRoundEdit(ctx) {
   const round = loadOwnedRound(ctx);
   if (!round) return roundNotFound(ctx);
-  if (round.entry_mode === 'hole') return redirect(ctx.res, `/rounds/${round.id}/holes/1`);
+  if (round.entry_mode === 'hole') return redirect(ctx.res, `/rounds/${round.id}/holes`);
   return redirect(ctx.res, `/rounds/${round.id}/total`);
 }
 
 function handleHoleEntryPage(ctx) {
   const round = loadOwnedRound(ctx);
   if (!round || round.entry_mode !== 'hole') return roundNotFound(ctx);
-  const holeNo = Math.max(1, Math.min(round.holes, parseInt(ctx.params.n, 10) || 1));
   const pars = JSON.parse(round.pars);
   const summaries = holeSummariesFor(round.id, round.holes, pars);
-  const hole = summaries[holeNo - 1];
-  const totals = holeEntryTotals(summaries);
-  sendHtml(ctx.res, 200, holeEntryPage({ user: ctx.user, flash: ctx.flash, round, hole, holeSummaries: summaries, totals }), [
+  sendHtml(ctx.res, 200, holeEntryPage({ user: ctx.user, flash: ctx.flash, round, holeSummaries: summaries }), [
     clearFlashCookie(),
   ]);
 }
@@ -1048,13 +1027,15 @@ function saveHoleFromFields(userId, round, fields) {
   return currentHole;
 }
 
-async function handleSaveHole(ctx) {
+// Background save from the single-page hole-entry screen: the client never
+// navigates or reloads for this, it just fires this after every hole it
+// leaves, so the response is JSON rather than a redirect.
+async function handleSaveHoleAjax(ctx) {
   const round = loadOwnedRound(ctx);
-  if (!round || round.entry_mode !== 'hole') return roundNotFound(ctx);
+  if (!round || round.entry_mode !== 'hole') return sendJson(ctx.res, 404, { ok: false });
   const { fields } = await parseRequestBody(ctx.req);
-  const currentHole = saveHoleFromFields(ctx.user.id, round, fields);
-  const targetHole = Math.max(1, Math.min(round.holes, parseInt(ctx.params.n, 10) || currentHole));
-  redirect(ctx.res, `/rounds/${round.id}/holes/${targetHole}`);
+  saveHoleFromFields(ctx.user.id, round, fields);
+  sendJson(ctx.res, 200, { ok: true });
 }
 
 function handleTotalEntryPage(ctx) {
@@ -1199,6 +1180,7 @@ function handleAdminRoundDetail(ctx) {
       user: ctx.user,
       flash: ctx.flash,
       round,
+      holes,
       aggregate,
       comments,
       readOnly: true,

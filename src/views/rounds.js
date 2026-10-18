@@ -1,7 +1,7 @@
 import { layout, escapeHtml, nl2br, icon } from './layout.js';
 import { renderAbilityRadar, renderRoundTrendChart } from './chart.js';
 import { jstToday } from '../lib/date.js';
-import { DEFAULT_PARS_18, RESULT_LABEL, SCORE_BAND_LABELS, BENCHMARKS, scoreBandForAverage, targetBandFor } from '../lib/golfStats.js';
+import { DEFAULT_PARS_18, SCORE_BAND_LABELS, BENCHMARKS, scoreBandForAverage, targetBandFor } from '../lib/golfStats.js';
 
 function fmtDate(d) {
   return d || '';
@@ -86,126 +86,33 @@ export function newRoundStartPage({ user, flash, courses, values = {} }) {
 
 // ---------- hole-by-hole entry ----------
 
-export function holeEntryPage({ user, flash, round, hole, holeSummaries, totals }) {
-  const holeNo = hole.hole_no;
-  const isLast = holeNo === round.holes;
-  const par = hole.par;
-  const strokes = hole.strokes ?? par;
-  const putts = hole.putts ?? 2;
-  const teeShot = hole.tee_shot || '';
-  const ob = hole.ob_count || 0;
-  const penalty = hole.penalty_count || 0;
-  const bunker = hole.bunker || 0;
-  const showTeeShot = par === 4 || par === 5;
-
-  const strip = holeSummaries
-    .map(
-      (h) => `
-      <button type="submit" form="hole-form" formaction="/rounds/${round.id}/holes/${h.hole_no}"
-        class="hole-strip-item ${h.hole_no === holeNo ? 'active' : ''} ${h.strokes != null ? 'filled' : ''}">
-        <span class="hole-strip-no">${h.hole_no}</span>
-        <span class="hole-strip-score">${h.strokes != null ? h.strokes : '-'}</span>
-      </button>`
-    )
-    .join('');
+// Single page for the whole round: the scorecard strip (always showing every
+// hole already entered) and the current-hole input panel are both built and
+// kept in sync by client.js from the embedded JSON below — navigating
+// between holes never reloads the page or changes the URL, and every
+// previous score stays visible the whole time. See
+// setupHoleEntryForm/renderHolePanel/renderScorecardStrip in public/client.js.
+export function holeEntryPage({ user, flash, round, holeSummaries }) {
+  const dataJson = JSON.stringify({ roundId: round.id, holes: round.holes, holeSummaries });
 
   return layout({
-    title: `ホール ${holeNo}`,
+    title: `${round.course_name} 入力中`,
     user,
     active: 'rounds',
     flash,
     body: `
-      <div class="hole-strip">${strip}</div>
-
-      <div class="hole-totals">
-        <span>${totals.holesIn}/${round.holes}H</span>
-        <span>合計 ${totals.totalScore}</span>
-        <span>パー比 ${totals.toPar >= 0 ? '+' + totals.toPar : totals.toPar}</span>
-        <span>パット ${totals.totalPutts}</span>
+      <div class="page-header">
+        <h1>${escapeHtml(round.course_name)}</h1>
+        <span class="muted">${escapeHtml(fmtDate(round.play_date))}</span>
       </div>
 
-      <form method="post" action="/rounds/${round.id}/holes/${holeNo}" id="hole-form" class="hole-form">
-        <input type="hidden" name="current_hole" value="${holeNo}">
-        <input type="hidden" name="strokes" id="strokes-input" value="${strokes}">
-        <input type="hidden" name="putts" id="putts-input" value="${putts}">
-        <input type="hidden" name="tee_shot" id="tee-shot-input" value="${teeShot}">
-        <input type="hidden" name="ob_count" id="ob-input" value="${ob}">
-        <input type="hidden" name="penalty_count" id="penalty-input" value="${penalty}">
-        <input type="hidden" name="bunker" id="bunker-input" value="${bunker}">
-        <input type="hidden" name="par" id="par-input" value="${par}">
+      <div class="scorecard-strip" id="scorecard-strip"></div>
+      <div class="hole-totals" id="hole-totals"></div>
+      <div class="card hole-card" id="hole-panel"></div>
+      <div class="hole-nav-row" id="hole-nav-row"></div>
+      <p class="muted hole-save-status" id="hole-save-status"></p>
 
-        <div class="card hole-card">
-          <div class="hole-card-head">
-            <span class="hole-card-title">ホール ${holeNo}</span>
-            <button type="button" class="par-chip" id="par-chip">パー<span id="par-display">${par}</span></button>
-          </div>
-
-          <div class="stroke-block">
-            <button type="button" class="stepper-btn" id="strokes-minus" aria-label="打数を減らす">−</button>
-            <div class="stroke-display">
-              <span class="stroke-num" id="strokes-display">${strokes}</span>
-              <span class="stroke-result" id="result-label">${escapeHtml(RESULT_LABEL(strokes, par))}</span>
-            </div>
-            <button type="button" class="stepper-btn" id="strokes-plus" aria-label="打数を増やす">+</button>
-          </div>
-          <div class="quick-score-row">
-            <button type="button" class="quick-score-btn" data-offset="-1">バーディ</button>
-            <button type="button" class="quick-score-btn" data-offset="0">パー</button>
-            <button type="button" class="quick-score-btn" data-offset="1">ボギー</button>
-            <button type="button" class="quick-score-btn" data-offset="2">ダボ</button>
-            <button type="button" class="quick-score-btn" data-offset="3">トリプル</button>
-          </div>
-
-          <p class="field-label">パット数</p>
-          <div class="chip-row" id="putts-row">
-            ${[0, 1, 2, 3, 4].map((n) => `<button type="button" class="chip-btn ${n === putts ? 'active' : ''}" data-putts="${n}">${n}</button>`).join('')}
-          </div>
-
-          ${
-            showTeeShot
-              ? `
-          <p class="field-label">ティーショット</p>
-          <div class="chip-row" id="tee-shot-row">
-            <button type="button" class="chip-btn ${teeShot === 'left' ? 'active' : ''}" data-tee="left">左</button>
-            <button type="button" class="chip-btn ${teeShot === 'fw' ? 'active' : ''}" data-tee="fw">FW</button>
-            <button type="button" class="chip-btn ${teeShot === 'right' ? 'active' : ''}" data-tee="right">右</button>
-          </div>`
-              : ''
-          }
-
-          <div class="form-row hole-extra-row">
-            <div class="stepper-field">
-              <span class="field-label">OB</span>
-              <div class="stepper-mini">
-                <button type="button" class="stepper-btn-sm" id="ob-minus">−</button>
-                <span id="ob-display">${ob}</span>
-                <button type="button" class="stepper-btn-sm" id="ob-plus">+</button>
-              </div>
-            </div>
-            <div class="stepper-field">
-              <span class="field-label">ペナルティ</span>
-              <div class="stepper-mini">
-                <button type="button" class="stepper-btn-sm" id="penalty-minus">−</button>
-                <span id="penalty-display">${penalty}</span>
-                <button type="button" class="stepper-btn-sm" id="penalty-plus">+</button>
-              </div>
-            </div>
-            <div class="stepper-field">
-              <span class="field-label">バンカー</span>
-              <button type="button" class="toggle-btn ${bunker ? 'active' : ''}" id="bunker-toggle">${bunker ? 'あり' : 'なし'}</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="hole-nav-row">
-          ${holeNo > 1 ? `<button type="submit" formaction="/rounds/${round.id}/holes/${holeNo - 1}" class="btn btn-secondary">${icon('chevronLeft', { size: 16 })}前へ</button>` : '<span></span>'}
-          ${
-            isLast
-              ? `<button type="submit" formaction="/rounds/${round.id}/finish" class="btn btn-primary">ラウンドを終える</button>`
-              : `<button type="submit" formaction="/rounds/${round.id}/holes/${holeNo + 1}" class="btn btn-primary">次のホールへ${icon('chevronRight', { size: 16 })}</button>`
-          }
-        </div>
-      </form>
+      <script id="hole-entry-data" type="application/json">${dataJson}</script>
     `,
   });
 }
@@ -279,9 +186,83 @@ export function totalEntryPage({ user, flash, round, values = {} }) {
   });
 }
 
+// ---------- scorecard table (hole-mode rounds only) ----------
+
+function scoreClass(strokes, par) {
+  const diff = strokes - par;
+  if (diff <= -2) return 'score-eagle';
+  if (diff === -1) return 'score-birdie';
+  if (diff === 0) return 'score-par';
+  if (diff === 1) return 'score-bogey';
+  return 'score-double';
+}
+
+export function renderScorecardTable(round, holes) {
+  if (round.entry_mode !== 'hole' || !holes.length) return '';
+  const out = holes.filter((h) => h.hole_no <= 9);
+  const back = holes.filter((h) => h.hole_no > 9);
+  const sections = round.holes > 9 ? [out, back] : [out];
+  const sumPar = (list) => list.reduce((s, h) => s + h.par, 0);
+  const sumScore = (list) => (list.every((h) => h.strokes != null) ? list.reduce((s, h) => s + h.strokes, 0) : null);
+  const sumPutts = (list) => (list.every((h) => h.putts != null) ? list.reduce((s, h) => s + h.putts, 0) : null);
+
+  const holeHeader = (list, label) =>
+    `${list.map((h) => `<th>${h.hole_no}</th>`).join('')}<th class="sc-sub">${label}</th>`;
+  const parRow = (list) => `${list.map((h) => `<td>${h.par}</td>`).join('')}<td class="sc-sub">${sumPar(list)}</td>`;
+  const scoreRow = (list) =>
+    `${list
+      .map((h) =>
+        h.strokes != null
+          ? `<td class="sc-score ${scoreClass(h.strokes, h.par)}">${h.strokes}</td>`
+          : `<td class="sc-score sc-empty">-</td>`
+      )
+      .join('')}<td class="sc-sub">${sumScore(list) ?? '-'}</td>`;
+  const puttsRow = (list) => `${list.map((h) => `<td>${h.putts ?? '-'}</td>`).join('')}<td class="sc-sub">${sumPutts(list) ?? '-'}</td>`;
+  const teeRow = (list) =>
+    `${list
+      .map((h) => {
+        if (!(h.par === 4 || h.par === 5)) return '<td class="muted">-</td>';
+        const label = h.tee_shot === 'fw' ? 'FW' : h.tee_shot === 'left' ? '左' : h.tee_shot === 'right' ? '右' : '-';
+        const cls = h.tee_shot === 'fw' ? 'sc-ok' : h.tee_shot ? 'sc-miss' : '';
+        return `<td class="${cls}">${label}</td>`;
+      })
+      .join('')}<td></td>`;
+  const girRow = (list) =>
+    `${list
+      .map((h) => {
+        if (h.strokes == null || h.putts == null) return '<td class="muted">-</td>';
+        const gir = h.strokes - h.putts <= h.par - 2;
+        return `<td class="${gir ? 'sc-ok' : ''}">${gir ? '○' : '-'}</td>`;
+      })
+      .join('')}<td></td>`;
+  const bunkerRow = (list) => `${list.map((h) => `<td>${h.bunker ? '●' : ''}</td>`).join('')}<td class="sc-sub">${list.filter((h) => h.bunker).length}</td>`;
+  const obRow = (list) => `${list.map((h) => `<td>${h.ob_count || ''}</td>`).join('')}<td class="sc-sub">${list.reduce((s, h) => s + (h.ob_count || 0), 0)}</td>`;
+  const penaltyRow = (list) => `${list.map((h) => `<td>${h.penalty_count || ''}</td>`).join('')}<td class="sc-sub">${list.reduce((s, h) => s + (h.penalty_count || 0), 0)}</td>`;
+
+  const gross = sumScore(holes);
+
+  return `
+    <div class="scorecard-table-wrap">
+      <table class="scorecard-table">
+        <tbody>
+          <tr class="sc-head-row"><th></th>${sections.map((s, i) => holeHeader(s, i === 0 ? 'OUT' : 'IN')).join('')}${sections.length > 1 ? '<th class="sc-sub">GROSS</th>' : ''}</tr>
+          <tr><th>Par</th>${sections.map((s) => parRow(s)).join('')}${sections.length > 1 ? `<td class="sc-sub">${sumPar(holes)}</td>` : ''}</tr>
+          <tr class="sc-score-row"><th>スコア</th>${sections.map((s) => scoreRow(s)).join('')}${sections.length > 1 ? `<td class="sc-sub">${gross ?? '-'}</td>` : ''}</tr>
+          <tr><th>パット</th>${sections.map((s) => puttsRow(s)).join('')}${sections.length > 1 ? `<td class="sc-sub">${sumPutts(holes) ?? '-'}</td>` : ''}</tr>
+          <tr><th>ティーショット</th>${sections.map((s) => teeRow(s)).join('')}${sections.length > 1 ? '<td></td>' : ''}</tr>
+          <tr><th>パーオン</th>${sections.map((s) => girRow(s)).join('')}${sections.length > 1 ? '<td></td>' : ''}</tr>
+          <tr><th>バンカー</th>${sections.map((s) => bunkerRow(s)).join('')}${sections.length > 1 ? `<td class="sc-sub">${holes.filter((h) => h.bunker).length}</td>` : ''}</tr>
+          <tr><th>OB</th>${sections.map((s) => obRow(s)).join('')}${sections.length > 1 ? `<td class="sc-sub">${holes.reduce((s, h) => s + (h.ob_count || 0), 0)}</td>` : ''}</tr>
+          <tr><th>ペナルティ</th>${sections.map((s) => penaltyRow(s)).join('')}${sections.length > 1 ? `<td class="sc-sub">${holes.reduce((s, h) => s + (h.penalty_count || 0), 0)}</td>` : ''}</tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
 // ---------- round detail / finish summary ----------
 
-export function roundDetailPage({ user, flash, round, aggregate, comments, readOnly = false, backHref = '/rounds' }) {
+export function roundDetailPage({ user, flash, round, holes, aggregate, comments, readOnly = false, backHref = '/rounds' }) {
   const bandLabel = round.holes && aggregate.totalScore !== null ? '' : '';
   const commentsHtml = comments.length
     ? comments
@@ -312,6 +293,8 @@ export function roundDetailPage({ user, flash, round, aggregate, comments, readO
         <a href="${backHref}" class="back-link">${icon('chevronLeft', { size: 14 })}<span>戻る</span></a>
       </div>
       <p class="muted">${escapeHtml(fmtDate(round.play_date))} / ${round.holes}H${bandLabel}</p>
+
+      ${renderScorecardTable(round, holes)}
 
       <div class="stat-row">
         <div class="stat-card"><div class="stat-num">${aggregate.totalScore ?? '-'}</div><div class="stat-label">合計スコア</div></div>
@@ -378,7 +361,9 @@ export function roundsPage({ user, flash, rounds, combined }) {
     ? rounds
         .map((r) => {
           const label = r.status === 'in_progress' ? '<span class="badge badge-warn">入力中</span>' : '';
-          const href = r.status === 'in_progress' && r.entry_mode === 'hole' ? `/rounds/${r.id}/holes/1` : `/rounds/${r.id}`;
+          // /rounds/:id itself redirects in-progress rounds to wherever entry
+          // should resume (hole-by-hole or the total-entry form).
+          const href = `/rounds/${r.id}`;
           return `
       <li class="list-item round-item">
         <a href="${href}">
