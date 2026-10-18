@@ -7,6 +7,17 @@ function fmtDate(d) {
   return d || '';
 }
 
+// Shared by the hole-entry, total-entry, and detail pages: lets the student
+// delete their own round (in-progress or complete) with a confirmation
+// dialog, since this can't be undone.
+function deleteRoundForm(roundId, { className = 'link-button link-button-danger' } = {}) {
+  return `
+    <form method="post" action="/rounds/${roundId}/delete" class="inline-form"
+      onsubmit="return confirm('この記録を削除します。入力した内容は元に戻せません。本当に削除しますか？');">
+      <button type="submit" class="${className}">このラウンドを削除する</button>
+    </form>`;
+}
+
 function parCells(pars, holes, { editable = false } = {}) {
   return pars
     .slice(0, holes)
@@ -112,6 +123,8 @@ export function holeEntryPage({ user, flash, round, holeSummaries }) {
       <div class="hole-nav-row" id="hole-nav-row"></div>
       <p class="muted hole-save-status" id="hole-save-status"></p>
 
+      <div class="round-delete-row">${deleteRoundForm(round.id)}</div>
+
       <script id="hole-entry-data" type="application/json">${dataJson}</script>
     `,
   });
@@ -182,6 +195,8 @@ export function totalEntryPage({ user, flash, round, values = {} }) {
         </label>
         <button type="submit" class="btn btn-primary">記録する</button>
       </form>
+
+      <div class="round-delete-row">${deleteRoundForm(round.id)}</div>
     `,
   });
 }
@@ -281,6 +296,7 @@ export function roundDetailPage({ user, flash, round, holes, aggregate, comments
     !readOnly && round.status === 'complete'
       ? `<a href="/rounds/${round.id}/edit" class="btn btn-secondary">スコアを修正</a>`
       : '';
+  const deleteRow = !readOnly ? `<div class="round-delete-row">${deleteRoundForm(round.id)}</div>` : '';
 
   return layout({
     title: `${escapeHtml(round.course_name)}の記録`,
@@ -350,6 +366,7 @@ export function roundDetailPage({ user, flash, round, holes, aggregate, comments
       </div>
 
       ${editLink}
+      ${deleteRow}
     `,
   });
 }

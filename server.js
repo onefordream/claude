@@ -452,6 +452,7 @@ const routes = [
   { method: 'GET', pattern: /^\/rounds\/(?<id>\d+)\/total$/, handler: requireStudent(handleTotalEntryPage) },
   { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/total$/, handler: requireStudent(handleSaveTotalEntry) },
   { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/finish$/, handler: requireStudent(handleFinishRound) },
+  { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/delete$/, handler: requireStudent(handleDeleteRound) },
   { method: 'GET', pattern: /^\/analysis$/, handler: requireStudent(handleAnalysisPage) },
   { method: 'POST', pattern: /^\/ai\/round-coach$/, handler: requireStudent(handleRoundCoachAi) },
   { method: 'GET', pattern: /^\/goals\/new$/, handler: requireStudent(handleNewGoalPage) },
@@ -985,6 +986,20 @@ function handleRoundEdit(ctx) {
   if (!round) return roundNotFound(ctx);
   if (round.entry_mode === 'hole') return redirect(ctx.res, `/rounds/${round.id}/holes`);
   return redirect(ctx.res, `/rounds/${round.id}/total`);
+}
+
+// Lets a student delete their own round — in progress or complete. round_holes
+// and round_comments cascade via their foreign keys; the attached photo file
+// (if any) has to be removed separately since it lives on disk, not in SQLite.
+function handleDeleteRound(ctx) {
+  const round = loadOwnedRound(ctx);
+  if (!round) return roundNotFound(ctx);
+  if (round.photo_filename) {
+    const filePath = join(UPLOADS_DIR, round.photo_filename);
+    if (existsSync(filePath)) unlinkSync(filePath);
+  }
+  run(`DELETE FROM rounds WHERE id = ?`, [round.id]);
+  redirect(ctx.res, '/rounds', [encodeFlash('success', 'ラウンド記録を削除しました。')]);
 }
 
 function handleHoleEntryPage(ctx) {
