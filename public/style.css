@@ -658,7 +658,7 @@ input:focus, textarea:focus, select:focus {
 .sc-strip-cell.sc-miss { border-color: var(--warn); background: var(--accent-amber-soft); }
 .sc-strip-cell.active { background: var(--green-700); border-color: var(--green-700); color: #fff; }
 .sc-strip-no { font-size: 0.6rem; opacity: 0.8; }
-.sc-strip-score { font-weight: 700; }
+.sc-strip-score { font-weight: 800; font-size: var(--fs-base); }
 
 .hole-save-status { min-height: 1.2em; font-size: var(--fs-xs); text-align: center; }
 
@@ -748,34 +748,48 @@ input:focus, textarea:focus, select:focus {
 .round-photo { max-width: 100%; border-radius: var(--radius-sm); }
 
 .scorecard-table-wrap { overflow-x: auto; margin-bottom: 1rem; border: 1px solid var(--border); border-radius: var(--radius); }
-.scorecard-table { border-collapse: collapse; width: 100%; font-size: var(--fs-xs); }
+.scorecard-table { border-collapse: collapse; width: 100%; font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
 .scorecard-table th, .scorecard-table td {
-  padding: 0.35rem 0.4rem;
+  padding: 0.3rem 0.35rem;
   text-align: center;
   border-bottom: 1px solid var(--border-soft);
   border-right: 1px solid var(--border-soft);
   white-space: nowrap;
+  font-weight: 700;
 }
 .scorecard-table th:first-child, .scorecard-table td:first-child {
   position: sticky;
   left: 0;
   background: var(--card);
   text-align: left;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--ink-soft);
   z-index: 1;
 }
-.scorecard-table .sc-head-row th { background: var(--green-100); color: var(--green-900); font-weight: 700; }
-.scorecard-table .sc-sub { background: var(--border-soft); font-weight: 700; }
-.scorecard-table .sc-score-row td { font-weight: 700; }
-.sc-score.score-eagle { color: #fff; background: var(--green-700); border-radius: 50%; }
-.sc-score.score-birdie { color: var(--green-700); }
-.sc-score.score-par { color: var(--ink); }
-.sc-score.score-bogey { color: var(--warn); }
-.sc-score.score-double { color: var(--danger); font-weight: 800; }
+.scorecard-table .sc-head-row th { background: var(--green-900); color: #fff; font-weight: 800; font-size: var(--fs-base); }
+.scorecard-table .sc-sub { background: var(--border-soft); font-weight: 800; }
+.scorecard-table .sc-score-row td { padding: 0.25rem; }
+
+/* Filled, colored badges for each score (matches a paper scorecard's look):
+   a background fill reads faster at a glance than colored text alone. */
+.sc-score-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.9rem;
+  height: 1.9rem;
+  font-size: var(--fs-md);
+  font-weight: 800;
+  line-height: 1;
+}
+.sc-score-badge.score-eagle { color: #fff; background: var(--green-700); border-radius: 50%; box-shadow: 0 0 0 2px var(--green-700); }
+.sc-score-badge.score-birdie { color: #fff; background: var(--danger); border-radius: 50%; }
+.sc-score-badge.score-par { color: var(--ink); background: transparent; }
+.sc-score-badge.score-bogey { color: #fff; background: var(--accent-blue); border-radius: 4px; }
+.sc-score-badge.score-double { color: #fff; background: var(--accent-blue); border-radius: 4px; box-shadow: 0 0 0 2px var(--accent-blue); }
 .sc-score.sc-empty { color: var(--muted); font-weight: 400; }
-.scorecard-table .sc-ok { color: var(--green-700); font-weight: 700; }
-.scorecard-table .sc-miss { color: var(--warn); }
+.scorecard-table .sc-ok { color: var(--green-700); font-weight: 800; }
+.scorecard-table .sc-miss { color: var(--warn); font-weight: 800; }
 
 .analysis-link-card {
   display: flex;

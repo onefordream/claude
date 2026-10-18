@@ -213,7 +213,7 @@ export function renderScorecardTable(round, holes) {
     `${list
       .map((h) =>
         h.strokes != null
-          ? `<td class="sc-score ${scoreClass(h.strokes, h.par)}">${h.strokes}</td>`
+          ? `<td class="sc-score"><span class="sc-score-badge ${scoreClass(h.strokes, h.par)}">${h.strokes}</span></td>`
           : `<td class="sc-score sc-empty">-</td>`
       )
       .join('')}<td class="sc-sub">${sumScore(list) ?? '-'}</td>`;
