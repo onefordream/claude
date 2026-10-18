@@ -264,26 +264,11 @@ function computeStreak(userId) {
   return { streak, recordedToday };
 }
 
-const WEEKDAY_LABELS_JA = ['日', '月', '火', '水', '木', '金', '土'];
-
-// Last 7 days of lesson+practice activity for the small bar chart, and the
-// week's total count.
+// This week's lesson-record count (used in the home-screen greeting and stat strip).
 function weeklyActivity(userId) {
-  const today = jstToday();
-  const days = [];
-  for (let i = 6; i >= 0; i--) days.push(addDays(today, -i));
-  const rows = all(
-    `SELECT record_date, COUNT(*) AS c FROM lesson_records WHERE user_id = ? AND record_date >= ? GROUP BY record_date`,
-    [userId, days[0]]
-  );
-  const counts = new Map(rows.map((r) => [r.record_date, r.c]));
-  const activity = days.map((dateStr) => ({
-    date: dateStr,
-    count: counts.get(dateStr) || 0,
-    weekday: WEEKDAY_LABELS_JA[new Date(`${dateStr}T00:00:00Z`).getUTCDay()],
-    isToday: dateStr === today,
-  }));
-  return { activity, weeklyCount: activity.reduce((sum, d) => sum + d.count, 0) };
+  const weekStart = addDays(jstToday(), -6);
+  const row = get(`SELECT COUNT(*) AS c FROM lesson_records WHERE user_id = ? AND record_date >= ?`, [userId, weekStart]);
+  return { weeklyCount: row.c };
 }
 
 function pickTodayMessage({ streak, recordedToday, weeklyCount, hasGoal }) {
@@ -569,7 +554,7 @@ function handleDashboard(ctx) {
   const stats = { ...studentStats(ctx.user.id), bestScore: roundStats(ctx.user.id).bestScore };
   const goal = getActiveGoal(ctx.user.id);
   const { streak, recordedToday } = computeStreak(ctx.user.id);
-  const { activity, weeklyCount } = weeklyActivity(ctx.user.id);
+  const { weeklyCount } = weeklyActivity(ctx.user.id);
   const todayMessage = pickTodayMessage({ streak, recordedToday, weeklyCount, hasGoal: Boolean(goal) });
   const recentCombined = all(
     `SELECT lr.*, (SELECT COUNT(*) FROM videos v WHERE v.lesson_record_id = lr.id) AS video_count
@@ -585,7 +570,6 @@ function handleDashboard(ctx) {
       stats,
       goal,
       streak,
-      activity,
       weeklyCount,
       todayMessage,
       greeting: jstGreeting(),

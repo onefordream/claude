@@ -426,23 +426,6 @@ input:focus, textarea:focus, select:focus {
   .hero-streak { align-self: center; }
 }
 
-.week-strip {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.9rem 1rem 0.5rem;
-  margin-bottom: 1rem;
-  box-shadow: var(--shadow-sm);
-}
-.week-strip-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.4rem; }
-.week-strip-title { font-weight: 700; color: var(--ink); font-size: var(--fs-sm); }
-.week-strip-count { color: var(--green-700); font-weight: 800; font-size: var(--fs-sm); }
-.week-activity-chart { width: 100%; height: auto; display: block; }
-.week-bar { fill: var(--border-soft); }
-.week-bar-active { fill: var(--green-500); }
-.week-bar-today { fill: var(--green-700); }
-.week-bar-label { fill: var(--muted); font-size: 9px; }
-.week-bar-label-today { fill: var(--green-700); font-weight: 700; }
 
 /* ---------- home screen: action cards ---------- */
 

@@ -16,35 +16,6 @@ function formatRelativeDate(dateStr) {
   return `${Number(m)}/${Number(d)}`;
 }
 
-// Small inline SVG bar chart for the last 7 days of activity on the home
-// screen — decorative-but-informative, so it skips a hover layer (single
-// week-glance, not a chart meant for close inspection).
-function renderWeekActivity(activity) {
-  const width = 320;
-  const height = 64;
-  const barW = 26;
-  const gap = (width - barW * 7) / 8;
-  const maxCount = Math.max(3, ...activity.map((d) => d.count));
-  const baseline = height - 16;
-  const maxBarH = baseline - 6;
-
-  const bars = activity
-    .map((d, i) => {
-      const x = gap + i * (barW + gap);
-      const h = Math.max(6, Math.round((d.count / maxCount) * maxBarH));
-      const y = baseline - h;
-      const cls = d.isToday ? 'week-bar week-bar-today' : d.count > 0 ? 'week-bar week-bar-active' : 'week-bar';
-      return `
-        <rect x="${x}" y="${y}" width="${barW}" height="${h}" rx="6" class="${cls}">
-          <title>${escapeHtml(d.weekday)}曜日: ${d.count}件</title>
-        </rect>
-        <text x="${x + barW / 2}" y="${height}" text-anchor="middle" class="week-bar-label ${d.isToday ? 'week-bar-label-today' : ''}">${escapeHtml(d.weekday)}</text>`;
-    })
-    .join('');
-
-  return `<svg viewBox="0 0 ${width} ${height}" class="week-activity-chart" role="img" aria-label="直近7日間の記録数">${bars}</svg>`;
-}
-
 function aiStatusBadge(record) {
   if (record.ai_status === 'done') return `<span class="badge badge-ok">AI要約済み</span>`;
   if (record.ai_status === 'unavailable') return `<span class="badge badge-warn">AI未設定</span>`;
@@ -168,7 +139,6 @@ export function dashboardPage({
   stats,
   goal,
   streak,
-  activity,
   weeklyCount,
   todayMessage,
   greeting,
@@ -202,14 +172,6 @@ export function dashboardPage({
           <div class="hero-streak-num">${streak}</div>
           <div class="hero-streak-label">日連続</div>
         </div>
-      </section>
-
-      <section class="week-strip">
-        <div class="week-strip-header">
-          <span class="week-strip-title">今週の記録</span>
-          <span class="week-strip-count">${weeklyCount}件</span>
-        </div>
-        ${renderWeekActivity(activity)}
       </section>
 
       <section class="action-grid">
