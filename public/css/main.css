@@ -989,6 +989,7 @@ body.nav-open { overflow: hidden; }
 .news-list__category { background: var(--c-green-tint); color: var(--c-green-deep); font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 999px; }
 .news-list__title { font-family: var(--f-heading); font-weight: 700; }
 .news-list__body { color: var(--c-ink-soft); margin-top: 0.4rem; font-size: 0.92rem; }
+.news-list__link { margin-top: 0.8rem; }
 .page-news .btn, .page-rules .btn { margin-top: 2rem; }
 
 /* ---------------------------------------------------------------------------

@@ -28,6 +28,7 @@ export function renderNews() {
         </div>
         <p class="news-list__title">${esc(n.title)}</p>
         ${n.body ? `<p class="news-list__body">${esc(n.body)}</p>` : ""}
+        ${n.url ? `<a href="${esc(n.url)}" class="btn btn--secondary btn--sm news-list__link" target="_blank" rel="noopener noreferrer">${esc(n.linkLabel || "詳しくはこちら")}</a>` : ""}
       </li>`
         )
         .join("")}
