@@ -23,7 +23,16 @@ import {
   setUserPassword,
 } from './src/auth.js';
 import { verifyPassword } from './src/auth.js';
-import { isAiConfigured, summarizeLessonRecord, suggestPractice } from './src/lib/ai.js';
+import { isAiConfigured, summarizeLessonRecord, suggestPractice, analyzeRoundPerformance } from './src/lib/ai.js';
+import {
+  DEFAULT_PARS_18,
+  aggregateRound,
+  combineRoundAggregates,
+  computeAbilityScores,
+  computeGrowthPotential,
+  buildFallbackRoundAnalysis,
+  scoreBandForAverage,
+} from './src/lib/golfStats.js';
 import {
   readBody,
   parseUrlEncoded,
@@ -45,12 +54,19 @@ import {
   practiceListPage,
   newPracticePage,
   recordDetailPage,
-  roundsPage,
   newGoalPage,
   mypagePage,
 } from './src/views/student.js';
 import { studentListPage, studentDetailPage, instructorListPage } from './src/views/admin.js';
 import { videoLibraryPage } from './src/views/videos.js';
+import {
+  newRoundStartPage,
+  holeEntryPage,
+  totalEntryPage,
+  roundDetailPage,
+  roundsPage,
+  analysisPage,
+} from './src/views/rounds.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = join(__dirname, 'public');
@@ -198,6 +214,20 @@ function serveMedia(req, res, filename, user) {
   const libraryVideo = get(`SELECT * FROM library_videos WHERE filename = ?`, [filename]);
   if (libraryVideo) return streamVideoFile(req, res, libraryVideo.filename, libraryVideo.mime_type);
 
+  // A round's attached photo — same ownership rule as a personal video.
+  const round = get(`SELECT * FROM rounds WHERE photo_filename = ?`, [filename]);
+  if (round) {
+    const isOwner = user.role === 'student' && user.id === round.user_id;
+    const isInstructor = user.role === 'instructor';
+    if (!isOwner && !isInstructor) {
+      res.writeHead(403);
+      res.end('Forbidden');
+      return;
+    }
+    const ext = extname(round.photo_filename).toLowerCase();
+    return streamVideoFile(req, res, round.photo_filename, MIME_TYPES[ext] || 'application/octet-stream');
+  }
+
   res.writeHead(404);
   res.end('Not found');
 }
@@ -211,7 +241,7 @@ function studentStats(userId) {
     `SELECT COUNT(*) AS c FROM lesson_records WHERE user_id = ? AND record_type = 'self_practice'`,
     [userId]
   ).c;
-  const roundCount = get(`SELECT COUNT(*) AS c FROM round_records WHERE user_id = ?`, [userId]).c;
+  const roundCount = get(`SELECT COUNT(*) AS c FROM rounds WHERE user_id = ? AND status = 'complete'`, [userId]).c;
   const last = get(
     `SELECT record_date FROM lesson_records WHERE user_id = ? ORDER BY record_date DESC, id DESC LIMIT 1`,
     [userId]
@@ -222,15 +252,15 @@ function studentStats(userId) {
 function roundStats(userId) {
   const currentYear = String(new Date().getFullYear());
   const best = get(
-    `SELECT MIN(score) AS v FROM round_records WHERE user_id = ? AND score IS NOT NULL`,
+    `SELECT MIN(total_score) AS v FROM rounds WHERE user_id = ? AND status = 'complete' AND holes = 18 AND total_score IS NOT NULL`,
     [userId]
   );
   const yearAvg = get(
-    `SELECT AVG(score) AS v FROM round_records WHERE user_id = ? AND score IS NOT NULL AND substr(round_date, 1, 4) = ?`,
+    `SELECT AVG(total_score) AS v FROM rounds WHERE user_id = ? AND status = 'complete' AND total_score IS NOT NULL AND substr(play_date, 1, 4) = ?`,
     [userId, currentYear]
   );
   const avgPutts = get(
-    `SELECT AVG(putts) AS v FROM round_records WHERE user_id = ? AND putts IS NOT NULL`,
+    `SELECT AVG(putts_total) AS v FROM rounds WHERE user_id = ? AND status = 'complete' AND putts_total IS NOT NULL`,
     [userId]
   );
   return {
@@ -238,6 +268,50 @@ function roundStats(userId) {
     yearAvgScore: yearAvg.v !== null && yearAvg.v !== undefined ? Math.round(yearAvg.v * 10) / 10 : null,
     avgPutts: avgPutts.v !== null && avgPutts.v !== undefined ? Math.round(avgPutts.v * 10) / 10 : null,
   };
+}
+
+// Loads every completed round for a user plus its computed aggregate (reading
+// round_holes for 'hole' mode rounds, the stored totals for 'total' mode),
+// and the 18-hole-normalized combination used by the analysis page.
+function buildRoundAnalysis(userId) {
+  const rows = all(`SELECT * FROM rounds WHERE user_id = ? AND status = 'complete' ORDER BY play_date DESC, id DESC`, [
+    userId,
+  ]);
+  const entries = rows.map((row) => {
+    const round = { ...row, pars: JSON.parse(row.pars) };
+    const holes = round.entry_mode === 'hole' ? all(`SELECT * FROM round_holes WHERE round_id = ? ORDER BY hole_no`, [round.id]) : [];
+    const aggregate = aggregateRound(round, holes);
+    return { round, aggregate };
+  });
+  const combined = combineRoundAggregates(entries.map((e) => e.aggregate));
+  const abilityScores = computeAbilityScores(combined);
+  const growth = computeGrowthPotential(combined);
+  return { entries, combined, abilityScores, growth };
+}
+
+// Recomputes and stores the summary columns on a 'hole' mode round from its
+// round_holes rows, so the round list / dashboard can read simple columns
+// without re-aggregating every time (round_holes stays the source of truth
+// for the full breakdown shown on the round detail page).
+function syncRoundTotalsFromHoles(round) {
+  const holes = all(`SELECT * FROM round_holes WHERE round_id = ? ORDER BY hole_no`, [round.id]);
+  const agg = aggregateRound({ ...round, pars: JSON.parse(round.pars) }, holes);
+  run(
+    `UPDATE rounds SET total_score = ?, putts_total = ?, fw_keep_count = ?, gir_count = ?, three_putt_count = ?,
+       ob_total = ?, penalty_total = ?, bunker_count = ?, bunker_save_count = ?, updated_at = datetime('now') WHERE id = ?`,
+    [
+      agg.totalScore,
+      agg.puttsTotal,
+      agg.fwKeepCount,
+      agg.girCount,
+      agg.threePuttPlusCount,
+      agg.obTotal,
+      agg.penaltyTotal,
+      agg.sandSaveOpportunities,
+      agg.sandSaveCount,
+      round.id,
+    ]
+  );
 }
 
 // This app is used in Japan regardless of which timezone the server itself
@@ -369,7 +443,17 @@ const routes = [
   { method: 'GET', pattern: /^\/practice\/new$/, handler: requireStudent(handleNewPracticePage) },
   { method: 'POST', pattern: /^\/practice$/, handler: requireStudent(handleCreatePractice) },
   { method: 'GET', pattern: /^\/rounds$/, handler: requireStudent(handleRoundsPage) },
-  { method: 'POST', pattern: /^\/rounds$/, handler: requireStudent(handleCreateRound) },
+  { method: 'GET', pattern: /^\/rounds\/new$/, handler: requireStudent(handleNewRoundPage) },
+  { method: 'POST', pattern: /^\/rounds$/, handler: requireStudent(handleCreateRoundStart) },
+  { method: 'GET', pattern: /^\/rounds\/(?<id>\d+)$/, handler: requireStudent(handleRoundShow) },
+  { method: 'GET', pattern: /^\/rounds\/(?<id>\d+)\/edit$/, handler: requireStudent(handleRoundEdit) },
+  { method: 'GET', pattern: /^\/rounds\/(?<id>\d+)\/holes\/(?<n>\d+)$/, handler: requireStudent(handleHoleEntryPage) },
+  { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/holes\/(?<n>\d+)$/, handler: requireStudent(handleSaveHole) },
+  { method: 'GET', pattern: /^\/rounds\/(?<id>\d+)\/total$/, handler: requireStudent(handleTotalEntryPage) },
+  { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/total$/, handler: requireStudent(handleSaveTotalEntry) },
+  { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/finish$/, handler: requireStudent(handleFinishRound) },
+  { method: 'GET', pattern: /^\/analysis$/, handler: requireStudent(handleAnalysisPage) },
+  { method: 'POST', pattern: /^\/ai\/round-coach$/, handler: requireStudent(handleRoundCoachAi) },
   { method: 'GET', pattern: /^\/goals\/new$/, handler: requireStudent(handleNewGoalPage) },
   { method: 'POST', pattern: /^\/goals$/, handler: requireStudent(handleCreateGoal) },
   { method: 'POST', pattern: /^\/goals\/(?<id>\d+)\/achieve$/, handler: requireStudent(handleAchieveGoal) },
@@ -387,6 +471,21 @@ const routes = [
     method: 'GET',
     pattern: /^\/admin\/students\/(?<id>\d+)$/,
     handler: requireInstructor(handleStudentDetail),
+  },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/students\/(?<id>\d+)\/rounds\/(?<roundId>\d+)$/,
+    handler: requireInstructor(handleAdminRoundDetail),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/students\/(?<id>\d+)\/rounds\/(?<roundId>\d+)\/comments$/,
+    handler: requireInstructor(handleAdminRoundComment),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/students\/(?<id>\d+)\/round-coach$/,
+    handler: requireInstructor(handleAdminRoundCoachAi),
   },
   {
     method: 'POST',
@@ -771,45 +870,362 @@ function handleRecordDetail(ctx) {
   );
 }
 
-function handleRoundsPage(ctx) {
-  const rounds = all(`SELECT * FROM round_records WHERE user_id = ? ORDER BY round_date DESC, id DESC`, [
-    ctx.user.id,
-  ]);
-  const stats = roundStats(ctx.user.id);
-  sendHtml(ctx.res, 200, roundsPage({ user: ctx.user, flash: ctx.flash, rounds, stats }), [clearFlashCookie()]);
+const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
+
+function parsePars(fields, holes) {
+  const pars = [];
+  for (let i = 1; i <= holes; i++) {
+    const v = parseInt(fields[`par_${i}`], 10);
+    pars.push([3, 4, 5].includes(v) ? v : 4);
+  }
+  return pars;
 }
 
-async function handleCreateRound(ctx) {
+// Remembers the course's par layout per student, so picking the same course
+// name again on the start screen can prefill it.
+function rememberCourse(userId, name, holes, pars) {
+  run(
+    `INSERT INTO courses (user_id, name, holes, pars, last_used_at) VALUES (?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(user_id, name) DO UPDATE SET holes = excluded.holes, pars = excluded.pars, last_used_at = datetime('now')`,
+    [userId, name, holes, JSON.stringify(pars)]
+  );
+}
+
+function loadOwnedRound(ctx) {
+  return get(`SELECT * FROM rounds WHERE id = ? AND user_id = ?`, [ctx.params.id, ctx.user.id]);
+}
+
+function roundNotFound(ctx) {
+  ctx.res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+  ctx.res.end('ラウンドが見つかりません');
+}
+
+function holeSummariesFor(roundId, holes, pars) {
+  const saved = new Map(all(`SELECT * FROM round_holes WHERE round_id = ?`, [roundId]).map((h) => [h.hole_no, h]));
+  const list = [];
+  for (let i = 1; i <= holes; i++) {
+    list.push(saved.get(i) || { hole_no: i, par: pars[i - 1], strokes: null, putts: null, tee_shot: null, ob_count: 0, penalty_count: 0, bunker: 0 });
+  }
+  return list;
+}
+
+function holeEntryTotals(holeSummaries) {
+  const played = holeSummaries.filter((h) => h.strokes != null);
+  return {
+    holesIn: played.length,
+    totalScore: played.reduce((s, h) => s + h.strokes, 0),
+    toPar: played.reduce((s, h) => s + (h.strokes - h.par), 0),
+    totalPutts: played.filter((h) => h.putts != null).reduce((s, h) => s + h.putts, 0),
+  };
+}
+
+function firstUnansweredHole(holeSummaries) {
+  const unanswered = holeSummaries.find((h) => h.strokes == null);
+  return unanswered ? unanswered.hole_no : holeSummaries.length;
+}
+
+function handleRoundsPage(ctx) {
+  const rounds = all(`SELECT * FROM rounds WHERE user_id = ? ORDER BY play_date DESC, id DESC`, [ctx.user.id]);
+  const { combined } = buildRoundAnalysis(ctx.user.id);
+  sendHtml(ctx.res, 200, roundsPage({ user: ctx.user, flash: ctx.flash, rounds, combined }), [clearFlashCookie()]);
+}
+
+function handleNewRoundPage(ctx) {
+  const courses = all(`SELECT * FROM courses WHERE user_id = ? ORDER BY last_used_at DESC`, [ctx.user.id]);
+  sendHtml(ctx.res, 200, newRoundStartPage({ user: ctx.user, flash: ctx.flash, courses }), [clearFlashCookie()]);
+}
+
+async function handleCreateRoundStart(ctx) {
   const { fields } = await parseRequestBody(ctx.req);
-  const roundDate = fields.round_date || jstToday();
   const courseName = (fields.course_name || '').trim();
-  const score = fields.score ? parseInt(fields.score, 10) : null;
-  const putts = fields.putts ? parseInt(fields.putts, 10) : null;
-  const issues = (fields.issues || '').trim();
-  const notes = (fields.notes || '').trim();
+  const playDate = fields.play_date || jstToday();
+  const holes = fields.holes === '9' ? 9 : 18;
+  const entryMode = fields.entry_mode === 'total' ? 'total' : 'hole';
+  const pars = parsePars(fields, holes);
 
   if (!courseName) {
-    const rounds = all(`SELECT * FROM round_records WHERE user_id = ? ORDER BY round_date DESC, id DESC`, [
-      ctx.user.id,
-    ]);
+    const courses = all(`SELECT * FROM courses WHERE user_id = ? ORDER BY last_used_at DESC`, [ctx.user.id]);
     return sendHtml(
       ctx.res,
       400,
-      roundsPage({
+      newRoundStartPage({
         user: ctx.user,
         flash: { type: 'error', message: 'コース名を入力してください。' },
-        rounds,
-        stats: roundStats(ctx.user.id),
-        values: fields,
+        courses,
+        values: { ...fields, holes, pars },
       })
     );
   }
 
-  run(
-    `INSERT INTO round_records (user_id, round_date, course_name, score, putts, issues, notes) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [ctx.user.id, roundDate, courseName, score, putts, issues || null, notes || null]
+  rememberCourse(ctx.user.id, courseName, holes, pars);
+
+  const result = run(
+    `INSERT INTO rounds (user_id, play_date, course_name, holes, pars, entry_mode, status) VALUES (?, ?, ?, ?, ?, ?, 'in_progress')`,
+    [ctx.user.id, playDate, courseName, holes, JSON.stringify(pars), entryMode]
   );
-  redirect(ctx.res, '/rounds', [encodeFlash('success', 'ラウンド記録を保存しました。')]);
+  const roundId = Number(result.lastInsertRowid);
+
+  if (entryMode === 'hole') {
+    redirect(ctx.res, `/rounds/${roundId}/holes/1`);
+  } else {
+    redirect(ctx.res, `/rounds/${roundId}/total`);
+  }
+}
+
+// Entry point for an existing round: resumes hole-by-hole entry where it was
+// left off, or shows the permanent detail/summary page once complete.
+function handleRoundShow(ctx) {
+  const round = loadOwnedRound(ctx);
+  if (!round) return roundNotFound(ctx);
+  const pars = JSON.parse(round.pars);
+
+  if (round.status === 'in_progress') {
+    if (round.entry_mode === 'hole') {
+      const summaries = holeSummariesFor(round.id, round.holes, pars);
+      return redirect(ctx.res, `/rounds/${round.id}/holes/${firstUnansweredHole(summaries)}`);
+    }
+    return redirect(ctx.res, `/rounds/${round.id}/total`);
+  }
+
+  const holes = round.entry_mode === 'hole' ? all(`SELECT * FROM round_holes WHERE round_id = ? ORDER BY hole_no`, [round.id]) : [];
+  const aggregate = aggregateRound({ ...round, pars }, holes);
+  const comments = all(
+    `SELECT rc.*, u.name AS author_name FROM round_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.round_id = ? ORDER BY rc.id`,
+    [round.id]
+  );
+  sendHtml(ctx.res, 200, roundDetailPage({ user: ctx.user, flash: ctx.flash, round, aggregate, comments }), [
+    clearFlashCookie(),
+  ]);
+}
+
+function handleRoundEdit(ctx) {
+  const round = loadOwnedRound(ctx);
+  if (!round) return roundNotFound(ctx);
+  if (round.entry_mode === 'hole') return redirect(ctx.res, `/rounds/${round.id}/holes/1`);
+  return redirect(ctx.res, `/rounds/${round.id}/total`);
+}
+
+function handleHoleEntryPage(ctx) {
+  const round = loadOwnedRound(ctx);
+  if (!round || round.entry_mode !== 'hole') return roundNotFound(ctx);
+  const holeNo = Math.max(1, Math.min(round.holes, parseInt(ctx.params.n, 10) || 1));
+  const pars = JSON.parse(round.pars);
+  const summaries = holeSummariesFor(round.id, round.holes, pars);
+  const hole = summaries[holeNo - 1];
+  const totals = holeEntryTotals(summaries);
+  sendHtml(ctx.res, 200, holeEntryPage({ user: ctx.user, flash: ctx.flash, round, hole, holeSummaries: summaries, totals }), [
+    clearFlashCookie(),
+  ]);
+}
+
+// Shared by handleSaveHole and handleFinishRound: upserts the hole whose
+// fields were submitted (`current_hole`), and keeps the round's par array
+// (and the student's saved course template) in sync if it was edited here.
+function saveHoleFromFields(userId, round, fields) {
+  const currentHole = Math.max(1, Math.min(round.holes, parseInt(fields.current_hole, 10) || 1));
+  const pars = JSON.parse(round.pars);
+  const par = [3, 4, 5].includes(parseInt(fields.par, 10)) ? parseInt(fields.par, 10) : pars[currentHole - 1];
+  const strokes = Math.max(1, Math.min(15, parseInt(fields.strokes, 10) || par));
+  const putts = Math.max(0, Math.min(strokes, parseInt(fields.putts, 10) ?? 2));
+  const teeShot = ['fw', 'left', 'right'].includes(fields.tee_shot) ? fields.tee_shot : null;
+  const ob = Math.max(0, Math.min(9, parseInt(fields.ob_count, 10) || 0));
+  const penalty = Math.max(0, Math.min(9, parseInt(fields.penalty_count, 10) || 0));
+  const bunker = fields.bunker === '1' ? 1 : 0;
+
+  run(
+    `INSERT INTO round_holes (round_id, hole_no, par, strokes, putts, tee_shot, ob_count, penalty_count, bunker)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(round_id, hole_no) DO UPDATE SET par = excluded.par, strokes = excluded.strokes, putts = excluded.putts,
+       tee_shot = excluded.tee_shot, ob_count = excluded.ob_count, penalty_count = excluded.penalty_count, bunker = excluded.bunker`,
+    [round.id, currentHole, par, strokes, putts, teeShot, ob, penalty, bunker]
+  );
+
+  if (pars[currentHole - 1] !== par) {
+    pars[currentHole - 1] = par;
+    run(`UPDATE rounds SET pars = ?, updated_at = datetime('now') WHERE id = ?`, [JSON.stringify(pars), round.id]);
+    rememberCourse(userId, round.course_name, round.holes, pars);
+  }
+  return currentHole;
+}
+
+async function handleSaveHole(ctx) {
+  const round = loadOwnedRound(ctx);
+  if (!round || round.entry_mode !== 'hole') return roundNotFound(ctx);
+  const { fields } = await parseRequestBody(ctx.req);
+  const currentHole = saveHoleFromFields(ctx.user.id, round, fields);
+  const targetHole = Math.max(1, Math.min(round.holes, parseInt(ctx.params.n, 10) || currentHole));
+  redirect(ctx.res, `/rounds/${round.id}/holes/${targetHole}`);
+}
+
+function handleTotalEntryPage(ctx) {
+  const round = loadOwnedRound(ctx);
+  if (!round || round.entry_mode !== 'total') return roundNotFound(ctx);
+  sendHtml(ctx.res, 200, totalEntryPage({ user: ctx.user, flash: ctx.flash, round }), [clearFlashCookie()]);
+}
+
+function toIntOrNull(v) {
+  if (v === undefined || v === null || v === '') return null;
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) ? n : null;
+}
+
+async function handleSaveTotalEntry(ctx) {
+  const round = loadOwnedRound(ctx);
+  if (!round || round.entry_mode !== 'total') return roundNotFound(ctx);
+
+  let fields, files;
+  try {
+    ({ fields, files } = await parseRequestBody(ctx.req, { maxBytes: MAX_PHOTO_BYTES }));
+  } catch (err) {
+    if (err.code === 'BODY_TOO_LARGE') {
+      return sendHtml(
+        ctx.res,
+        400,
+        totalEntryPage({ user: ctx.user, flash: { type: 'error', message: '写真のサイズが大きすぎます(上限15MB)。' }, round }),
+        []
+      );
+    }
+    throw err;
+  }
+
+  const totalScore = toIntOrNull(fields.total_score);
+  if (totalScore === null) {
+    return sendHtml(
+      ctx.res,
+      400,
+      totalEntryPage({ user: ctx.user, flash: { type: 'error', message: 'スコアを入力してください。' }, round, values: fields })
+    );
+  }
+
+  let photoFilename = round.photo_filename;
+  const photo = (files || []).find((f) => f.fieldName === 'photo');
+  if (photo && photo.mimeType.startsWith('image/')) {
+    photoFilename = saveVideoFile(photo);
+  }
+
+  run(
+    `UPDATE rounds SET total_score = ?, putts_total = ?, fw_keep_count = ?, gir_count = ?, three_putt_count = ?,
+       ob_total = ?, penalty_total = ?, bunker_count = ?, bunker_save_count = ?, driver_avg_yards = ?,
+       notes = ?, photo_filename = ?, status = 'complete', updated_at = datetime('now')
+     WHERE id = ?`,
+    [
+      totalScore,
+      toIntOrNull(fields.putts_total),
+      toIntOrNull(fields.fw_keep_count),
+      toIntOrNull(fields.gir_count),
+      toIntOrNull(fields.three_putt_count),
+      toIntOrNull(fields.ob_total),
+      toIntOrNull(fields.penalty_total),
+      toIntOrNull(fields.bunker_count),
+      toIntOrNull(fields.bunker_save_count),
+      toIntOrNull(fields.driver_avg_yards),
+      (fields.notes || '').trim() || null,
+      photoFilename,
+      round.id,
+    ]
+  );
+  redirect(ctx.res, `/rounds/${round.id}`, [encodeFlash('success', 'ラウンド記録を保存しました。')]);
+}
+
+// The last hole's fields arrive with this request same as any other
+// save-and-navigate action, so persist them before marking the round complete.
+async function handleFinishRound(ctx) {
+  const round = loadOwnedRound(ctx);
+  if (!round || round.entry_mode !== 'hole') return roundNotFound(ctx);
+  const { fields } = await parseRequestBody(ctx.req);
+  saveHoleFromFields(ctx.user.id, round, fields);
+
+  run(`UPDATE rounds SET status = 'complete', updated_at = datetime('now') WHERE id = ?`, [round.id]);
+  syncRoundTotalsFromHoles(round);
+  redirect(ctx.res, `/rounds/${round.id}`, [encodeFlash('success', 'お疲れさまでした。ラウンドを記録しました。')]);
+}
+
+function handleAnalysisPage(ctx) {
+  const { entries, combined, abilityScores, growth } = buildRoundAnalysis(ctx.user.id);
+  const recentRounds = entries.slice(0, 10).reverse().map((e) => ({
+    round: { playDate: e.round.play_date, courseName: e.round.course_name, holesPlayed: e.round.holes },
+    aggregate: e.aggregate,
+  }));
+  sendHtml(
+    ctx.res,
+    200,
+    analysisPage({ user: ctx.user, flash: ctx.flash, combined, abilityScores, growth, recentRounds }),
+    [clearFlashCookie()]
+  );
+}
+
+async function runRoundCoachAi(userId, studentName) {
+  const { combined, abilityScores, growth } = buildRoundAnalysis(userId);
+  if (!combined) {
+    return { ok: false, message: 'ラウンドを記録すると分析できます。' };
+  }
+  const recentNotes = all(`SELECT notes FROM rounds WHERE user_id = ? AND status = 'complete' AND notes IS NOT NULL ORDER BY play_date DESC LIMIT 3`, [
+    userId,
+  ]).map((r) => r.notes);
+
+  if (!isAiConfigured()) {
+    return { ok: true, analysis: buildFallbackRoundAnalysis({ combined, abilityScores, growth }), aiUsed: false };
+  }
+  try {
+    const analysis = await analyzeRoundPerformance({ studentName, combined, abilityScores, growth, recentNotes });
+    return { ok: true, analysis, aiUsed: true };
+  } catch (err) {
+    console.error('Round coach AI failed:', err.message);
+    return { ok: true, analysis: buildFallbackRoundAnalysis({ combined, abilityScores, growth }), aiUsed: false };
+  }
+}
+
+async function handleRoundCoachAi(ctx) {
+  const result = await runRoundCoachAi(ctx.user.id, ctx.user.name);
+  sendJson(ctx.res, 200, result);
+}
+
+function handleAdminRoundDetail(ctx) {
+  const student = get(`SELECT * FROM users WHERE id = ? AND role = 'student'`, [ctx.params.id]);
+  if (!student) return roundNotFound(ctx);
+  const round = get(`SELECT * FROM rounds WHERE id = ? AND user_id = ?`, [ctx.params.roundId, student.id]);
+  if (!round) return roundNotFound(ctx);
+  const pars = JSON.parse(round.pars);
+  const holes = round.entry_mode === 'hole' ? all(`SELECT * FROM round_holes WHERE round_id = ? ORDER BY hole_no`, [round.id]) : [];
+  const aggregate = aggregateRound({ ...round, pars }, holes);
+  const comments = all(
+    `SELECT rc.*, u.name AS author_name FROM round_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.round_id = ? ORDER BY rc.id`,
+    [round.id]
+  );
+  sendHtml(
+    ctx.res,
+    200,
+    roundDetailPage({
+      user: ctx.user,
+      flash: ctx.flash,
+      round,
+      aggregate,
+      comments,
+      readOnly: true,
+      backHref: `/admin/students/${student.id}`,
+    }),
+    [clearFlashCookie()]
+  );
+}
+
+async function handleAdminRoundComment(ctx) {
+  const student = get(`SELECT * FROM users WHERE id = ? AND role = 'student'`, [ctx.params.id]);
+  if (!student) return roundNotFound(ctx);
+  const round = get(`SELECT * FROM rounds WHERE id = ? AND user_id = ?`, [ctx.params.roundId, student.id]);
+  if (!round) return roundNotFound(ctx);
+  const { fields } = await parseRequestBody(ctx.req);
+  const body = (fields.body || '').trim();
+  if (body) {
+    run(`INSERT INTO round_comments (round_id, author_id, body) VALUES (?, ?, ?)`, [round.id, ctx.user.id, body]);
+  }
+  redirect(ctx.res, `/admin/students/${student.id}/rounds/${round.id}`, [encodeFlash('success', 'コメントを投稿しました。')]);
+}
+
+async function handleAdminRoundCoachAi(ctx) {
+  const student = get(`SELECT * FROM users WHERE id = ? AND role = 'student'`, [ctx.params.id]);
+  if (!student) return sendJson(ctx.res, 404, { ok: false, message: '生徒が見つかりません。' });
+  const result = await runRoundCoachAi(student.id, student.name);
+  sendJson(ctx.res, 200, result);
 }
 
 function handleNewGoalPage(ctx) {
@@ -872,9 +1288,11 @@ async function handleAiSuggest(ctx) {
     `SELECT * FROM lesson_records WHERE user_id = ? ORDER BY record_date DESC, id DESC LIMIT 8`,
     [ctx.user.id]
   );
-  const rounds = all(`SELECT * FROM round_records WHERE user_id = ? ORDER BY round_date DESC, id DESC LIMIT 5`, [
-    ctx.user.id,
-  ]);
+  const rounds = all(
+    `SELECT play_date AS round_date, course_name, total_score AS score, notes AS issues
+     FROM rounds WHERE user_id = ? AND status = 'complete' ORDER BY play_date DESC, id DESC LIMIT 5`,
+    [ctx.user.id]
+  );
   try {
     const suggestion = await suggestPractice({ studentName: ctx.user.name, records, rounds });
     sendJson(ctx.res, 200, { ok: true, suggestion });
@@ -959,7 +1377,10 @@ function handleExportData(ctx) {
     studio_name: brand.studioName,
     users: all(`SELECT id, name, email, furigana, role, created_at FROM users ORDER BY id`),
     lesson_records: all(`SELECT * FROM lesson_records ORDER BY id`),
-    round_records: all(`SELECT * FROM round_records ORDER BY id`),
+    rounds: all(`SELECT * FROM rounds ORDER BY id`),
+    round_holes: all(`SELECT * FROM round_holes ORDER BY id`),
+    round_comments: all(`SELECT * FROM round_comments ORDER BY id`),
+    courses: all(`SELECT * FROM courses ORDER BY id`),
     goals: all(`SELECT * FROM goals ORDER BY id`),
     videos: all(`SELECT id, lesson_record_id, filename, original_name, mime_type, size_bytes, created_at FROM videos ORDER BY id`),
     library_videos: all(
@@ -1018,10 +1439,16 @@ function handleStudentList(ctx) {
   const students = all(
     `SELECT u.id, u.name, u.email, u.furigana, u.is_suspended,
             (SELECT COUNT(*) FROM lesson_records lr WHERE lr.user_id = u.id) AS record_count,
-            (SELECT MAX(record_date) FROM lesson_records lr WHERE lr.user_id = u.id) AS last_date
+            (SELECT MAX(record_date) FROM lesson_records lr WHERE lr.user_id = u.id) AS last_date,
+            (SELECT MAX(play_date) FROM rounds r WHERE r.user_id = u.id AND r.status = 'complete') AS last_round_date
      FROM users u WHERE u.role = 'student' ${where} ORDER BY u.name`,
     params
   );
+  for (const s of students) {
+    const { combined, growth } = buildRoundAnalysis(s.id);
+    s.avgScore = combined ? combined.avgScorePer18 : null;
+    s.topGrowthLabel = growth.items.length ? growth.items[0].label : null;
+  }
   let usage = null;
   if (ctx.user.is_owner) {
     const rawUsage = getStorageUsage();
@@ -1052,14 +1479,13 @@ function handleStudentDetail(ctx) {
     `SELECT * FROM lesson_records WHERE user_id = ? AND record_type = 'self_practice' ORDER BY record_date DESC, id DESC`,
     [student.id]
   );
-  const rounds = all(`SELECT * FROM round_records WHERE user_id = ? ORDER BY round_date DESC, id DESC`, [
-    student.id,
-  ]);
+  const rounds = all(`SELECT * FROM rounds WHERE user_id = ? ORDER BY play_date DESC, id DESC`, [student.id]);
+  const analysis = buildRoundAnalysis(student.id);
   const goal = getActiveGoal(student.id);
   sendHtml(
     ctx.res,
     200,
-    studentDetailPage({ user: ctx.user, flash: ctx.flash, student, records, practiceRecords, rounds, goal }),
+    studentDetailPage({ user: ctx.user, flash: ctx.flash, student, records, practiceRecords, rounds, analysis, goal }),
     [clearFlashCookie()]
   );
 }
@@ -1118,8 +1544,11 @@ function handleDeleteStudent(ctx) {
     `SELECT v.filename FROM videos v JOIN lesson_records lr ON lr.id = v.lesson_record_id WHERE lr.user_id = ?`,
     [student.id]
   );
-  for (const v of videos) {
-    const filePath = join(UPLOADS_DIR, v.filename);
+  const roundPhotos = all(`SELECT photo_filename FROM rounds WHERE user_id = ? AND photo_filename IS NOT NULL`, [
+    student.id,
+  ]);
+  for (const f of [...videos, ...roundPhotos.map((r) => ({ filename: r.photo_filename }))]) {
+    const filePath = join(UPLOADS_DIR, f.filename);
     if (existsSync(filePath)) unlinkSync(filePath);
   }
   run(`DELETE FROM users WHERE id = ?`, [student.id]);

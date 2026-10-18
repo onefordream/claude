@@ -1,5 +1,4 @@
 import { layout, escapeHtml, nl2br, icon } from './layout.js';
-import { renderScoreChart } from './chart.js';
 import { jstToday, addDays } from '../lib/date.js';
 
 function fmtDate(d) {
@@ -416,75 +415,6 @@ export function recordDetailPage({ user, flash, record, videos, readOnly = false
       <div class="card">
         <h3>添付動画</h3>
         <div class="video-grid">${videosHtml}</div>
-      </div>
-    `,
-  });
-}
-
-export function roundsPage({ user, flash, rounds, stats, values = {} }) {
-  const today = jstToday();
-  const rows = rounds.length
-    ? rounds
-        .map(
-          (r) => `
-      <li class="list-item round-item">
-        <span class="list-date">${fmtDate(r.round_date)}</span>
-        <span class="list-title">${escapeHtml(r.course_name)}${r.score ? ' / スコア ' + r.score : ''}${r.putts ? ' / パット ' + r.putts : ''}</span>
-        ${r.issues ? `<div class="round-issues">課題: ${escapeHtml(r.issues)}</div>` : ''}
-        ${r.notes ? `<div class="round-notes">${nl2br(r.notes)}</div>` : ''}
-      </li>`
-        )
-        .join('')
-    : `<li class="empty">まだラウンド記録がありません。</li>`;
-
-  return layout({
-    title: 'ラウンド記録',
-    user,
-    active: 'rounds',
-    flash,
-    body: `
-      <h1>ラウンド記録</h1>
-
-      <div class="stat-row">
-        <div class="stat-card"><div class="stat-num">${stats.bestScore ?? '-'}</div><div class="stat-label">ベストスコア</div></div>
-        <div class="stat-card"><div class="stat-num">${stats.yearAvgScore ?? '-'}</div><div class="stat-label">今年の平均スコア</div></div>
-        <div class="stat-card"><div class="stat-num">${stats.avgPutts ?? '-'}</div><div class="stat-label">平均パット数</div></div>
-      </div>
-
-      <div class="card">
-        <h2>スコア推移</h2>
-        ${renderScoreChart(rounds)}
-      </div>
-
-      <div class="card">
-        <h2>ラウンドを記録する</h2>
-        <form method="post" action="/rounds" class="form">
-          <div class="form-row">
-            <label>日付
-              <input type="date" name="round_date" required value="${escapeHtml(values.round_date || today)}">
-            </label>
-            <label>コース名
-              <input type="text" name="course_name" required value="${escapeHtml(values.course_name || '')}">
-            </label>
-            <label>スコア
-              <input type="number" name="score" min="18" max="200" value="${escapeHtml(values.score || '')}">
-            </label>
-            <label>パター数
-              <input type="number" name="putts" min="0" max="99" value="${escapeHtml(values.putts || '')}">
-            </label>
-          </div>
-          <label>気づいた課題（任意）
-            <input type="text" name="issues" placeholder="例）ドライバーの左へのミスが多かった" value="${escapeHtml(values.issues || '')}">
-          </label>
-          <label>メモ（任意）
-            <textarea name="notes" rows="3">${escapeHtml(values.notes || '')}</textarea>
-          </label>
-          <button type="submit" class="btn btn-primary">保存する</button>
-        </form>
-      </div>
-      <div class="card">
-        <h2>ラウンド履歴</h2>
-        <ul class="list">${rows}</ul>
       </div>
     `,
   });

@@ -62,6 +62,64 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS courses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    holes INTEGER NOT NULL,
+    pars TEXT NOT NULL,
+    last_used_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(user_id, name)
+  );
+
+  CREATE TABLE IF NOT EXISTS rounds (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    play_date TEXT NOT NULL,
+    course_name TEXT NOT NULL,
+    holes INTEGER NOT NULL CHECK (holes IN (9, 18)),
+    pars TEXT NOT NULL,
+    entry_mode TEXT NOT NULL CHECK (entry_mode IN ('hole', 'total')),
+    status TEXT NOT NULL DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'complete')),
+    driver_avg_yards INTEGER,
+    notes TEXT,
+    photo_filename TEXT,
+    total_score INTEGER,
+    putts_total INTEGER,
+    fw_keep_count INTEGER,
+    gir_count INTEGER,
+    three_putt_count INTEGER,
+    ob_total INTEGER,
+    penalty_total INTEGER,
+    bunker_count INTEGER,
+    bunker_save_count INTEGER,
+    migrated_from_round_record_id INTEGER,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS round_holes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    round_id INTEGER NOT NULL REFERENCES rounds(id) ON DELETE CASCADE,
+    hole_no INTEGER NOT NULL,
+    par INTEGER NOT NULL,
+    strokes INTEGER,
+    putts INTEGER,
+    tee_shot TEXT CHECK (tee_shot IN ('fw', 'left', 'right') OR tee_shot IS NULL),
+    ob_count INTEGER NOT NULL DEFAULT 0,
+    penalty_count INTEGER NOT NULL DEFAULT 0,
+    bunker INTEGER NOT NULL DEFAULT 0,
+    UNIQUE(round_id, hole_no)
+  );
+
+  CREATE TABLE IF NOT EXISTS round_comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    round_id INTEGER NOT NULL REFERENCES rounds(id) ON DELETE CASCADE,
+    author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    body TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS sessions (
     token TEXT PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -95,6 +153,10 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_round_records_user ON round_records(user_id, round_date);
   CREATE INDEX IF NOT EXISTS idx_videos_record ON videos(lesson_record_id);
   CREATE INDEX IF NOT EXISTS idx_goals_user ON goals(user_id, status);
+  CREATE INDEX IF NOT EXISTS idx_courses_user ON courses(user_id);
+  CREATE INDEX IF NOT EXISTS idx_rounds_user ON rounds(user_id, play_date);
+  CREATE INDEX IF NOT EXISTS idx_round_holes_round ON round_holes(round_id);
+  CREATE INDEX IF NOT EXISTS idx_round_comments_round ON round_comments(round_id);
 `);
 
 // Additive migrations for columns introduced after the initial release.
@@ -114,6 +176,34 @@ ensureColumn('round_records', 'putts', 'INTEGER');
 ensureColumn('users', 'furigana', 'TEXT');
 ensureColumn('users', 'is_owner', 'INTEGER NOT NULL DEFAULT 0');
 ensureColumn('users', 'is_suspended', 'INTEGER NOT NULL DEFAULT 0');
+
+// One-time migration: the old simple round form (round_records: course name,
+// score, putts only) is replaced by the full rounds/round_holes feature.
+// Existing entries are carried over as 'total' mode rounds with everything
+// beyond score/putts left null ("no data"), so they keep showing up in the
+// student's round history and in analysis instead of disappearing. Runs on
+// every boot but is idempotent via migrated_from_round_record_id.
+function migrateLegacyRoundRecords() {
+  const legacyRows = db.prepare(`SELECT * FROM round_records`).all();
+  if (!legacyRows.length) return;
+  const migratedIds = new Set(
+    db
+      .prepare(`SELECT migrated_from_round_record_id AS id FROM rounds WHERE migrated_from_round_record_id IS NOT NULL`)
+      .all()
+      .map((r) => r.id)
+  );
+  const defaultPars18 = [4, 4, 3, 5, 4, 4, 3, 4, 5, 4, 4, 3, 5, 4, 4, 3, 4, 5];
+  const insert = db.prepare(`
+    INSERT INTO rounds (user_id, play_date, course_name, holes, pars, entry_mode, status, notes, total_score, putts_total, migrated_from_round_record_id)
+    VALUES (?, ?, ?, 18, ?, 'total', 'complete', ?, ?, ?, ?)
+  `);
+  for (const row of legacyRows) {
+    if (migratedIds.has(row.id)) continue;
+    const notes = [row.issues ? `課題: ${row.issues}` : null, row.notes || null].filter(Boolean).join('\n') || null;
+    insert.run(row.user_id, row.round_date, row.course_name, JSON.stringify(defaultPars18), notes, row.score, row.putts, row.id);
+  }
+}
+migrateLegacyRoundRecords();
 
 export function run(sql, params = []) {
   const stmt = db.prepare(sql);

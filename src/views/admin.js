@@ -1,5 +1,7 @@
 import { layout, escapeHtml, nl2br, icon } from './layout.js';
 import { goalCard } from './student.js';
+import { renderAbilityRadar } from './chart.js';
+import { SCORE_BAND_LABELS, scoreBandForAverage } from '../lib/golfStats.js';
 
 function usageSummary({ studentCount, videoTotal, dataDirConfigured, diskFree, diskUsedPercent }) {
   const diskWarning = diskUsedPercent !== null && diskUsedPercent >= 85;
@@ -90,6 +92,9 @@ export function studentListPage({ user, flash, students, q = '', usage = null })
           ${s.is_suspended ? '<span class="badge badge-warn">停止中</span>' : ''}
           <span class="badge">記録 ${s.record_count}件</span>
           <span class="list-date">${s.last_date ? '最終: ' + s.last_date : '記録なし'}</span>
+          ${s.avgScore !== null ? `<span class="badge">平均 ${s.avgScore}</span>` : ''}
+          ${s.last_round_date ? `<span class="muted">最新ラウンド: ${s.last_round_date}</span>` : ''}
+          ${s.topGrowthLabel ? `<span class="badge badge-warn">伸びしろ: ${escapeHtml(s.topGrowthLabel)}</span>` : ''}
         </a>
       </li>`
         )
@@ -118,7 +123,7 @@ export function studentListPage({ user, flash, students, q = '', usage = null })
   });
 }
 
-export function studentDetailPage({ user, flash, student, records, practiceRecords, rounds, goal }) {
+export function studentDetailPage({ user, flash, student, records, practiceRecords, rounds, analysis, goal }) {
   const isOwner = Boolean(user.is_owner);
   const recordsHtml = records.length
     ? records
@@ -154,13 +159,39 @@ export function studentDetailPage({ user, flash, student, records, practiceRecor
         .map(
           (r) => `
       <li class="list-item round-item">
-        <span class="list-date">${r.round_date}</span>
-        <span class="list-title">${escapeHtml(r.course_name)}${r.score ? ' / スコア ' + r.score : ''}${r.putts ? ' / パット ' + r.putts : ''}</span>
-        ${r.issues ? `<div class="round-issues">課題: ${escapeHtml(r.issues)}</div>` : ''}
+        <a href="/admin/students/${student.id}/rounds/${r.id}">
+          <span class="list-date">${r.play_date}</span>
+          <span class="list-title">${escapeHtml(r.course_name)}${r.total_score ? ' / スコア ' + r.total_score : ''}</span>
+          ${r.status === 'in_progress' ? '<span class="badge badge-warn">入力中</span>' : ''}
+        </a>
       </li>`
         )
         .join('')
     : `<li class="empty">まだラウンド記録がありません。</li>`;
+
+  const { combined, abilityScores, growth } = analysis;
+  const analysisHtml = combined
+    ? `
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-num">${combined.avgScorePer18}</div><div class="stat-label">平均スコア(18H換算)</div></div>
+        <div class="stat-card"><div class="stat-num">${combined.bestScore18 ?? '-'}</div><div class="stat-label">ベストスコア</div></div>
+        <div class="stat-card"><div class="stat-num">${SCORE_BAND_LABELS[scoreBandForAverage(combined.avgScorePer18)]}</div><div class="stat-label">現在のスコア帯</div></div>
+      </div>
+      ${abilityScores.length ? renderAbilityRadar(abilityScores) : ''}
+      ${
+        growth.items.length
+          ? `
+      <ul class="growth-list">
+        ${growth.items
+          .slice(0, 3)
+          .map((g, i) => `<li class="growth-item"><span class="growth-rank">${i + 1}</span><span class="growth-label">${escapeHtml(g.label)}</span><span class="growth-gain">約${g.gain}打</span></li>`)
+          .join('')}
+      </ul>
+      <p class="muted">合計で約${growth.totalGain}打縮まる見込みです。</p>`
+          : `<p class="muted">目標の水準に届いている項目が多く、大きな伸びしろは見つかりませんでした。</p>`
+      }
+    `
+    : `<p class="muted">まだ完了したラウンドがありません。</p>`;
 
   return layout({
     title: `${student.name}さんの記録`,
@@ -213,6 +244,20 @@ export function studentDetailPage({ user, flash, student, records, practiceRecor
       <div class="card">
         <h2>ラウンド記録</h2>
         <ul class="list">${roundsHtml}</ul>
+      </div>
+
+      <div class="card">
+        <h2>ラウンド分析</h2>
+        ${analysisHtml}
+        ${
+          combined
+            ? `
+        <div class="ai-coach-card">
+          <button id="ask-round-ai-btn" class="btn btn-secondary" data-endpoint="/admin/students/${student.id}/round-coach">AIコーチの分析を見る</button>
+          <div id="round-ai-result" class="ai-result" hidden></div>
+        </div>`
+            : ''
+        }
       </div>
     `,
   });
