@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI成長ノート 営業支援システム</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<header class="topbar">
+  <h1>AI成長ノート 営業支援システム</h1>
+  <nav>
+    <button data-view="dashboard" class="nav-btn active">ダッシュボード</button>
+    <button data-view="prospects" class="nav-btn">店舗/リサーチリスト</button>
+    <button data-view="templates" class="nav-btn">テンプレート</button>
+    <button data-view="campaigns" class="nav-btn">一括送信</button>
+    <button data-view="settings" class="nav-btn">設定</button>
+  </nav>
+</header>
+
+<main id="app"></main>
+
+<div id="toast" class="toast hidden"></div>
+
+<script src="js/api.js"></script>
+<script src="js/views/dashboard.js"></script>
+<script src="js/views/prospects.js"></script>
+<script src="js/views/templates.js"></script>
+<script src="js/views/campaigns.js"></script>
+<script src="js/views/settings.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
