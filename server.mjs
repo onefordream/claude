@@ -32,7 +32,7 @@ import { renderNews } from "./src/templates/pages/news.mjs";
 import { renderNotFound } from "./src/templates/pages/not-found.mjs";
 import { renderAdminEntries, renderEntriesCsv } from "./src/templates/pages/admin-entries.mjs";
 import { renderAdminContacts } from "./src/templates/pages/admin-contacts.mjs";
-import { getCapacityStatus, submitEntry, submitContact, readEntries, readContacts, deleteEntry } from "./src/lib/store.mjs";
+import { getCapacityStatus, submitEntry, submitContact, readEntries, readContacts, deleteEntry, promoteWaitlistedToCapacity } from "./src/lib/store.mjs";
 import { sendAutoReply, sendBroadcast } from "./src/lib/mail-hook.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -408,3 +408,9 @@ server.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`SHADOW LADIES PRO-AM site running: http://localhost:${PORT}`);
 });
+
+// 起動時に、定員増などで空いた枠があればキャンセル待ちを自動繰り上げし、
+// 対象者に通知メールを送る（空きがなければ何もしない）。
+for (const entry of promoteWaitlistedToCapacity()) {
+  sendAutoReply({ to: entry.email, kind: "entry-promoted", payload: entry }).catch(() => {});
+}

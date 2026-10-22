@@ -2,9 +2,9 @@ import { site } from "../../data/site.mjs";
 import { esc } from "../../lib/render.mjs";
 
 const HIGHLIGHTS = [
-  { num: site.capacity.pro, suffix: "", label: "PRO GOLFERS", labelJa: "女子プロ40名" },
-  { num: site.capacity.amateur, suffix: "", label: "AMATEURS", labelJa: "アマチュア120名" },
-  { num: site.capacity.total, suffix: "", label: "PLAYERS", labelJa: "総勢160名" },
+  { num: site.capacity.pro, suffix: "", label: "PRO GOLFERS", labelJa: "女子プロ44名" },
+  { num: site.capacity.amateur, suffix: "", label: "AMATEURS", labelJa: "アマチュア132名" },
+  { num: site.capacity.total, suffix: "", label: "PLAYERS", labelJa: "総勢176名" },
 ];
 
 export function renderHighlights() {

@@ -39,10 +39,10 @@ export const site = {
 
   // --- 大会規模 ---------------------------------------------------------
   capacity: {
-    pro: 40,
-    amateur: 120,
-    total: 160,
-    flightsPlanned: 40,
+    pro: 44,
+    amateur: 132,
+    total: 176,
+    flightsPlanned: 44,
     groupFormula: "1組＝女子プロ1名＋アマチュア3名（原則）",
   },
 
@@ -86,7 +86,7 @@ export const site = {
   seo: {
     title: "第2回 SHADOW LADIES PRO-AM TOURNAMENT｜女子プロと夢の18ホール",
     description:
-      "2026年12月3日（木）、デイリー信楽カントリー倶楽部にて開催。女子プロ40名・アマチュア120名が参加するSHADOW LADIES PRO-AM TOURNAMENT。",
+      "2026年12月3日（木）、デイリー信楽カントリー倶楽部にて開催。女子プロ44名・アマチュア132名が参加するSHADOW LADIES PRO-AM TOURNAMENT。",
     siteUrl: "https://shadowladies-proam.jp",
     ogImage: "/images/og-image.png",
     locale: "ja_JP",

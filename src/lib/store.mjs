@@ -40,7 +40,7 @@ function writeJson(file, data) {
 
 // --- Entries -----------------------------------------------------------
 
-export const CAPACITY = { pro: 40, amateur: 120 };
+export const CAPACITY = { pro: 44, amateur: 132 };
 export const ENTRY_DEADLINE = "2026-11-30";
 
 export function readEntries() {
@@ -124,6 +124,32 @@ export function deleteEntry(id) {
 
   writeJson(ENTRIES_FILE, entries);
   return { ok: true, removed, promoted };
+}
+
+/**
+ * 定員が増えた場合などに、空いた枠までキャンセル待ちを自動で繰り上げる。
+ * 既に定員まで埋まっている区分には何もしない（冪等）。
+ * @returns {Array} 今回繰り上がったエントリーの配列
+ */
+export function promoteWaitlistedToCapacity() {
+  const entries = readEntries();
+  const promoted = [];
+
+  for (const category of ["pro", "amateur"]) {
+    let confirmed = entries.filter((e) => e.category === category && e.status === "confirmed").length;
+    const capacity = CAPACITY[category];
+
+    while (confirmed < capacity) {
+      const waitIdx = entries.findIndex((e) => e.category === category && e.status === "waitlist");
+      if (waitIdx === -1) break;
+      entries[waitIdx] = { ...entries[waitIdx], status: "confirmed" };
+      promoted.push(entries[waitIdx]);
+      confirmed += 1;
+    }
+  }
+
+  if (promoted.length) writeJson(ENTRIES_FILE, entries);
+  return promoted;
 }
 
 // --- Contacts ------------------------------------------------------------

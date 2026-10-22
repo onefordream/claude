@@ -13,6 +13,7 @@ export function renderAccess() {
         <div><dt>会場</dt><dd>${esc(site.venue.name)}</dd></div>
         <div><dt>住所</dt><dd>${site.venue.address ? esc(site.venue.address) : esc(site.venue.addressNote)}</dd></div>
       </dl>
+      <p class="access__note">甲賀コース・伊賀コースの36ホール</p>
 
       ${
         site.venue.mapUrl
