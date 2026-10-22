@@ -11,6 +11,15 @@ if (!process.env.ADMIN_PASSWORD) {
 }
 
 const app = express();
+
+// Unauthenticated health check for hosting platforms (e.g. Render) — must
+// stay above basicAuth so the platform's health probe isn't blocked by 401s.
+app.use((req, res, next) => {
+  const pathname = req.url.split('?')[0];
+  if (pathname === '/healthz') return res.status(200).send('ok');
+  next();
+});
+
 app.use(express.json({ limit: '2mb' }));
 app.use(basicAuth);
 

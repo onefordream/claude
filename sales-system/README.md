@@ -53,6 +53,26 @@ npm start
 `http://localhost:3000` にブラウザでアクセスし、`.env` で設定したユーザー名/パスワードでログインします
 （Basic認証）。
 
+## スマホ・外出先からのアクセス（Renderへのデプロイ）
+
+ローカルPCで起動しているだけだと、同じWi-Fi内のスマホからしかアクセスできません。外出先（訪問中の
+ゴルフスクールなど）からも使いたい場合は、ネット上にデプロイして公開URL（HTTPS）を発行する必要が
+あります。リポジトリ直下に [Render](https://render.com) 向けの `render.yaml`（Blueprint）を用意しています。
+
+1. [Render](https://render.com) にサインアップし、GitHubアカウントを連携する。
+2. Renderのダッシュボードで「New +」→「Blueprint」を選び、このリポジトリを選択する。
+   `render.yaml` の内容が自動で読み込まれ、`golf-sales-system` というWebサービスが作成されます。
+3. デプロイ前に、環境変数 `ADMIN_PASSWORD` を推測されにくい値で設定する（`render.yaml` では
+   `sync: false` にしているため、Renderの画面上で入力が必要です）。
+4. デプロイが完了すると `https://golf-sales-system-xxxx.onrender.com` のようなURLが発行されます。
+   これをスマホのブラウザで開けば、Wi-Fi/モバイル回線を問わずどこからでもアクセスできます。
+
+店舗データ（SQLite）はRenderの永続ディスク（`/data`、1GB）に保存されるため、再デプロイや再起動で
+消えません。永続ディスクは有料プラン（`render.yaml` では `starter`）でのみ利用できる機能です。
+料金は変動するため、デプロイ前にRenderの料金ページで最新情報を確認してください。
+
+デプロイ後にメール送信を使う場合は、ローカル版と同様に管理画面の「設定」からSMTP情報を入力してください。
+
 ## メール送信の設定
 
 起動後、画面右上の「設定」からSMTP情報を入力してください（Gmail・SendGrid等、お使いのSMTPサーバーに対応）。
