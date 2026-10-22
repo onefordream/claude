@@ -308,6 +308,7 @@ export const players = [
     nameKana: "まつい ひな",
     nameRomaji: "Matsui Hina",
     instagram: "https://www.instagram.com/hinagolf54?vrfl=MTdhc2c4ejIxbjRybg==",
+    photo: "/images/players/matsui-hina.webp",
   },
   {
     id: "player-33",
