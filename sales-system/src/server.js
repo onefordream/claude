@@ -24,6 +24,7 @@ app.use(express.json({ limit: '2mb' }));
 app.use(basicAuth);
 
 app.use('/api/prospects', require('./routes/prospects'));
+app.use('/api/research', require('./routes/research'));
 app.use('/api/templates', require('./routes/templates'));
 app.use('/api/campaigns', require('./routes/campaigns'));
 app.use('/api/settings', require('./routes/settings'));

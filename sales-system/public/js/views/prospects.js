@@ -10,6 +10,15 @@ window.ProspectsView = (() => {
     state.container = container;
     container.innerHTML = `
       <div class="panel">
+        <h2>自動リサーチ (Google Places)</h2>
+        <p class="help-text">「ゴルフスクール 大阪市」のように地域×業種で検索すると、店名・住所・電話・Webサイトの候補が見つかります。使うには「設定」でAPIキーの登録が必要です。</p>
+        <div class="toolbar">
+          <input type="text" id="research-q" placeholder="例: ゴルフスクール 大阪市" style="flex:1; min-width:240px;" />
+          <button class="secondary" id="btn-research-search">検索</button>
+        </div>
+        <div id="research-results"></div>
+      </div>
+      <div class="panel">
         <div class="flex-between">
           <h2>店舗 / リサーチリスト</h2>
           <div>
@@ -36,6 +45,10 @@ window.ProspectsView = (() => {
       <div id="detail-box"></div>
     `;
 
+    container.querySelector('#btn-research-search').addEventListener('click', doResearchSearch);
+    container.querySelector('#research-q').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doResearchSearch();
+    });
     container.querySelector('#btn-new').addEventListener('click', () => showForm());
     container.querySelector('#btn-import-toggle').addEventListener('click', () => {
       const box = container.querySelector('#import-box');
@@ -93,6 +106,64 @@ window.ProspectsView = (() => {
     box.querySelectorAll('tr[data-id]').forEach((tr) => {
       tr.addEventListener('click', () => openDetail(Number(tr.dataset.id)));
     });
+  }
+
+  async function doResearchSearch() {
+    const query = state.container.querySelector('#research-q').value.trim();
+    if (!query) return toast('検索キーワードを入力してください', true);
+    const box = state.container.querySelector('#research-results');
+    box.innerHTML = '<p class="muted">検索中...</p>';
+    try {
+      const data = await api.get(`/api/research/search?query=${encodeURIComponent(query)}`);
+      if (data.results.length === 0) {
+        box.innerHTML = '<p class="muted">見つかりませんでした</p>';
+        return;
+      }
+      box.innerHTML = `
+        <div class="toolbar">
+          <button class="secondary" id="btn-research-select-all">全選択</button>
+          <button class="secondary" id="btn-research-select-none">選択解除</button>
+          <button class="primary" id="btn-research-import">選択した候補をリストに追加</button>
+        </div>
+        <table>
+          <thead><tr><th></th><th>店舗名</th><th>住所</th><th>電話</th><th>Webサイト</th></tr></thead>
+          <tbody>
+            ${data.results.map((r, i) => `
+              <tr>
+                <td><input type="checkbox" class="research-pick" data-idx="${i}" checked /></td>
+                <td>${escapeHtml(r.name)}</td>
+                <td>${escapeHtml(r.address)}</td>
+                <td>${escapeHtml(r.phone)}</td>
+                <td>${r.website ? `<a href="${escapeHtml(r.website)}" target="_blank" rel="noopener noreferrer">サイト</a>` : ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      const checkboxes = box.querySelectorAll('.research-pick');
+      box.querySelector('#btn-research-select-all').addEventListener('click', () => {
+        checkboxes.forEach((cb) => { cb.checked = true; });
+      });
+      box.querySelector('#btn-research-select-none').addEventListener('click', () => {
+        checkboxes.forEach((cb) => { cb.checked = false; });
+      });
+      box.querySelector('#btn-research-import').addEventListener('click', async () => {
+        const picked = [...checkboxes].filter((cb) => cb.checked).map((cb) => data.results[Number(cb.dataset.idx)]);
+        if (picked.length === 0) return toast('候補を選択してください', true);
+        try {
+          const result = await api.post('/api/research/import', { places: picked });
+          toast(`${result.imported}件をリサーチリストに追加しました`);
+          box.innerHTML = '';
+          state.container.querySelector('#research-q').value = '';
+          await loadList();
+        } catch (e) {
+          toast(e.message, true);
+        }
+      });
+    } catch (e) {
+      box.innerHTML = '';
+      toast(e.message, true);
+    }
   }
 
   async function doImport() {

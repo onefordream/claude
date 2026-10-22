@@ -29,6 +29,19 @@ window.SettingsView = (() => {
       </div>
 
       <div class="panel">
+        <h2>自動リサーチ設定 (Google Places API)</h2>
+        <p class="help-text">
+          状態: ${s.google_places_api_key_set ? '<strong style="color:var(--green);">設定済み</strong>' : '<strong style="color:var(--red);">未設定</strong>'}
+          ／ Google CloudでPlaces API (New) を有効化し、APIキーを発行してください。利用には課金が発生する場合があります。
+        </p>
+        <div class="form-row"><label>Google Places APIキー${s.google_places_api_key_set ? '（設定済み・変更する場合のみ入力）' : ''}</label>
+          <input id="s-places-key" type="password" placeholder="${s.google_places_api_key_set ? '●●●●●●●●' : ''}" />
+        </div>
+        <button class="primary" id="btn-save-places">保存</button>
+        <p class="help-text">保存後は「店舗/リサーチリスト」画面の「自動リサーチ」から使えます。</p>
+      </div>
+
+      <div class="panel">
         <h2>このシステムについて</h2>
         <ul class="help-text">
           <li>メールは設定したSMTP経由で自動送信されます。送信先・送信日時・成否はすべて記録として残ります。</li>
@@ -63,6 +76,18 @@ window.SettingsView = (() => {
       try {
         await api.post('/api/settings/test-mail', { to });
         toast('テストメールを送信しました');
+      } catch (e) {
+        toast(e.message, true);
+      }
+    });
+
+    container.querySelector('#btn-save-places').addEventListener('click', async () => {
+      const key = container.querySelector('#s-places-key').value.trim();
+      if (!key) return toast('APIキーを入力してください', true);
+      try {
+        await api.put('/api/settings', { google_places_api_key: key });
+        toast('設定を保存しました');
+        await render(container);
       } catch (e) {
         toast(e.message, true);
       }
