@@ -417,7 +417,6 @@ input:focus, textarea:focus, select:focus {
   padding: 1rem 1.3rem;
   min-width: 96px;
 }
-.hero-streak-flame { color: #ffb86b; margin-bottom: 0.1rem; }
 .hero-streak-num { font-size: var(--fs-xl); font-weight: 800; line-height: 1.15; color: #fff; font-variant-numeric: tabular-nums; }
 .hero-streak-label { font-size: var(--fs-xs); color: rgba(255, 255, 255, 0.65); margin-top: 0.05rem; }
 @media (max-width: 560px) {
@@ -429,7 +428,7 @@ input:focus, textarea:focus, select:focus {
 
 /* ---------- home screen: action cards ---------- */
 
-.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
+.action-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
 @media (max-width: 560px) { .action-grid { grid-template-columns: 1fr; } }
 
 .action-card {
@@ -459,6 +458,7 @@ input:focus, textarea:focus, select:focus {
 }
 .action-card-lesson .action-icon { background: var(--green-100); color: var(--green-700); }
 .action-card-practice .action-icon { background: var(--accent-blue-soft); color: var(--accent-blue); }
+.action-card-round .action-icon { background: var(--accent-amber-soft); color: var(--accent-amber); }
 .action-body { flex: 1; min-width: 0; }
 .action-title { font-weight: 700; font-size: var(--fs-base); }
 .action-desc { font-size: var(--fs-xs); color: var(--muted); margin-top: 0.15rem; }

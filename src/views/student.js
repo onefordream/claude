@@ -167,7 +167,6 @@ export function dashboardPage({
           <p class="hero-message">${escapeHtml(todayMessage)}</p>
         </div>
         <div class="hero-streak">
-          <div class="hero-streak-flame">${icon('flame', { size: 22 })}</div>
           <div class="hero-streak-num">${streak}</div>
           <div class="hero-streak-label">日連続</div>
         </div>
@@ -187,6 +186,14 @@ export function dashboardPage({
           <div class="action-body">
             <div class="action-title">自主練・自習を記録する</div>
             <div class="action-desc">一人で取り組んだ内容を書き留める</div>
+          </div>
+          <div class="action-arrow">${icon('chevronRight', { size: 18 })}</div>
+        </a>
+        <a href="/rounds/new" class="action-card action-card-round">
+          <div class="action-icon">${icon('flag', { size: 22 })}</div>
+          <div class="action-body">
+            <div class="action-title">ラウンドスコアを記録する</div>
+            <div class="action-desc">ホールごとのスコアを記録して分析する</div>
           </div>
           <div class="action-arrow">${icon('chevronRight', { size: 18 })}</div>
         </a>
