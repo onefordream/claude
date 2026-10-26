@@ -345,13 +345,70 @@ function weeklyActivity(userId) {
   return { weeklyCount: row.c };
 }
 
-function pickTodayMessage({ streak, recordedToday, weeklyCount, hasGoal }) {
-  if (recordedToday && streak >= 7) return `${streak}日連続!今日も記録できました。すばらしい継続力です`;
-  if (recordedToday) return '今日の記録、お疲れさまでした。積み重ねが力になります';
-  if (streak >= 2) return `${streak}日連続更新中。今日も記録して続けましょう`;
-  if (weeklyCount > 0) return `今週はすでに${weeklyCount}件記録しています。この調子で`;
-  if (hasGoal) return '目標に向けて、今日の一歩を記録してみましょう';
-  return '今日から始めましょう。小さな記録も、積み重なれば成長の資産になります';
+// Simple deterministic hash so the same user sees the same message all day
+// (a page reload shouldn't make it flicker) but a different one tomorrow,
+// and different students aren't all stuck with the same line.
+function seedFrom(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (Math.imul(h, 31) + str.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+
+function pickTodayMessage({ streak, recordedToday, weeklyCount, hasGoal, userId }) {
+  const seed = seedFrom(`${userId}-${jstToday()}`);
+  const pick = (variants) => variants[seed % variants.length];
+
+  if (recordedToday && streak >= 30) {
+    return pick([
+      `${streak}日連続達成中。ここまで続けられるのは立派です`,
+      `${streak}日連続!継続する力そのものが、もう立派な武器です`,
+      `${streak}日連続。これだけ積み重ねれば、変化が出ないはずがありません`,
+    ]);
+  }
+  if (recordedToday && streak >= 7) {
+    return pick([
+      `${streak}日連続!今日も記録できました。すばらしい継続力です`,
+      `${streak}日連続達成。毎日の積み重ねが力になっています`,
+      `${streak}日間、よく続けています。この調子でいきましょう`,
+    ]);
+  }
+  if (recordedToday) {
+    return pick([
+      '今日の記録、お疲れさまでした。積み重ねが力になります',
+      '今日もしっかり記録できました。小さな一歩の積み重ねです',
+      '記録完了です。今日の積み重ねが未来のスコアにつながります',
+    ]);
+  }
+  if (streak >= 14) {
+    return pick([
+      `${streak}日連続更新中。もうすっかり習慣になっていますね`,
+      `${streak}日間続いています。今日も記録して伸ばしましょう`,
+    ]);
+  }
+  if (streak >= 2) {
+    return pick([
+      `${streak}日連続更新中。今日も記録して続けましょう`,
+      `${streak}日連続です。今日も忘れずに記録していきましょう`,
+      `いい流れがきています。${streak}日連続、今日も続けましょう`,
+    ]);
+  }
+  if (weeklyCount > 0) {
+    return pick([
+      `今週はすでに${weeklyCount}件記録しています。この調子で`,
+      `今週${weeklyCount}件の記録、順調です。今日も続けましょう`,
+    ]);
+  }
+  if (hasGoal) {
+    return pick([
+      '目標に向けて、今日の一歩を記録してみましょう',
+      '目標達成まで、小さな記録を積み重ねていきましょう',
+    ]);
+  }
+  return pick([
+    '今日から始めましょう。小さな記録も、積み重なれば成長の資産になります',
+    '最初の一歩を踏み出しましょう。記録はあとで振り返る宝物になります',
+    'まずは一つ記録してみましょう。続けるうちに成長が見えてきます',
+  ]);
 }
 
 function jstGreeting() {
@@ -655,7 +712,7 @@ function handleDashboard(ctx) {
   const goal = getActiveGoal(ctx.user.id);
   const { streak, recordedToday } = computeStreak(ctx.user.id);
   const { weeklyCount } = weeklyActivity(ctx.user.id);
-  const todayMessage = pickTodayMessage({ streak, recordedToday, weeklyCount, hasGoal: Boolean(goal) });
+  const todayMessage = pickTodayMessage({ streak, recordedToday, weeklyCount, hasGoal: Boolean(goal), userId: ctx.user.id });
   const recentCombined = all(
     `SELECT lr.*, (SELECT COUNT(*) FROM videos v WHERE v.lesson_record_id = lr.id) AS video_count
      FROM lesson_records lr WHERE lr.user_id = ? ORDER BY lr.record_date DESC, lr.id DESC LIMIT 6`,
