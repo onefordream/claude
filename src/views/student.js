@@ -364,7 +364,7 @@ export function newPracticePage({ user, flash, values = {} }) {
   });
 }
 
-export function recordDetailPage({ user, flash, record, videos, readOnly = false, ownerName }) {
+export function recordDetailPage({ user, flash, record, videos, comments = [], readOnly = false, ownerName }) {
   const isPractice = record.record_type === 'self_practice';
   const videosHtml = videos.length
     ? videos
@@ -423,8 +423,36 @@ export function recordDetailPage({ user, flash, record, videos, readOnly = false
         <h3>添付動画</h3>
         <div class="video-grid">${videosHtml}</div>
       </div>
+
+      <div class="card">
+        <h3>指導者からのコメント</h3>
+        <ul class="list comment-list">${recordCommentsHtml(comments)}</ul>
+        ${
+          readOnly
+            ? `
+        <form method="post" action="/records/${record.id}/comments" class="form">
+          <textarea name="body" rows="3" placeholder="アドバイスやフィードバックを残しましょう" required></textarea>
+          <button type="submit" class="btn btn-primary">コメントする</button>
+        </form>`
+            : ''
+        }
+      </div>
     `,
   });
+}
+
+function recordCommentsHtml(comments) {
+  if (!comments.length) return `<li class="empty">まだコメントはありません。</li>`;
+  return comments
+    .map(
+      (c) => `
+      <li class="comment-item">
+        <div class="comment-author">${escapeHtml(c.author_name || '指導者')}</div>
+        <div class="comment-body">${nl2br(c.body)}</div>
+        <div class="comment-date">${escapeHtml(c.created_at.slice(0, 16).replace('T', ' '))}</div>
+      </li>`
+    )
+    .join('');
 }
 
 export function mypagePage({ user, flash, stats, memberSince }) {

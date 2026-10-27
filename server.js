@@ -520,6 +520,7 @@ const routes = [
   { method: 'GET', pattern: /^\/records\/new$/, handler: requireStudent(handleNewRecordPage) },
   { method: 'POST', pattern: /^\/records$/, handler: requireStudent(handleCreateRecord) },
   { method: 'GET', pattern: /^\/records\/(?<id>\d+)$/, handler: requireAuth(handleRecordDetail) },
+  { method: 'POST', pattern: /^\/records\/(?<id>\d+)\/comments$/, handler: requireInstructor(handleCreateRecordComment) },
   { method: 'GET', pattern: /^\/practice$/, handler: requireStudent(handlePracticeList) },
   { method: 'GET', pattern: /^\/practice\/new$/, handler: requireStudent(handleNewPracticePage) },
   { method: 'POST', pattern: /^\/practice$/, handler: requireStudent(handleCreatePractice) },
@@ -932,6 +933,10 @@ function handleRecordDetail(ctx) {
     return ctx.res.end('この記録を閲覧する権限がありません');
   }
   const videos = all(`SELECT * FROM videos WHERE lesson_record_id = ? ORDER BY id`, [record.id]);
+  const comments = all(
+    `SELECT rc.*, u.name AS author_name FROM record_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.record_id = ? ORDER BY rc.id`,
+    [record.id]
+  );
   let ownerName = ctx.user.name;
   if (isInstructor) {
     const owner = get(`SELECT name FROM users WHERE id = ?`, [record.user_id]);
@@ -945,11 +950,28 @@ function handleRecordDetail(ctx) {
       flash: ctx.flash,
       record,
       videos,
+      comments,
       readOnly: isInstructor,
       ownerName,
     }),
     [clearFlashCookie()]
   );
+}
+
+// An instructor leaves a note on a student's own lesson/practice record —
+// same shape as the coach comments already on round records.
+async function handleCreateRecordComment(ctx) {
+  const record = get(`SELECT * FROM lesson_records WHERE id = ?`, [ctx.params.id]);
+  if (!record) {
+    ctx.res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+    return ctx.res.end('記録が見つかりません');
+  }
+  const { fields } = await parseRequestBody(ctx.req);
+  const body = (fields.body || '').trim();
+  if (body) {
+    run(`INSERT INTO record_comments (record_id, author_id, body) VALUES (?, ?, ?)`, [record.id, ctx.user.id, body]);
+  }
+  redirect(ctx.res, `/records/${record.id}`, [encodeFlash('success', 'コメントを投稿しました。')]);
 }
 
 const MAX_PHOTO_BYTES = 15 * 1024 * 1024;

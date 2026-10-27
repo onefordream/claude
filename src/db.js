@@ -120,6 +120,14 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS record_comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    record_id INTEGER NOT NULL REFERENCES lesson_records(id) ON DELETE CASCADE,
+    author_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    body TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS sessions (
     token TEXT PRIMARY KEY,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -157,6 +165,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_rounds_user ON rounds(user_id, play_date);
   CREATE INDEX IF NOT EXISTS idx_round_holes_round ON round_holes(round_id);
   CREATE INDEX IF NOT EXISTS idx_round_comments_round ON round_comments(round_id);
+  CREATE INDEX IF NOT EXISTS idx_record_comments_record ON record_comments(record_id);
 `);
 
 // Additive migrations for columns introduced after the initial release.
