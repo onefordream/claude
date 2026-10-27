@@ -47,6 +47,7 @@ import { getBoundary, parseMultipart } from './src/lib/multipart.js';
 
 import { loginPage, registerPage } from './src/views/auth.js';
 import { termsPage, privacyPage } from './src/views/legal.js';
+import { appIconSvg } from './src/views/layout.js';
 import {
   dashboardPage,
   recordsListPage,
@@ -489,6 +490,29 @@ const routes = [
   { method: 'POST', pattern: /^\/register$/, handler: handleRegister },
   { method: 'GET', pattern: /^\/terms$/, handler: (ctx) => sendHtml(ctx.res, 200, termsPage({ user: ctx.user, flash: ctx.flash }), [clearFlashCookie()]) },
   { method: 'GET', pattern: /^\/privacy$/, handler: (ctx) => sendHtml(ctx.res, 200, privacyPage({ user: ctx.user, flash: ctx.flash }), [clearFlashCookie()]) },
+  {
+    method: 'GET',
+    pattern: /^\/favicon\.svg$/,
+    handler: (ctx) => {
+      ctx.res.writeHead(200, { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400' });
+      ctx.res.end(appIconSvg(brand.colors.dark));
+    },
+  },
+  {
+    method: 'GET',
+    pattern: /^\/manifest\.webmanifest$/,
+    handler: (ctx) => {
+      sendJson(ctx.res, 200, {
+        name: `${brand.studioName} ${brand.tagline}`,
+        short_name: brand.studioName,
+        start_url: '/dashboard',
+        display: 'standalone',
+        background_color: brand.colors.dark,
+        theme_color: brand.colors.dark,
+        icons: [{ src: '/static/apple-touch-icon.png', sizes: '512x512', type: 'image/png' }],
+      });
+    },
+  },
   { method: 'POST', pattern: /^\/logout$/, handler: handleLogout },
   { method: 'GET', pattern: /^\/dashboard$/, handler: requireAuth(handleDashboard) },
   { method: 'GET', pattern: /^\/mypage$/, handler: requireStudent(handleMypage) },

@@ -26,6 +26,21 @@ export function logoIcon(size = 28) {
   `;
 }
 
+// Same mound+flag mark as a standalone, full-bleed square icon (brand-color
+// background, white mark) — used for the browser-tab favicon. Served live
+// per store from the brand's own colors (see server.js GET /favicon.svg),
+// so a new deployment's favicon matches its BRAND_COLOR automatically with
+// no asset to regenerate.
+export function appIconSvg(bgColor) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="${bgColor}" />
+  <ellipse cx="32" cy="47" rx="23" ry="8.5" fill="#fff" />
+  <ellipse cx="32" cy="47" rx="4" ry="1.9" fill="${bgColor}" />
+  <line x1="32" y1="47" x2="32" y2="11" stroke="#fff" stroke-width="3" stroke-linecap="round" />
+  <path d="M33,11 C45,11 51,14.2 51,16.5 C51,18.8 45,18.8 33,22.5 Z" fill="#c0392b" />
+</svg>`;
+}
+
 // A small set of hand-drawn line icons (24x24, single stroke weight) used
 // throughout the student UI in place of emoji — emoji render inconsistently
 // across platforms and read as a default/unstyled choice rather than a
@@ -134,6 +149,11 @@ export function layout({ title, user, active, body, flash }) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(title)} | ${escapeHtml(brand.studioName)} ${escapeHtml(brand.tagline)}</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/png" href="/static/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="${brand.colors.dark}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">

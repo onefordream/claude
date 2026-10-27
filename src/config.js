@@ -3,6 +3,13 @@
 //   1. Replace public/logo.png with the new studio's logo (same filename)
 //   2. Set STUDIO_NAME, APP_TAGLINE and BRAND_COLOR in that store's .env
 //      (or as Render environment variables)
+// The browser-tab favicon (GET /favicon.svg) and the web-app manifest
+// already follow BRAND_COLOR/STUDIO_NAME automatically — nothing to touch.
+// public/apple-touch-icon.png (the iOS/Android home-screen icon) is a
+// pre-rendered PNG, baked with the default green, so a store using a very
+// different BRAND_COLOR should regenerate it to match (same mark, just a
+// different background fill — see the appIconSvg() + Playwright steps used
+// to produce the current file, or swap in a different square image).
 // No other code or file needs to change.
 //
 // This module reads process.env directly, so it loads the local .env file
