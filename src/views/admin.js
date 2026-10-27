@@ -205,30 +205,6 @@ export function studentDetailPage({ user, flash, student, records, practiceRecor
       </div>
       <p class="muted">${escapeHtml(student.email)}</p>
 
-      ${
-        isOwner
-          ? `
-      <div class="card account-tools">
-        <h2>アカウント管理</h2>
-        <p class="muted">生徒がパスワードを忘れた場合、ここで新しいパスワードを発行できます。発行後、表示されたパスワードを生徒本人に伝えてください。</p>
-        <form method="post" action="/admin/students/${student.id}/reset-password" onsubmit="return confirm('${escapeHtml(student.name)}さんの新しいパスワードを発行しますか？現在のパスワードは使えなくなります。');">
-          <button type="submit" class="btn btn-secondary">パスワードを再発行する</button>
-        </form>
-
-        <h2 style="margin-top:1.1rem">アカウントの停止・削除</h2>
-        <p class="muted">停止すると、解除するまでログインできなくなります(記録は残ります)。削除は元に戻せません。</p>
-        <div class="account-actions">
-          <form method="post" action="/admin/students/${student.id}/suspend" onsubmit="return confirm('${escapeHtml(student.name)}さんのアカウントを${student.is_suspended ? '復帰' : '停止'}しますか？');" class="inline-form">
-            <button type="submit" class="btn btn-secondary">${student.is_suspended ? '停止を解除する' : 'アカウントを停止する'}</button>
-          </form>
-          <form method="post" action="/admin/students/${student.id}/delete" onsubmit="return confirm('${escapeHtml(student.name)}さんのアカウントと全ての記録を完全に削除します。この操作は元に戻せません。本当によろしいですか？');" class="inline-form">
-            <button type="submit" class="link-button link-button-danger">アカウントを削除する</button>
-          </form>
-        </div>
-      </div>`
-          : ''
-      }
-
       ${goalCard(goal, { readOnly: true })}
 
       <div class="grid-2">
@@ -259,6 +235,30 @@ export function studentDetailPage({ user, flash, student, records, practiceRecor
             : ''
         }
       </div>
+
+      ${
+        isOwner
+          ? `
+      <div class="card account-tools">
+        <h2>アカウント管理</h2>
+        <p class="muted">生徒がパスワードを忘れた場合、ここで新しいパスワードを発行できます。発行後、表示されたパスワードを生徒本人に伝えてください。</p>
+        <form method="post" action="/admin/students/${student.id}/reset-password" onsubmit="return confirm('${escapeHtml(student.name)}さんの新しいパスワードを発行しますか？現在のパスワードは使えなくなります。');">
+          <button type="submit" class="btn btn-secondary">パスワードを再発行する</button>
+        </form>
+
+        <h2 style="margin-top:1.1rem">アカウントの停止・削除</h2>
+        <p class="muted">停止すると、解除するまでログインできなくなります(記録は残ります)。削除は元に戻せません。</p>
+        <div class="account-actions">
+          <form method="post" action="/admin/students/${student.id}/suspend" onsubmit="return confirm('${escapeHtml(student.name)}さんのアカウントを${student.is_suspended ? '復帰' : '停止'}しますか？');" class="inline-form">
+            <button type="submit" class="btn btn-secondary">${student.is_suspended ? '停止を解除する' : 'アカウントを停止する'}</button>
+          </form>
+          <form method="post" action="/admin/students/${student.id}/delete" onsubmit="return confirm('${escapeHtml(student.name)}さんのアカウントと全ての記録を完全に削除します。この操作は元に戻せません。本当によろしいですか？');" class="inline-form">
+            <button type="submit" class="link-button link-button-danger">アカウントを削除する</button>
+          </form>
+        </div>
+      </div>`
+          : ''
+      }
     `,
   });
 }
