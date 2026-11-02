@@ -120,22 +120,35 @@ function sendCompressible(req, res, status, buffer, contentType, cacheControl) {
   }
 }
 
-function readBody(req, maxBytes = 64 * 1024) {
+function readBodyBuffer(req, maxBytes = 64 * 1024) {
   return new Promise((resolve, reject) => {
     let size = 0;
+    let exceeded = false;
     const chunks = [];
     req.on("data", (chunk) => {
       size += chunk.length;
       if (size > maxBytes) {
-        reject(Object.assign(new Error("payload too large"), { statusCode: 413 }));
-        req.destroy();
+        // 上限を超えた分は貯めずに読み捨てる（メモリは maxBytes 分に収まる）。
+        // ここで destroy() すると接続が強制切断されクライアントにエラー応答を返せないため、
+        // ストリームは最後まで読み切ってから 413 として reject する。
+        exceeded = true;
         return;
       }
       chunks.push(chunk);
     });
-    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
+    req.on("end", () => {
+      if (exceeded) {
+        reject(Object.assign(new Error("payload too large"), { statusCode: 413 }));
+      } else {
+        resolve(Buffer.concat(chunks));
+      }
+    });
     req.on("error", reject);
   });
+}
+
+function readBody(req, maxBytes = 64 * 1024) {
+  return readBodyBuffer(req, maxBytes).then((buf) => buf.toString("utf8"));
 }
 
 function parseJsonBody(raw) {
@@ -145,6 +158,55 @@ function parseJsonBody(raw) {
   } catch {
     return null;
   }
+}
+
+// multipart/form-data をバイナリ安全にパースする（添付ファイル対応・依存パッケージなし）。
+// テキストフィールドは fields（同名は最後の値）と getAll（全値）、ファイルは files で取得できる。
+function parseMultipart(buffer, contentType) {
+  const boundaryMatch = /boundary=(?:"([^"]+)"|([^;]+))/i.exec(contentType || "");
+  const boundary = boundaryMatch ? (boundaryMatch[1] || boundaryMatch[2]).trim() : null;
+  const fields = {};
+  const allFields = {};
+  const files = {};
+  if (!boundary) return { fields, files, getAll: () => [] };
+
+  const boundaryBuf = Buffer.from(`--${boundary}`);
+  let start = buffer.indexOf(boundaryBuf);
+
+  while (start !== -1) {
+    const next = buffer.indexOf(boundaryBuf, start + boundaryBuf.length);
+    if (next === -1) break;
+
+    const afterBoundary = start + boundaryBuf.length;
+    if (buffer[afterBoundary] === 0x2d && buffer[afterBoundary + 1] === 0x2d) break; // closing boundary "--"
+
+    const partStart = afterBoundary + 2; // skip \r\n
+    const partEnd = next - 2; // trailing \r\n before next boundary
+    const part = buffer.subarray(partStart, partEnd);
+
+    const headerEnd = part.indexOf("\r\n\r\n");
+    if (headerEnd !== -1) {
+      const headerText = part.subarray(0, headerEnd).toString("utf8");
+      const data = part.subarray(headerEnd + 4);
+      const nameMatch = /name="([^"]*)"/i.exec(headerText);
+      const filenameMatch = /filename="([^"]*)"/i.exec(headerText);
+      const name = nameMatch ? nameMatch[1] : null;
+
+      if (name) {
+        if (filenameMatch && filenameMatch[1]) {
+          const ctMatch = /Content-Type:\s*([^\r\n]+)/i.exec(headerText);
+          files[name] = { filename: filenameMatch[1], contentType: ctMatch ? ctMatch[1].trim() : "application/octet-stream", data };
+        } else {
+          const value = data.toString("utf8");
+          fields[name] = value;
+          (allFields[name] ||= []).push(value);
+        }
+      }
+    }
+    start = next;
+  }
+
+  return { fields, files, getAll: (name) => allFields[name] || [] };
 }
 
 // --- バリデーション ---------------------------------------------------------
@@ -297,14 +359,39 @@ async function handleStatic(req, res, pathname) {
   }
 }
 
+const BROADCAST_MAX_BYTES = 10 * 1024 * 1024; // 添付ファイル込みで10MBまで
+
 async function handleAdminBroadcast(req, res) {
   if (!requireAdminAuth(req, res)) return;
 
-  const raw = await readBody(req);
-  const params = new URLSearchParams(raw);
-  const ids = params.getAll("ids");
-  const subject = clean(params.get("subject") || "", 200);
-  const body = clean(params.get("body") || "", 5000);
+  const contentType = req.headers["content-type"] || "";
+  let ids, subject, body, attachment;
+
+  try {
+    if (contentType.includes("multipart/form-data")) {
+      const buf = await readBodyBuffer(req, BROADCAST_MAX_BYTES);
+      const parsed = parseMultipart(buf, contentType);
+      ids = parsed.getAll("ids");
+      subject = clean(parsed.fields.subject || "", 200);
+      body = clean(parsed.fields.body || "", 5000);
+      const file = parsed.files.attachment;
+      if (file && file.filename && file.data.length > 0) {
+        attachment = { filename: clean(file.filename, 150), content: file.data.toString("base64") };
+      }
+    } else {
+      const raw = await readBody(req, BROADCAST_MAX_BYTES);
+      const params = new URLSearchParams(raw);
+      ids = params.getAll("ids");
+      subject = clean(params.get("subject") || "", 200);
+      body = clean(params.get("body") || "", 5000);
+    }
+  } catch (err) {
+    if (err.statusCode === 413) {
+      res.writeHead(303, { Location: "/admin/entries?reason=attachment-too-large" });
+      return res.end();
+    }
+    throw err;
+  }
 
   if (!subject || !body || ids.length === 0) {
     res.writeHead(303, { Location: "/admin/entries?sent=0&failed=0" });
@@ -314,7 +401,7 @@ async function handleAdminBroadcast(req, res) {
   const entries = readEntries();
   const recipients = entries.filter((e) => ids.includes(e.id)).map((e) => ({ email: e.email, name: e.name }));
 
-  const result = await sendBroadcast({ recipients, subject, bodyText: body });
+  const result = await sendBroadcast({ recipients, subject, bodyText: body, attachment });
 
   const qs = new URLSearchParams({ sent: String(result.sent), failed: String(result.failed) });
   if (result.reason) qs.set("reason", result.reason);

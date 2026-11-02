@@ -23,7 +23,7 @@ function esc(str) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function send({ to, subject, html, replyTo }, retriesLeft = 2) {
+async function send({ to, subject, html, replyTo, attachments }, retriesLeft = 2) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) return { sent: false, reason: "not-configured" };
 
@@ -31,11 +31,18 @@ async function send({ to, subject, html, replyTo }, retriesLeft = 2) {
     const res = await fetch(RESEND_API_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from: FROM_EMAIL, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) }),
+      body: JSON.stringify({
+        from: FROM_EMAIL,
+        to,
+        subject,
+        html,
+        ...(replyTo ? { reply_to: replyTo } : {}),
+        ...(attachments && attachments.length ? { attachments } : {}),
+      }),
     });
     if (res.status === 429 && retriesLeft > 0) {
       await sleep(1200);
-      return send({ to, subject, html, replyTo }, retriesLeft - 1);
+      return send({ to, subject, html, replyTo, attachments }, retriesLeft - 1);
     }
     if (!res.ok) {
       console.error("[mail-hook] send failed", res.status, await res.text().catch(() => ""));
@@ -133,12 +140,14 @@ export async function sendAutoReply({ to, kind, payload }) {
 
 /**
  * 参加者への一斉・個別案内メール送信
- * @param {{recipients:{email:string, name:string}[], subject:string, bodyText:string}} params
+ * @param {{recipients:{email:string, name:string}[], subject:string, bodyText:string,
+ *   attachment?:{filename:string, content:string}}} params
  */
-export async function sendBroadcast({ recipients, subject, bodyText }) {
+export async function sendBroadcast({ recipients, subject, bodyText, attachment }) {
   if (!process.env.RESEND_API_KEY) return { sent: 0, failed: 0, total: recipients.length, reason: "not-configured" };
 
   const bodyHtml = esc(bodyText).replace(/\n/g, "<br />");
+  const attachments = attachment ? [{ filename: attachment.filename, content: attachment.content }] : undefined;
   // Resend のレート制限（1秒あたり2件）に収まるよう、1件ずつ間隔を空けて送信する。
   const SEND_INTERVAL_MS = 550;
   const results = [];
@@ -149,6 +158,7 @@ export async function sendBroadcast({ recipients, subject, bodyText }) {
       subject,
       html: `<p>${esc(r.name)} 様</p><p>${bodyHtml}</p>`,
       replyTo: ADMIN_EMAIL,
+      attachments,
     });
     results.push({ email: r.email, ...res });
     await sleep(SEND_INTERVAL_MS);

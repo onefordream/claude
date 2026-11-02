@@ -37,6 +37,8 @@ export const ADMIN_STYLES = `
     font-family: inherit; margin-bottom: 0.8rem;
   }
   .broadcast textarea { min-height: 140px; resize: vertical; }
+  .broadcast__file-label { display: block; font-size: 0.78rem; color: #666; margin-bottom: 0.3rem; }
+  .broadcast input[type="file"] { width: 100%; font-size: 0.82rem; margin-bottom: 1rem; }
   .broadcast button {
     background: #b93862; color: #fff; border: none; border-radius: 6px; padding: 0.6rem 1.4rem;
     font-size: 0.85rem; font-weight: 700; cursor: pointer;

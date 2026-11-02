@@ -17,6 +17,9 @@ function renderFlash(query) {
   if (query.get("reason") === "not-configured") {
     return `<div class="flash flash--warn">メール送信が設定されていません（RESEND_API_KEY 未設定）。管理者にご確認ください。</div>`;
   }
+  if (query.get("reason") === "attachment-too-large") {
+    return `<div class="flash flash--warn">添付ファイルが大きすぎます（10MBまで）。ファイルサイズを小さくして再度お試しください。</div>`;
+  }
   if (query.has("deleted")) {
     if (query.get("deleted") === "0") return `<div class="flash flash--warn">削除できませんでした（対象が見つかりません）。</div>`;
     const promoted = query.get("promoted");
@@ -108,11 +111,13 @@ export function renderAdminEntries({ entries, capacity, query = new URLSearchPar
     }
   </div>
 
-  <form id="broadcast-form" class="broadcast" method="POST" action="/admin/broadcast">
+  <form id="broadcast-form" class="broadcast" method="POST" action="/admin/broadcast" enctype="multipart/form-data">
     <h2>案内メールを送る</h2>
     <p>上の表でチェックした人にメールを送ります（左上のチェックボックス、または上の一括選択ボタンが使えます）。</p>
     <input type="text" name="subject" placeholder="件名" required />
     <textarea name="body" placeholder="本文" required></textarea>
+    <label class="broadcast__file-label" for="broadcast-attachment">資料を添付（任意、10MBまで）</label>
+    <input type="file" name="attachment" id="broadcast-attachment" />
     <button type="submit">選択した人に送信</button>
   </form>
 
