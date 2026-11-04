@@ -58,7 +58,7 @@ import {
   newGoalPage,
   mypagePage,
 } from './src/views/student.js';
-import { studentListPage, studentDetailPage, instructorListPage } from './src/views/admin.js';
+import { studentListPage, studentDetailPage, instructorListPage, instructorMypagePage } from './src/views/admin.js';
 import { videoLibraryPage } from './src/views/videos.js';
 import {
   newRoundStartPage,
@@ -227,6 +227,15 @@ function serveMedia(req, res, filename, user) {
     }
     const ext = extname(round.photo_filename).toLowerCase();
     return streamVideoFile(req, res, round.photo_filename, MIME_TYPES[ext] || 'application/octet-stream');
+  }
+
+  // A profile photo — shown to other logged-in users throughout the app
+  // (nav, instructor list, comment authors), so any authenticated user may
+  // view any avatar, not just its owner.
+  const avatarOwner = get(`SELECT avatar_filename FROM users WHERE avatar_filename = ?`, [filename]);
+  if (avatarOwner) {
+    const ext = extname(avatarOwner.avatar_filename).toLowerCase();
+    return streamVideoFile(req, res, avatarOwner.avatar_filename, MIME_TYPES[ext] || 'application/octet-stream');
   }
 
   res.writeHead(404);
@@ -515,7 +524,9 @@ const routes = [
   },
   { method: 'POST', pattern: /^\/logout$/, handler: handleLogout },
   { method: 'GET', pattern: /^\/dashboard$/, handler: requireAuth(handleDashboard) },
-  { method: 'GET', pattern: /^\/mypage$/, handler: requireStudent(handleMypage) },
+  { method: 'GET', pattern: /^\/mypage$/, handler: requireAuth(handleMypage) },
+  { method: 'POST', pattern: /^\/mypage\/profile$/, handler: requireAuth(handleUpdateProfile) },
+  { method: 'POST', pattern: /^\/mypage\/avatar$/, handler: requireAuth(handleUploadAvatar) },
   { method: 'GET', pattern: /^\/records$/, handler: requireStudent(handleRecordsList) },
   { method: 'GET', pattern: /^\/records\/new$/, handler: requireStudent(handleNewRecordPage) },
   { method: 'POST', pattern: /^\/records$/, handler: requireStudent(handleCreateRecord) },
@@ -768,16 +779,56 @@ function handleDashboard(ctx) {
 }
 
 function handleMypage(ctx) {
-  if (ctx.user.role === 'instructor') return redirect(ctx.res, '/admin');
+  const memberSince = (ctx.user.created_at || '').slice(0, 10);
+  if (ctx.user.role === 'instructor') {
+    return sendHtml(ctx.res, 200, instructorMypagePage({ user: ctx.user, flash: ctx.flash, memberSince }), [
+      clearFlashCookie(),
+    ]);
+  }
   const stats = studentStats(ctx.user.id);
   const { streak } = computeStreak(ctx.user.id);
-  const memberSince = (ctx.user.created_at || '').slice(0, 10);
   sendHtml(
     ctx.res,
     200,
     mypagePage({ user: ctx.user, flash: ctx.flash, stats: { ...stats, streak }, memberSince }),
     [clearFlashCookie()]
   );
+}
+
+async function handleUpdateProfile(ctx) {
+  const { fields } = await parseRequestBody(ctx.req);
+  const name = (fields.name || '').trim();
+  if (!name) {
+    return redirect(ctx.res, '/mypage', [encodeFlash('error', '名前を入力してください。')]);
+  }
+  run(`UPDATE users SET name = ? WHERE id = ?`, [name, ctx.user.id]);
+  redirect(ctx.res, '/mypage', [encodeFlash('success', 'プロフィールを更新しました。')]);
+}
+
+const MAX_AVATAR_BYTES = 8 * 1024 * 1024;
+
+async function handleUploadAvatar(ctx) {
+  let files;
+  try {
+    ({ files } = await parseRequestBody(ctx.req, { maxBytes: MAX_AVATAR_BYTES }));
+  } catch (err) {
+    if (err.code === 'BODY_TOO_LARGE') {
+      return redirect(ctx.res, '/mypage', [encodeFlash('error', '画像のサイズが大きすぎます(上限8MB)。')]);
+    }
+    throw err;
+  }
+  const photo = (files || []).find((f) => f.fieldName === 'avatar');
+  if (!photo || !photo.mimeType.startsWith('image/')) {
+    return redirect(ctx.res, '/mypage', [encodeFlash('error', '画像ファイルを選択してください。')]);
+  }
+  const previous = get(`SELECT avatar_filename FROM users WHERE id = ?`, [ctx.user.id]);
+  const storedName = saveVideoFile(photo);
+  run(`UPDATE users SET avatar_filename = ? WHERE id = ?`, [storedName, ctx.user.id]);
+  if (previous && previous.avatar_filename) {
+    const oldPath = join(UPLOADS_DIR, previous.avatar_filename);
+    if (existsSync(oldPath)) unlinkSync(oldPath);
+  }
+  redirect(ctx.res, '/mypage', [encodeFlash('success', 'プロフィール画像を更新しました。')]);
 }
 
 function handleRecordsList(ctx) {
@@ -934,7 +985,7 @@ function handleRecordDetail(ctx) {
   }
   const videos = all(`SELECT * FROM videos WHERE lesson_record_id = ? ORDER BY id`, [record.id]);
   const comments = all(
-    `SELECT rc.*, u.name AS author_name FROM record_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.record_id = ? ORDER BY rc.id`,
+    `SELECT rc.*, u.name AS author_name, u.avatar_filename AS author_avatar FROM record_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.record_id = ? ORDER BY rc.id`,
     [record.id]
   );
   let ownerName = ctx.user.name;
@@ -1076,7 +1127,7 @@ function handleRoundShow(ctx) {
   const holes = round.entry_mode === 'hole' ? all(`SELECT * FROM round_holes WHERE round_id = ? ORDER BY hole_no`, [round.id]) : [];
   const aggregate = aggregateRound({ ...round, pars }, holes);
   const comments = all(
-    `SELECT rc.*, u.name AS author_name FROM round_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.round_id = ? ORDER BY rc.id`,
+    `SELECT rc.*, u.name AS author_name, u.avatar_filename AS author_avatar FROM round_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.round_id = ? ORDER BY rc.id`,
     [round.id]
   );
   sendHtml(ctx.res, 200, roundDetailPage({ user: ctx.user, flash: ctx.flash, round, holes, aggregate, comments }), [
@@ -1288,7 +1339,7 @@ function handleAdminRoundDetail(ctx) {
   const holes = round.entry_mode === 'hole' ? all(`SELECT * FROM round_holes WHERE round_id = ? ORDER BY hole_no`, [round.id]) : [];
   const aggregate = aggregateRound({ ...round, pars }, holes);
   const comments = all(
-    `SELECT rc.*, u.name AS author_name FROM round_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.round_id = ? ORDER BY rc.id`,
+    `SELECT rc.*, u.name AS author_name, u.avatar_filename AS author_avatar FROM round_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.round_id = ? ORDER BY rc.id`,
     [round.id]
   );
   sendHtml(

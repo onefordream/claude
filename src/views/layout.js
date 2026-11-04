@@ -68,6 +68,18 @@ export function icon(name, { size = 20, className = '' } = {}) {
   return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="icon ${className}" aria-hidden="true">${paths}</svg>`;
 }
 
+// A small round profile photo, falling back to a colored initial when no
+// photo has been uploaded — used anywhere a person's name shows up (nav,
+// mypage, the instructor list, comment authors) so this one function is the
+// only place that needs to know the fallback rule.
+export function avatarHtml(person, { size = 32, className = '' } = {}) {
+  if (person && person.avatar_filename) {
+    return `<img src="/media/${encodeURIComponent(person.avatar_filename)}" alt="" class="avatar-img ${className}" style="width:${size}px;height:${size}px;">`;
+  }
+  const initial = ((person && person.name) || '').trim().slice(0, 1).toUpperCase();
+  return `<span class="avatar-initial ${className}" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.42)}px;">${escapeHtml(initial)}</span>`;
+}
+
 // Plus button is first, My Page is last — everything else keeps its order
 // in between. All seven items share one flat, compact visual treatment
 // (no raised FAB) per the "コンパクトに統一感重視" direction.
@@ -131,9 +143,10 @@ export function layout({ title, user, active, body, flash }) {
               `
                   : ''
               }
+              <a href="/mypage" class="${active === 'mypage' ? 'active' : ''}">マイページ</a>
             `
             : ''}
-          <span class="nav-user">${escapeHtml(user.name)}さん${user.role === 'instructor' ? (user.is_owner ? '（代表）' : '（指導者）') : ''}</span>
+          <span class="nav-user">${avatarHtml(user, { size: 24, className: 'nav-avatar' })}${escapeHtml(user.name)}さん${user.role === 'instructor' ? (user.is_owner ? '（代表）' : '（指導者）') : ''}</span>
           <form method="post" action="/logout" class="inline-form">
             <button type="submit" class="link-button">ログアウト</button>
           </form>

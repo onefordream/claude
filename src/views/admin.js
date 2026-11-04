@@ -1,4 +1,4 @@
-import { layout, escapeHtml, nl2br, icon } from './layout.js';
+import { layout, escapeHtml, nl2br, icon, avatarHtml } from './layout.js';
 import { goalCard } from './student.js';
 import { renderAbilityRadar } from './chart.js';
 import { SCORE_BAND_LABELS, scoreBandForAverage } from '../lib/golfStats.js';
@@ -33,6 +33,7 @@ export function instructorListPage({ user, flash, instructors }) {
     .map(
       (i) => `
       <li class="list-item">
+        ${avatarHtml(i, { size: 32 })}
         <span class="list-title">${escapeHtml(i.name)}${i.id === user.id ? ' <span class="muted">(自分)</span>' : ''}</span>
         <span class="muted">${escapeHtml(i.email)}</span>
         <span class="account-actions">
@@ -259,6 +260,51 @@ export function studentDetailPage({ user, flash, student, records, practiceRecor
       </div>`
           : ''
       }
+    `,
+  });
+}
+
+export function instructorMypagePage({ user, flash, memberSince }) {
+  return layout({
+    title: 'マイページ',
+    user,
+    active: 'mypage',
+    flash,
+    body: `
+      <h1>マイページ</h1>
+
+      <div class="card mypage-profile">
+        ${avatarHtml(user, { size: 56, className: 'mypage-avatar' })}
+        <div>
+          <div class="mypage-name">${escapeHtml(user.name)}${user.is_owner ? '（代表）' : '（指導者）'}</div>
+          <div class="mypage-email">${escapeHtml(user.email)}</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>プロフィールを編集</h2>
+        <p class="muted">顔写真を設定しておくと、生徒や他の指導者が誰か分かりやすくなります。</p>
+        <form method="post" action="/mypage/avatar" enctype="multipart/form-data" class="form">
+          <label>プロフィール画像
+            <input type="file" name="avatar" accept="image/*" required>
+          </label>
+          <button type="submit" class="btn btn-secondary">画像を更新する</button>
+        </form>
+        <form method="post" action="/mypage/profile" class="form" style="margin-top:0.9rem">
+          <label>名前
+            <input type="text" name="name" value="${escapeHtml(user.name)}" required>
+          </label>
+          <button type="submit" class="btn btn-secondary">名前を更新する</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>アカウント</h2>
+        <div class="mypage-row"><span class="mypage-row-label">利用開始</span><span class="mypage-row-value">${escapeHtml(memberSince)}</span></div>
+        <form method="post" action="/logout" style="margin-top:0.9rem">
+          <button type="submit" class="btn btn-secondary">ログアウト</button>
+        </form>
+      </div>
     `,
   });
 }

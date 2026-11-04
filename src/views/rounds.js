@@ -1,4 +1,4 @@
-import { layout, escapeHtml, nl2br, icon } from './layout.js';
+import { layout, escapeHtml, nl2br, icon, avatarHtml } from './layout.js';
 import { renderAbilityRadar, renderRoundTrendChart } from './chart.js';
 import { jstToday } from '../lib/date.js';
 import { DEFAULT_PARS_18, SCORE_BAND_LABELS, BENCHMARKS, scoreBandForAverage, targetBandFor } from '../lib/golfStats.js';
@@ -284,7 +284,7 @@ export function roundDetailPage({ user, flash, round, holes, aggregate, comments
         .map(
           (c) => `
       <li class="comment-item">
-        <div class="comment-author">${escapeHtml(c.author_name || '指導者')}</div>
+        <div class="comment-author">${avatarHtml({ name: c.author_name, avatar_filename: c.author_avatar }, { size: 22 })}${escapeHtml(c.author_name || '指導者')}</div>
         <div class="comment-body">${nl2br(c.body)}</div>
         <div class="comment-date">${escapeHtml(c.created_at.slice(0, 16).replace('T', ' '))}</div>
       </li>`

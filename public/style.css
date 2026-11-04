@@ -554,20 +554,28 @@ input:focus, textarea:focus, select:focus {
 
 /* ---------- my page ---------- */
 
-.mypage-profile { display: flex; align-items: center; gap: 0.9rem; }
-.mypage-avatar {
+/* ---------- avatars (nav, mypage, instructor list, comment authors) ---------- */
+
+.avatar-img, .avatar-initial {
   flex-shrink: 0;
-  width: 52px;
-  height: 52px;
   border-radius: 50%;
+  vertical-align: middle;
+}
+.avatar-img { object-fit: cover; }
+.avatar-initial {
   background: var(--green-900);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--fs-lg);
   font-weight: 700;
+  line-height: 1;
 }
+.nav-avatar { vertical-align: middle; margin-right: 0.35rem; }
+.comment-author { display: flex; align-items: center; gap: 0.4rem; font-weight: 700; font-size: var(--fs-sm); }
+.comment-author .avatar-img, .comment-author .avatar-initial { font-size: 0.65rem; }
+
+.mypage-profile { display: flex; align-items: center; gap: 0.9rem; }
 .mypage-name { font-size: var(--fs-md); font-weight: 700; }
 .mypage-email { font-size: var(--fs-sm); color: var(--muted); margin-top: 0.1rem; }
 .mypage-row {
@@ -805,7 +813,6 @@ input:focus, textarea:focus, select:focus {
 .comment-list { margin-top: 0.4rem; }
 .comment-item { padding: 0.6rem 0; border-bottom: 1px solid var(--border-soft); }
 .comment-item:last-child { border-bottom: none; }
-.comment-author { font-weight: 700; font-size: var(--fs-sm); }
 .comment-date { font-size: var(--fs-xs); color: var(--muted); margin-top: 0.2rem; }
 
 /* ---------- analysis page ---------- */

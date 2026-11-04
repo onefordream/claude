@@ -185,6 +185,7 @@ ensureColumn('round_records', 'putts', 'INTEGER');
 ensureColumn('users', 'furigana', 'TEXT');
 ensureColumn('users', 'is_owner', 'INTEGER NOT NULL DEFAULT 0');
 ensureColumn('users', 'is_suspended', 'INTEGER NOT NULL DEFAULT 0');
+ensureColumn('users', 'avatar_filename', 'TEXT');
 
 // One-time migration: the old simple round form (round_records: course name,
 // score, putts only) is replaced by the full rounds/round_holes feature.

@@ -1,4 +1,4 @@
-import { layout, escapeHtml, nl2br, icon } from './layout.js';
+import { layout, escapeHtml, nl2br, icon, avatarHtml } from './layout.js';
 import { jstToday, addDays } from '../lib/date.js';
 
 function fmtDate(d) {
@@ -447,7 +447,7 @@ function recordCommentsHtml(comments) {
     .map(
       (c) => `
       <li class="comment-item">
-        <div class="comment-author">${escapeHtml(c.author_name || '指導者')}</div>
+        <div class="comment-author">${avatarHtml({ name: c.author_name, avatar_filename: c.author_avatar }, { size: 22 })}${escapeHtml(c.author_name || '指導者')}</div>
         <div class="comment-body">${nl2br(c.body)}</div>
         <div class="comment-date">${escapeHtml(c.created_at.slice(0, 16).replace('T', ' '))}</div>
       </li>`
@@ -456,7 +456,6 @@ function recordCommentsHtml(comments) {
 }
 
 export function mypagePage({ user, flash, stats, memberSince }) {
-  const initial = (user.name || '').trim().slice(0, 1).toUpperCase();
   return layout({
     title: 'マイページ',
     user,
@@ -466,11 +465,27 @@ export function mypagePage({ user, flash, stats, memberSince }) {
       <h1>マイページ</h1>
 
       <div class="card mypage-profile">
-        <div class="mypage-avatar">${escapeHtml(initial)}</div>
+        ${avatarHtml(user, { size: 56, className: 'mypage-avatar' })}
         <div>
           <div class="mypage-name">${escapeHtml(user.name)}${user.furigana ? ` <span class="muted furigana">(${escapeHtml(user.furigana)})</span>` : ''}</div>
           <div class="mypage-email">${escapeHtml(user.email)}</div>
         </div>
+      </div>
+
+      <div class="card">
+        <h2>プロフィールを編集</h2>
+        <form method="post" action="/mypage/avatar" enctype="multipart/form-data" class="form">
+          <label>プロフィール画像
+            <input type="file" name="avatar" accept="image/*" required>
+          </label>
+          <button type="submit" class="btn btn-secondary">画像を更新する</button>
+        </form>
+        <form method="post" action="/mypage/profile" class="form" style="margin-top:0.9rem">
+          <label>名前
+            <input type="text" name="name" value="${escapeHtml(user.name)}" required>
+          </label>
+          <button type="submit" class="btn btn-secondary">名前を更新する</button>
+        </form>
       </div>
 
       <div class="card">
