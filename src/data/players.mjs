@@ -389,6 +389,15 @@ export const players = [
     instagram: "https://www.instagram.com/monami_kawamura?xtok=MTh6aG1wc2ZrYWxuag==",
     photo: "/images/players/kawamura-monami.png",
   },
+  {
+    id: "player-42",
+    status: "announced",
+    name: "樽本桜",
+    nameKana: "たるもと さくら",
+    nameRomaji: "Tarumoto Sakura",
+    instagram: "https://www.instagram.com/tarumoto.sakura?xtok=MWlxdWNrbHV0Yzc0MA==",
+    photo: "/images/players/tarumoto-sakura.jpg",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
@@ -396,6 +405,6 @@ export const players = [
   })),
 ];
 
-export const playerCapacity = 40;
+export const playerCapacity = 44;
 
 export default players;
