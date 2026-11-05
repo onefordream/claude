@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupRecordSheet();
   setupRoundStartForm();
   setupHoleEntryForm();
+  setupVoiceInputButtons();
 });
 
 // The bottom-nav "+" button opens a small sheet to pick which kind of
@@ -27,6 +28,90 @@ function setupRecordSheet() {
   }
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) overlay.hidden = true;
+  });
+}
+
+// "(音声入力)" buttons next to a record's textareas — dictate instead of
+// type, then the existing AI summary feature does the rest. Uses the
+// browser's built-in speech recognition, so there's no server-side cost and
+// nothing to upload; on a browser that doesn't support it (desktop Firefox,
+// mainly), the buttons just hide themselves.
+function setupVoiceInputButtons() {
+  const buttons = document.querySelectorAll('.voice-input-btn');
+  if (!buttons.length) return;
+
+  const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognitionCtor) {
+    buttons.forEach((btn) => {
+      btn.hidden = true;
+    });
+    return;
+  }
+
+  let recognition = null;
+  let activeButton = null;
+
+  function resetButton(btn) {
+    btn.classList.remove('listening');
+    const label = btn.querySelector('span');
+    if (label) label.textContent = '(音声入力)';
+  }
+
+  buttons.forEach((btn) => {
+    const targetId = btn.getAttribute('data-target');
+    const textarea = document.getElementById(targetId);
+    if (!textarea) return;
+
+    btn.addEventListener('click', () => {
+      if (activeButton === btn) {
+        recognition.stop();
+        return;
+      }
+      if (activeButton) {
+        recognition.stop();
+      }
+
+      activeButton = btn;
+      btn.classList.add('listening');
+      const label = btn.querySelector('span');
+      if (label) label.textContent = '(聞き取り中…)';
+
+      const baseText = textarea.value;
+      const sep = baseText && !/[\s\n]$/.test(baseText) ? '\n' : '';
+      let finalText = '';
+
+      recognition = new SpeechRecognitionCtor();
+      recognition.lang = 'ja-JP';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (e) => {
+        let interim = '';
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          const transcript = e.results[i][0].transcript;
+          if (e.results[i].isFinal) {
+            finalText += transcript;
+          } else {
+            interim += transcript;
+          }
+        }
+        textarea.value = baseText + sep + finalText + interim;
+      };
+
+      recognition.onerror = (e) => {
+        if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+          alert('マイクの使用が許可されていません。ブラウザの設定を確認してください。');
+        }
+      };
+
+      recognition.onend = () => {
+        resetButton(btn);
+        if (activeButton === btn) activeButton = null;
+        recognition = null;
+      };
+
+      recognition.start();
+    });
   });
 }
 

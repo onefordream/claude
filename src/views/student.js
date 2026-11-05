@@ -1,4 +1,4 @@
-import { layout, escapeHtml, nl2br, icon, avatarHtml } from './layout.js';
+import { layout, escapeHtml, nl2br, icon, avatarHtml, voiceInputButton } from './layout.js';
 import { jstToday, addDays } from '../lib/date.js';
 
 function fmtDate(d) {
@@ -282,11 +282,13 @@ export function newRecordPage({ user, flash, values = {} }) {
           <input type="date" name="record_date" required value="${escapeHtml(values.record_date || today)}">
         </label>
         <label>練習・レッスン内容
-          <textarea name="content" rows="6" required placeholder="例）アイアンのダウンスイングでの体重移動を練習した。コーチからは右肩が早く開くクセを指摘され、鏡を見ながら素振りを繰り返した。">${escapeHtml(values.content || '')}</textarea>
+          <textarea name="content" id="record-content" rows="6" required placeholder="例）アイアンのダウンスイングでの体重移動を練習した。コーチからは右肩が早く開くクセを指摘され、鏡を見ながら素振りを繰り返した。">${escapeHtml(values.content || '')}</textarea>
         </label>
+        ${voiceInputButton('record-content')}
         <label>気づき・メモ（任意）
-          <textarea name="notes" rows="3" placeholder="例）夕方は特に右肩が開きやすい気がする">${escapeHtml(values.notes || '')}</textarea>
+          <textarea name="notes" id="record-notes" rows="3" placeholder="例）夕方は特に右肩が開きやすい気がする">${escapeHtml(values.notes || '')}</textarea>
         </label>
+        ${voiceInputButton('record-notes')}
         <label>動画を添付（任意・複数可、1ファイル60MBまで）
           <input type="file" name="videos" accept="video/*" multiple>
         </label>
@@ -342,8 +344,9 @@ export function newPracticePage({ user, flash, values = {} }) {
           <input type="date" name="record_date" required value="${escapeHtml(values.record_date || today)}">
         </label>
         <label>練習内容
-          <textarea name="content" rows="6" required placeholder="例）ドライビングレンジでアイアンの打ち込み練習をした。">${escapeHtml(values.content || '')}</textarea>
+          <textarea name="content" id="practice-content" rows="6" required placeholder="例）ドライビングレンジでアイアンの打ち込み練習をした。">${escapeHtml(values.content || '')}</textarea>
         </label>
+        ${voiceInputButton('practice-content')}
         <div class="form-row">
           <label>練習時間（分・任意）
             <input type="number" name="duration_minutes" min="1" max="1440" placeholder="例）90" value="${escapeHtml(values.duration_minutes || '')}">
@@ -353,8 +356,9 @@ export function newPracticePage({ user, flash, values = {} }) {
           </label>
         </div>
         <label>気づきポイント・メモ（任意）
-          <textarea name="notes" rows="3" placeholder="例）体重移動を意識したらミート率が上がった気がする">${escapeHtml(values.notes || '')}</textarea>
+          <textarea name="notes" id="practice-notes" rows="3" placeholder="例）体重移動を意識したらミート率が上がった気がする">${escapeHtml(values.notes || '')}</textarea>
         </label>
+        ${voiceInputButton('practice-notes')}
         <label>動画を添付（任意・複数可、1ファイル60MBまで）
           <input type="file" name="videos" accept="video/*" multiple>
         </label>

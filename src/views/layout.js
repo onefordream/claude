@@ -60,6 +60,7 @@ const ICON_PATHS = {
   target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>',
   sparkle: '<path d="M12 3l1.8 5.4L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.6L12 3Z" fill="currentColor" stroke="none"/>',
   person: '<circle cx="12" cy="8.5" r="3.5"/><path d="M4.5 20c0-3.6 3.4-6.2 7.5-6.2s7.5 2.6 7.5 6.2"/>',
+  mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><line x1="12" y1="17.5" x2="12" y2="21"/><line x1="8.5" y1="21" x2="15.5" y2="21"/>',
 };
 
 export function icon(name, { size = 20, className = '' } = {}) {
@@ -78,6 +79,13 @@ export function avatarHtml(person, { size = 32, className = '' } = {}) {
   }
   const initial = ((person && person.name) || '').trim().slice(0, 1).toUpperCase();
   return `<span class="avatar-initial ${className}" style="width:${size}px;height:${size}px;font-size:${Math.round(size * 0.42)}px;">${escapeHtml(initial)}</span>`;
+}
+
+// A small "(音声入力)" button next to a textarea — public/client.js wires it
+// up to the browser's built-in speech recognition (no server-side cost, no
+// external API) and hides itself where that API isn't available.
+export function voiceInputButton(targetId) {
+  return `<button type="button" class="voice-input-btn" data-target="${targetId}">${icon('mic', { size: 15 })}<span>(音声入力)</span></button>`;
 }
 
 // Plus button is first, My Page is last — everything else keeps its order
