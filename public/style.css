@@ -318,6 +318,24 @@ input:focus, textarea:focus, select:focus {
 .list-item a:hover { text-decoration: none; background: var(--bg); }
 .list-date { color: var(--muted); font-size: 0.82rem; min-width: 90px; font-variant-numeric: tabular-nums; }
 .list-title { flex: 1; font-weight: 600; }
+/* Student list rows carry more fields than a typical list item (name,
+   furigana, status, email, dates, several stat badges), so they get their
+   own stacked layout instead of the generic flex-wrap row — otherwise a
+   long name + furigana + several badges wrap unpredictably against each
+   other on a narrow screen. */
+.list-item a.student-row-link {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+}
+.student-row-head { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.student-row-head .furigana { white-space: nowrap; }
+.student-row-meta { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+.student-row-stats { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.student-row-stats .badge { white-space: nowrap; }
+
 .round-item { padding: 0.85rem 0.3rem; }
 .round-issues { font-size: 0.85rem; color: var(--warn); margin-top: 0.2rem; }
 .round-notes { font-size: 0.85rem; color: var(--muted); margin-top: 0.2rem; }

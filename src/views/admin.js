@@ -86,16 +86,22 @@ export function studentListPage({ user, flash, students, q = '', usage = null })
     ? students
         .map(
           (s) => `
-      <li class="list-item">
-        <a href="/admin/students/${s.id}">
-          <span class="list-title">${escapeHtml(s.name)}${s.furigana ? ` <span class="muted furigana">(${escapeHtml(s.furigana)})</span>` : ''}</span>
-          <span class="muted">${escapeHtml(s.email)}</span>
-          ${s.is_suspended ? '<span class="badge badge-warn">停止中</span>' : ''}
-          <span class="badge">記録 ${s.record_count}件</span>
-          <span class="list-date">${s.last_date ? '最終: ' + s.last_date : '記録なし'}</span>
-          ${s.avgScore !== null ? `<span class="badge">平均 ${s.avgScore}</span>` : ''}
-          ${s.last_round_date ? `<span class="muted">最新ラウンド: ${s.last_round_date}</span>` : ''}
-          ${s.topGrowthLabel ? `<span class="badge badge-warn">伸びしろ: ${escapeHtml(s.topGrowthLabel)}</span>` : ''}
+      <li class="list-item student-row">
+        <a href="/admin/students/${s.id}" class="student-row-link">
+          <div class="student-row-head">
+            <span class="list-title">${escapeHtml(s.name)}${s.furigana ? ` <span class="muted furigana">(${escapeHtml(s.furigana)})</span>` : ''}</span>
+            ${s.is_suspended ? '<span class="badge badge-warn">停止中</span>' : ''}
+          </div>
+          <div class="student-row-meta">
+            <span class="muted">${escapeHtml(s.email)}</span>
+            <span class="list-date">${s.last_date ? '最終: ' + s.last_date : '記録なし'}</span>
+          </div>
+          <div class="student-row-stats">
+            <span class="badge">記録 ${s.record_count}件</span>
+            ${s.avgScore !== null ? `<span class="badge">平均 ${s.avgScore}</span>` : ''}
+            ${s.last_round_date ? `<span class="badge badge-ok">最新ラウンド: ${s.last_round_date}</span>` : ''}
+            ${s.topGrowthLabel ? `<span class="badge badge-warn">伸びしろ: ${escapeHtml(s.topGrowthLabel)}</span>` : ''}
+          </div>
         </a>
       </li>`
         )
