@@ -8,7 +8,43 @@ document.addEventListener('DOMContentLoaded', () => {
   setupHoleEntryForm();
   setupVoiceInputButtons();
   setupCourseNameEdit();
+  setupAiCommentDraftButtons();
 });
+
+// "AIにコメント案を作ってもらう" buttons on the instructor's comment forms
+// (lesson/practice record detail, round detail) — fills the adjoining
+// textarea with a draft the coach can edit or replace before posting; never
+// submits anything on its own.
+function setupAiCommentDraftButtons() {
+  document.querySelectorAll('.ai-comment-draft-btn').forEach((btn) => {
+    const label = btn.querySelector('span');
+    const originalLabel = label ? label.textContent : '';
+    const endpoint = btn.getAttribute('data-endpoint');
+    const textarea = document.getElementById(btn.getAttribute('data-target'));
+    if (!endpoint || !textarea) return;
+
+    btn.addEventListener('click', async () => {
+      btn.disabled = true;
+      if (label) label.textContent = '考え中...';
+
+      try {
+        const res = await fetch(endpoint, { method: 'POST' });
+        const data = await res.json();
+        if (data.ok) {
+          textarea.value = data.draft;
+          textarea.focus();
+        } else {
+          alert(data.message || 'AIコメント案を作成できませんでした。');
+        }
+      } catch (err) {
+        alert('通信エラーが発生しました。もう一度お試しください。');
+      } finally {
+        btn.disabled = false;
+        if (label) label.textContent = originalLabel;
+      }
+    });
+  });
+}
 
 // Pencil button next to a round's course name (hole-entry, total-entry, and
 // finished-round pages) — reveals the rename form in place instead of

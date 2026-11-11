@@ -435,7 +435,8 @@ export function recordDetailPage({ user, flash, record, videos, comments = [], r
           readOnly
             ? `
         <form method="post" action="/records/${record.id}/comments" class="form">
-          <textarea name="body" rows="3" placeholder="アドバイスやフィードバックを残しましょう" required></textarea>
+          <button type="button" class="btn btn-secondary btn-sm ai-comment-draft-btn" data-endpoint="/records/${record.id}/comments/suggest" data-target="record-comment-body">${icon('chat', { size: 15 })}<span>AIにコメント案を作ってもらう</span></button>
+          <textarea name="body" id="record-comment-body" rows="3" placeholder="アドバイスやフィードバックを残しましょう" required></textarea>
           <button type="submit" class="btn btn-primary">コメントする</button>
         </form>`
             : ''
@@ -457,6 +458,45 @@ function recordCommentsHtml(comments) {
       </li>`
     )
     .join('');
+}
+
+// The bell-icon's destination: every coach comment the student has ever
+// received (on lesson/practice records and on rounds), newest first, each
+// linking straight to where it was left. Visiting this page is itself what
+// clears the nav bell's badge — see handleNotifications in server.js.
+export function notificationsPage({ user, flash, notifications }) {
+  const items = notifications.length
+    ? notifications
+        .map(
+          (n) => `
+      <li class="list-item notification-item ${n.wasUnread ? 'notification-unread' : ''}">
+        <a href="${n.href}" class="notification-link">
+          <div class="comment-author">${avatarHtml({ name: n.author_name, avatar_filename: n.author_avatar }, { size: 22 })}${escapeHtml(n.author_name || '指導者')}さんからコメント</div>
+          <div class="comment-body">${nl2br(n.body)}</div>
+          <div class="notification-meta">
+            <span class="muted">${escapeHtml(n.label)}</span>
+            <span class="comment-date">${escapeHtml(n.created_at.slice(0, 16).replace('T', ' '))}</span>
+          </div>
+        </a>
+      </li>`
+        )
+        .join('')
+    : `<li class="empty">まだコーチからのコメントはありません。</li>`;
+
+  return layout({
+    title: 'お知らせ',
+    user,
+    active: 'notifications',
+    flash,
+    body: `
+      <div class="page-header">
+        <h1>お知らせ</h1>
+      </div>
+      <div class="card">
+        <ul class="list notification-list">${items}</ul>
+      </div>
+    `,
+  });
 }
 
 export function mypagePage({ user, flash, stats, memberSince }) {

@@ -23,7 +23,7 @@ import {
   setUserPassword,
 } from './src/auth.js';
 import { verifyPassword } from './src/auth.js';
-import { isAiConfigured, summarizeLessonRecord, suggestPractice, analyzeRoundPerformance } from './src/lib/ai.js';
+import { isAiConfigured, summarizeLessonRecord, suggestPractice, analyzeRoundPerformance, suggestCoachComment } from './src/lib/ai.js';
 import { isVideoCompressionAvailable, compressVideo } from './src/lib/videoCompress.js';
 import {
   DEFAULT_PARS_18,
@@ -58,6 +58,7 @@ import {
   recordDetailPage,
   newGoalPage,
   mypagePage,
+  notificationsPage,
 } from './src/views/student.js';
 import { studentListPage, studentDetailPage, instructorListPage, instructorMypagePage } from './src/views/admin.js';
 import { videoLibraryPage } from './src/views/videos.js';
@@ -567,6 +568,7 @@ const routes = [
   { method: 'POST', pattern: /^\/logout$/, handler: handleLogout },
   { method: 'GET', pattern: /^\/dashboard$/, handler: requireAuth(handleDashboard) },
   { method: 'GET', pattern: /^\/mypage$/, handler: requireAuth(handleMypage) },
+  { method: 'GET', pattern: /^\/notifications$/, handler: requireStudent(handleNotifications) },
   { method: 'POST', pattern: /^\/mypage\/profile$/, handler: requireAuth(handleUpdateProfile) },
   { method: 'POST', pattern: /^\/mypage\/avatar$/, handler: requireAuth(handleUploadAvatar) },
   { method: 'GET', pattern: /^\/records$/, handler: requireStudent(handleRecordsList) },
@@ -574,6 +576,11 @@ const routes = [
   { method: 'POST', pattern: /^\/records$/, handler: requireStudent(handleCreateRecord) },
   { method: 'GET', pattern: /^\/records\/(?<id>\d+)$/, handler: requireAuth(handleRecordDetail) },
   { method: 'POST', pattern: /^\/records\/(?<id>\d+)\/comments$/, handler: requireInstructor(handleCreateRecordComment) },
+  {
+    method: 'POST',
+    pattern: /^\/records\/(?<id>\d+)\/comments\/suggest$/,
+    handler: requireInstructor(handleSuggestRecordComment),
+  },
   { method: 'GET', pattern: /^\/practice$/, handler: requireStudent(handlePracticeList) },
   { method: 'GET', pattern: /^\/practice\/new$/, handler: requireStudent(handleNewPracticePage) },
   { method: 'POST', pattern: /^\/practice$/, handler: requireStudent(handleCreatePractice) },
@@ -621,6 +628,11 @@ const routes = [
   },
   {
     method: 'POST',
+    pattern: /^\/admin\/students\/(?<id>\d+)\/rounds\/(?<roundId>\d+)\/comments\/suggest$/,
+    handler: requireInstructor(handleSuggestRoundComment),
+  },
+  {
+    method: 'POST',
     pattern: /^\/admin\/students\/(?<id>\d+)\/round-coach$/,
     handler: requireInstructor(handleAdminRoundCoachAi),
   },
@@ -656,9 +668,26 @@ const routes = [
 function requireAuth(handler) {
   return (ctx) => {
     if (!ctx.user) return redirect(ctx.res, '/login');
+    if (ctx.user.role === 'student') ctx.user.unreadCommentCount = unreadCommentCount(ctx.user.id);
     return handler(ctx);
   };
 }
+// How many coach comments (on records + rounds) this student hasn't opened
+// yet — read_at is set the moment they view the record/round that holds it
+// (see handleRecordDetail / handleRoundShow) or visit /notifications, so
+// this count only ever reflects comments truly never looked at.
+function unreadCommentCount(userId) {
+  const records = get(
+    `SELECT COUNT(*) AS c FROM record_comments rc JOIN lesson_records lr ON lr.id = rc.record_id WHERE lr.user_id = ? AND rc.read_at IS NULL`,
+    [userId]
+  ).c;
+  const rounds = get(
+    `SELECT COUNT(*) AS c FROM round_comments rc JOIN rounds r ON r.id = rc.round_id WHERE r.user_id = ? AND rc.read_at IS NULL`,
+    [userId]
+  ).c;
+  return records + rounds;
+}
+
 function requireStudent(handler) {
   return requireAuth((ctx) => {
     if (ctx.user.role !== 'student') return redirect(ctx.res, '/admin');
@@ -836,6 +865,65 @@ function handleMypage(ctx) {
     mypagePage({ user: ctx.user, flash: ctx.flash, stats: { ...stats, streak }, memberSince }),
     [clearFlashCookie()]
   );
+}
+
+// The bell icon's target page: every coach comment on this student's
+// records and rounds, newest first. Opening this page is what clears the
+// nav bell for comments the student never clicked into individually.
+function handleNotifications(ctx) {
+  const userId = ctx.user.id;
+
+  const recordNotifs = all(
+    `SELECT rc.body, rc.created_at, rc.read_at, rc.record_id AS target_id,
+            u.name AS author_name, u.avatar_filename AS author_avatar,
+            lr.record_date, lr.record_type
+     FROM record_comments rc
+     JOIN lesson_records lr ON lr.id = rc.record_id
+     LEFT JOIN users u ON u.id = rc.author_id
+     WHERE lr.user_id = ?`,
+    [userId]
+  ).map((c) => ({
+    href: `/records/${c.target_id}`,
+    label: `${c.record_date}の${c.record_type === 'self_practice' ? '自主練記録' : '練習記録'}`,
+    author_name: c.author_name,
+    author_avatar: c.author_avatar,
+    body: c.body,
+    created_at: c.created_at,
+    wasUnread: !c.read_at,
+  }));
+
+  const roundNotifs = all(
+    `SELECT rc.body, rc.created_at, rc.read_at, rc.round_id AS target_id,
+            u.name AS author_name, u.avatar_filename AS author_avatar,
+            r.course_name, r.play_date
+     FROM round_comments rc
+     JOIN rounds r ON r.id = rc.round_id
+     LEFT JOIN users u ON u.id = rc.author_id
+     WHERE r.user_id = ?`,
+    [userId]
+  ).map((c) => ({
+    href: `/rounds/${c.target_id}`,
+    label: `${c.play_date} ${c.course_name}のラウンド`,
+    author_name: c.author_name,
+    author_avatar: c.author_avatar,
+    body: c.body,
+    created_at: c.created_at,
+    wasUnread: !c.read_at,
+  }));
+
+  const notifications = [...recordNotifs, ...roundNotifs].sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+
+  run(
+    `UPDATE record_comments SET read_at = datetime('now') WHERE read_at IS NULL AND record_id IN (SELECT id FROM lesson_records WHERE user_id = ?)`,
+    [userId]
+  );
+  run(
+    `UPDATE round_comments SET read_at = datetime('now') WHERE read_at IS NULL AND round_id IN (SELECT id FROM rounds WHERE user_id = ?)`,
+    [userId]
+  );
+  ctx.user.unreadCommentCount = 0;
+
+  sendHtml(ctx.res, 200, notificationsPage({ user: ctx.user, flash: ctx.flash, notifications }), [clearFlashCookie()]);
 }
 
 async function handleUpdateProfile(ctx) {
@@ -1017,6 +1105,9 @@ function handleRecordDetail(ctx) {
     `SELECT rc.*, u.name AS author_name, u.avatar_filename AS author_avatar FROM record_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.record_id = ? ORDER BY rc.id`,
     [record.id]
   );
+  if (isOwner) {
+    run(`UPDATE record_comments SET read_at = datetime('now') WHERE record_id = ? AND read_at IS NULL`, [record.id]);
+  }
   let ownerName = ctx.user.name;
   if (isInstructor) {
     const owner = get(`SELECT name FROM users WHERE id = ?`, [record.user_id]);
@@ -1052,6 +1143,37 @@ async function handleCreateRecordComment(ctx) {
     run(`INSERT INTO record_comments (record_id, author_id, body) VALUES (?, ?, ?)`, [record.id, ctx.user.id, body]);
   }
   redirect(ctx.res, `/records/${record.id}`, [encodeFlash('success', 'コメントを投稿しました。')]);
+}
+
+// Drafts a comment for the instructor's textarea on a lesson/practice
+// record — the student's own content/notes plus whatever AI summary already
+// exists, so the draft doesn't repeat the same ground. Never posts anything
+// itself; the instructor reviews/edits in the textarea before submitting.
+async function handleSuggestRecordComment(ctx) {
+  const record = get(`SELECT * FROM lesson_records WHERE id = ?`, [ctx.params.id]);
+  if (!record) return sendJson(ctx.res, 404, { ok: false, message: '記録が見つかりません。' });
+  if (!isAiConfigured()) return sendJson(ctx.res, 200, { ok: false, message: 'AI機能は未設定のため使用できません。' });
+
+  const student = get(`SELECT name FROM users WHERE id = ?`, [record.user_id]);
+  const pastComments = all(`SELECT body FROM record_comments WHERE record_id = ? ORDER BY id DESC LIMIT 3`, [record.id])
+    .map((c) => c.body)
+    .join('\n');
+
+  try {
+    const draft = await suggestCoachComment({
+      studentName: student ? student.name : '',
+      kind: 'record',
+      content: record.content,
+      notes: record.notes,
+      aiSummary: record.ai_summary,
+      aiNextIssues: record.ai_next_issues,
+      pastComments,
+    });
+    sendJson(ctx.res, 200, { ok: true, draft });
+  } catch (err) {
+    console.error('Coach comment AI failed:', err.message);
+    sendJson(ctx.res, 200, { ok: false, message: 'AIコメント案の生成に失敗しました。' });
+  }
 }
 
 const MAX_PHOTO_BYTES = 15 * 1024 * 1024;
@@ -1159,6 +1281,7 @@ function handleRoundShow(ctx) {
     `SELECT rc.*, u.name AS author_name, u.avatar_filename AS author_avatar FROM round_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.round_id = ? ORDER BY rc.id`,
     [round.id]
   );
+  run(`UPDATE round_comments SET read_at = datetime('now') WHERE round_id = ? AND read_at IS NULL`, [round.id]);
   sendHtml(ctx.res, 200, roundDetailPage({ user: ctx.user, flash: ctx.flash, round, holes, aggregate, comments }), [
     clearFlashCookie(),
   ]);
@@ -1420,6 +1543,49 @@ async function handleAdminRoundComment(ctx) {
     run(`INSERT INTO round_comments (round_id, author_id, body) VALUES (?, ?, ?)`, [round.id, ctx.user.id, body]);
   }
   redirect(ctx.res, `/admin/students/${student.id}/rounds/${round.id}`, [encodeFlash('success', 'コメントを投稿しました。')]);
+}
+
+// Drafts a comment for the instructor's textarea on a round — built from the
+// same aggregate stats the round-detail page and the AI round coach already
+// use, so the draft stays grounded in numbers that are actually on screen.
+async function handleSuggestRoundComment(ctx) {
+  const student = get(`SELECT * FROM users WHERE id = ? AND role = 'student'`, [ctx.params.id]);
+  if (!student) return sendJson(ctx.res, 404, { ok: false, message: '生徒が見つかりません。' });
+  const round = get(`SELECT * FROM rounds WHERE id = ? AND user_id = ?`, [ctx.params.roundId, student.id]);
+  if (!round) return sendJson(ctx.res, 404, { ok: false, message: 'ラウンドが見つかりません。' });
+  if (!isAiConfigured()) return sendJson(ctx.res, 200, { ok: false, message: 'AI機能は未設定のため使用できません。' });
+
+  const pars = JSON.parse(round.pars);
+  const holes = round.entry_mode === 'hole' ? all(`SELECT * FROM round_holes WHERE round_id = ? ORDER BY hole_no`, [round.id]) : [];
+  const aggregate = aggregateRound({ ...round, pars }, holes);
+  const pastComments = all(`SELECT body FROM round_comments WHERE round_id = ? ORDER BY id DESC LIMIT 3`, [round.id])
+    .map((c) => c.body)
+    .join('\n');
+
+  const roundSummary = [
+    `コース: ${round.course_name} / ${round.holes}H`,
+    `スコア: ${aggregate.totalScore ?? 'データなし'}${aggregate.scoreToPar !== null ? ` (パー${aggregate.scoreToPar >= 0 ? '+' : ''}${aggregate.scoreToPar})` : ''}`,
+    `パット数: ${aggregate.puttsTotal ?? 'データなし'}`,
+    aggregate.fwKeepPct !== null ? `FWキープ率: ${aggregate.fwKeepPct}%` : null,
+    aggregate.girPct !== null ? `パーオン率: ${aggregate.girPct}%` : null,
+    aggregate.obTotal !== null ? `OB: ${aggregate.obTotal}` : null,
+    round.notes ? `本人のメモ: ${round.notes}` : null,
+  ]
+    .filter(Boolean)
+    .join('\n');
+
+  try {
+    const draft = await suggestCoachComment({
+      studentName: student.name,
+      kind: 'round',
+      roundSummary,
+      pastComments,
+    });
+    sendJson(ctx.res, 200, { ok: true, draft });
+  } catch (err) {
+    console.error('Coach comment AI failed:', err.message);
+    sendJson(ctx.res, 200, { ok: false, message: 'AIコメント案の生成に失敗しました。' });
+  }
 }
 
 async function handleAdminRoundCoachAi(ctx) {

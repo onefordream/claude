@@ -378,7 +378,8 @@ export function roundDetailPage({ user, flash, round, holes, aggregate, comments
           readOnly
             ? `
         <form method="post" action="/admin/students/${round.user_id}/rounds/${round.id}/comments" class="form">
-          <textarea name="body" rows="3" placeholder="練習課題やアドバイスを残しましょう" required></textarea>
+          <button type="button" class="btn btn-secondary btn-sm ai-comment-draft-btn" data-endpoint="/admin/students/${round.user_id}/rounds/${round.id}/comments/suggest" data-target="round-comment-body">${icon('chat', { size: 15 })}<span>AIにコメント案を作ってもらう</span></button>
+          <textarea name="body" id="round-comment-body" rows="3" placeholder="練習課題やアドバイスを残しましょう" required></textarea>
           <button type="submit" class="btn btn-primary">コメントする</button>
         </form>`
             : ''

@@ -61,6 +61,7 @@ const ICON_PATHS = {
   sparkle: '<path d="M12 3l1.8 5.4L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.6L12 3Z" fill="currentColor" stroke="none"/>',
   person: '<circle cx="12" cy="8.5" r="3.5"/><path d="M4.5 20c0-3.6 3.4-6.2 7.5-6.2s7.5 2.6 7.5 6.2"/>',
   mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><line x1="12" y1="17.5" x2="12" y2="21"/><line x1="8.5" y1="21" x2="15.5" y2="21"/>',
+  bell: '<path d="M6 10.5a6 6 0 0 1 12 0c0 3 1 4.5 2 5.5H4c1-1 2-2.5 2-5.5Z"/><path d="M10 19a2 2 0 0 0 4 0"/>',
 };
 
 export function icon(name, { size = 20, className = '' } = {}) {
@@ -132,6 +133,19 @@ function studentBottomNav(active) {
     </div>`;
 }
 
+// Bell icon in the top nav — only students get one, since coach comments are
+// the only thing it currently tracks. The badge count is set on ctx.user by
+// requireStudent() in server.js (see unreadCommentCount there) so every page
+// a student loads shows a live count with no extra query plumbed through
+// each view.
+function notificationBellHtml(count) {
+  return `
+    <a href="/notifications" class="nav-bell" aria-label="お知らせ">
+      ${icon('bell', { size: 20 })}
+      ${count > 0 ? `<span class="nav-bell-badge">${count > 9 ? '9+' : count}</span>` : ''}
+    </a>`;
+}
+
 export function layout({ title, user, active, body, flash }) {
   const isStudent = user && user.role === 'student';
 
@@ -153,7 +167,7 @@ export function layout({ title, user, active, body, flash }) {
               }
               <a href="/mypage" class="${active === 'mypage' ? 'active' : ''}">マイページ</a>
             `
-            : ''}
+            : notificationBellHtml(user.unreadCommentCount || 0)}
           <span class="nav-user">${avatarHtml(user, { size: 24, className: 'nav-avatar' })}${escapeHtml(user.name)}さん${user.role === 'instructor' ? (user.is_owner ? '（代表）' : '（指導者）') : ''}</span>
           <form method="post" action="/logout" class="inline-form">
             <button type="submit" class="link-button">ログアウト</button>
