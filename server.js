@@ -929,10 +929,11 @@ function handleNotifications(ctx) {
 async function handleUpdateProfile(ctx) {
   const { fields } = await parseRequestBody(ctx.req);
   const name = (fields.name || '').trim();
+  const furigana = (fields.furigana || '').trim();
   if (!name) {
     return redirect(ctx.res, '/mypage', [encodeFlash('error', '名前を入力してください。')]);
   }
-  run(`UPDATE users SET name = ? WHERE id = ?`, [name, ctx.user.id]);
+  run(`UPDATE users SET name = ?, furigana = ? WHERE id = ?`, [name, furigana || null, ctx.user.id]);
   redirect(ctx.res, '/mypage', [encodeFlash('success', 'プロフィールを更新しました。')]);
 }
 

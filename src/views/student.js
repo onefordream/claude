@@ -528,6 +528,9 @@ export function mypagePage({ user, flash, stats, memberSince }) {
           <label>名前
             <input type="text" name="name" value="${escapeHtml(user.name)}" required>
           </label>
+          <label>フリガナ（検索用・任意）
+            <input type="text" name="furigana" placeholder="例）ヤマダ ハナコ" value="${escapeHtml(user.furigana || '')}">
+          </label>
           <button type="submit" class="btn btn-secondary">名前を更新する</button>
         </form>
       </div>
