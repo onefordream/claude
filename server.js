@@ -24,6 +24,7 @@ import {
 } from './src/auth.js';
 import { verifyPassword } from './src/auth.js';
 import { isAiConfigured, summarizeLessonRecord, suggestPractice, analyzeRoundPerformance } from './src/lib/ai.js';
+import { isVideoCompressionAvailable, compressVideo } from './src/lib/videoCompress.js';
 import {
   DEFAULT_PARS_18,
   aggregateRound,
@@ -452,6 +453,47 @@ function saveVideoFile(file) {
   const storedName = `${Date.now()}-${randomBytes(8).toString('hex')}${safeExt}`;
   writeFileSync(join(UPLOADS_DIR, storedName), file.data);
   return storedName;
+}
+
+// Runs after the upload response has already gone out: re-encodes the just-
+// saved video to shrink it, then — only once the DB row points at the new
+// file — removes the original. `updateRow(newFilename, newSizeBytes)` does
+// the UPDATE for whichever table owns this video (videos / library_videos).
+async function compressSavedVideoInBackground(storedName, updateRow) {
+  const originalPath = join(UPLOADS_DIR, storedName);
+  const result = await compressVideo(originalPath);
+  if (!result) return;
+  const newFilename = basename(result.path);
+  try {
+    updateRow(newFilename, result.size);
+  } catch (err) {
+    console.error('Failed to record compressed video, leaving original in place:', err.message);
+    if (existsSync(result.path)) unlinkSync(result.path);
+    return;
+  }
+  if (existsSync(originalPath)) unlinkSync(originalPath);
+}
+
+// Shared by lesson and practice record creation: saves each uploaded video,
+// inserts its `videos` row, and kicks off size-reducing compression in the
+// background (the row is created with the original file so playback works
+// immediately; compressSavedVideoInBackground swaps it in once ready).
+function saveUploadedVideos(recordId, files) {
+  for (const file of files.filter((f) => f.fieldName === 'videos')) {
+    const storedName = saveVideoFile(file);
+    const result = run(
+      `INSERT INTO videos (lesson_record_id, filename, original_name, mime_type, size_bytes) VALUES (?, ?, ?, ?, ?)`,
+      [recordId, storedName, file.filename, file.mimeType, file.data.length]
+    );
+    const videoId = Number(result.lastInsertRowid);
+    compressSavedVideoInBackground(storedName, (newFilename, newSize) => {
+      run(`UPDATE videos SET filename = ?, mime_type = 'video/mp4', size_bytes = ? WHERE id = ?`, [
+        newFilename,
+        newSize,
+        videoId,
+      ]);
+    });
+  }
 }
 
 // Routes that don't take a video (login, register, goal/round text forms) never
@@ -883,14 +925,7 @@ async function handleCreateRecord(ctx) {
   );
   const recordId = Number(result.lastInsertRowid);
 
-  const videoFiles = files.filter((f) => f.fieldName === 'videos');
-  for (const file of videoFiles) {
-    const storedName = saveVideoFile(file);
-    run(
-      `INSERT INTO videos (lesson_record_id, filename, original_name, mime_type, size_bytes) VALUES (?, ?, ?, ?, ?)`,
-      [recordId, storedName, file.filename, file.mimeType, file.data.length]
-    );
-  }
+  saveUploadedVideos(recordId, files);
 
   // Fire-and-forget AI summarization so the user isn't blocked on the API call.
   generateAiSummaryInBackground(recordId, content, notes);
@@ -955,14 +990,7 @@ async function handleCreatePractice(ctx) {
   );
   const recordId = Number(result.lastInsertRowid);
 
-  const videoFiles = files.filter((f) => f.fieldName === 'videos');
-  for (const file of videoFiles) {
-    const storedName = saveVideoFile(file);
-    run(
-      `INSERT INTO videos (lesson_record_id, filename, original_name, mime_type, size_bytes) VALUES (?, ?, ?, ?, ?)`,
-      [recordId, storedName, file.filename, file.mimeType, file.data.length]
-    );
-  }
+  saveUploadedVideos(recordId, files);
 
   generateAiSummaryInBackground(recordId, content, notes);
 
@@ -1500,11 +1528,19 @@ async function handleUploadLibraryVideo(ctx) {
   }
 
   const storedName = saveVideoFile(videoFile);
-  run(
+  const result = run(
     `INSERT INTO library_videos (title, description, filename, original_name, mime_type, size_bytes, uploaded_by)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
     [title, description || null, storedName, videoFile.filename, videoFile.mimeType, videoFile.data.length, ctx.user.id]
   );
+  const libraryVideoId = Number(result.lastInsertRowid);
+  compressSavedVideoInBackground(storedName, (newFilename, newSize) => {
+    run(`UPDATE library_videos SET filename = ?, mime_type = 'video/mp4', size_bytes = ? WHERE id = ?`, [
+      newFilename,
+      newSize,
+      libraryVideoId,
+    ]);
+  });
   redirect(ctx.res, '/videos', [encodeFlash('success', '動画をアップロードしました。')]);
 }
 
@@ -1836,4 +1872,5 @@ server.listen(PORT, () => {
   if (!isAiConfigured()) {
     console.log('[info] ANTHROPIC_API_KEY is not set — AI要約・提案機能は無効化されています。');
   }
+  isVideoCompressionAvailable(); // logs its own [info] line if ffmpeg isn't found
 });
