@@ -7,7 +7,35 @@ document.addEventListener('DOMContentLoaded', () => {
   setupRoundStartForm();
   setupHoleEntryForm();
   setupVoiceInputButtons();
+  setupCourseNameEdit();
 });
+
+// Pencil button next to a round's course name (hole-entry, total-entry, and
+// finished-round pages) — reveals the rename form in place instead of
+// navigating anywhere, so fixing a typo takes one tap and a save.
+function setupCourseNameEdit() {
+  const editBtn = document.getElementById('course-name-edit-btn');
+  const headDiv = editBtn ? editBtn.closest('.course-name-head') : null;
+  const form = document.getElementById('course-name-edit-form');
+  const cancelBtn = document.getElementById('course-name-edit-cancel');
+  if (!editBtn || !headDiv || !form) return;
+
+  editBtn.addEventListener('click', () => {
+    headDiv.hidden = true;
+    form.hidden = false;
+    const input = form.querySelector('input[name="course_name"]');
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  });
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', () => {
+      form.hidden = true;
+      headDiv.hidden = false;
+    });
+  }
+}
 
 // The bottom-nav "+" button opens a small sheet to pick which kind of
 // record to create (lesson / practice / round), instead of each record

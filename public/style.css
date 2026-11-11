@@ -267,6 +267,30 @@ input:focus, textarea:focus, select:focus {
 .page-header h1 { margin: 0; }
 .header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
+.course-name-head { display: flex; align-items: center; gap: 0.3rem; min-width: 0; }
+.course-name-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+.course-name-edit-btn:hover { color: var(--green-700); background: var(--green-100); }
+.course-name-edit-form {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: -0.5rem 0 1.1rem;
+}
+.course-name-edit-form input { flex: 1; min-width: 160px; }
+.btn-sm { padding: 0.45rem 0.85rem; font-size: var(--fs-sm); }
+
 .search-form { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem; flex-wrap: wrap; }
 .search-form input { flex: 1; min-width: 200px; }
 .clear-search { font-size: var(--fs-sm); }

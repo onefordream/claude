@@ -18,6 +18,23 @@ function deleteRoundForm(roundId, { className = 'link-button link-button-danger'
     </form>`;
 }
 
+// Shared by the hole-entry, total-entry, and detail pages: a small pencil
+// button next to the course name that reveals an inline rename form (see
+// setupCourseNameEdit in public/client.js) — fixes a typo'd course name
+// without having to delete and re-create the whole round.
+function courseNameHeading(round, suffix = '') {
+  return `<div class="course-name-head"><h1 id="course-name-display">${escapeHtml(round.course_name)}${escapeHtml(suffix)}</h1><button type="button" class="course-name-edit-btn" id="course-name-edit-btn" aria-label="コース名を編集">${icon('pencil', { size: 15 })}</button></div>`;
+}
+
+function courseNameEditForm(round) {
+  return `
+    <form method="post" action="/rounds/${round.id}/course" class="course-name-edit-form" id="course-name-edit-form" hidden>
+      <input type="text" name="course_name" value="${escapeHtml(round.course_name)}" required maxlength="100">
+      <button type="submit" class="btn btn-primary btn-sm">保存</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="course-name-edit-cancel">キャンセル</button>
+    </form>`;
+}
+
 function parCells(pars, holes, { editable = false } = {}) {
   return pars
     .slice(0, holes)
@@ -113,9 +130,10 @@ export function holeEntryPage({ user, flash, round, holeSummaries }) {
     flash,
     body: `
       <div class="page-header">
-        <h1>${escapeHtml(round.course_name)}</h1>
+        ${courseNameHeading(round)}
         <span class="muted">${escapeHtml(fmtDate(round.play_date))}</span>
       </div>
+      ${courseNameEditForm(round)}
 
       <div class="scorecard-strip" id="scorecard-strip"></div>
       <div class="hole-totals" id="hole-totals"></div>
@@ -141,9 +159,10 @@ export function totalEntryPage({ user, flash, round, values = {} }) {
     flash,
     body: `
       <div class="page-header">
-        <h1>${escapeHtml(round.course_name)}の結果</h1>
+        ${courseNameHeading(round, 'の結果')}
         <a href="/rounds" class="back-link">${icon('chevronLeft', { size: 14 })}<span>ラウンド一覧に戻る</span></a>
       </div>
+      ${courseNameEditForm(round)}
       <p class="muted">分かる範囲だけで大丈夫です。空欄の項目は分析に使われません。</p>
 
       <form method="post" action="/rounds/${round.id}/total" class="form">
@@ -305,9 +324,10 @@ export function roundDetailPage({ user, flash, round, holes, aggregate, comments
     flash,
     body: `
       <div class="page-header">
-        <h1>${escapeHtml(round.course_name)}</h1>
+        ${readOnly ? `<h1>${escapeHtml(round.course_name)}</h1>` : courseNameHeading(round)}
         <a href="${backHref}" class="back-link">${icon('chevronLeft', { size: 14 })}<span>戻る</span></a>
       </div>
+      ${readOnly ? '' : courseNameEditForm(round)}
       <p class="muted">${escapeHtml(fmtDate(round.play_date))} / ${round.holes}H${bandLabel}</p>
 
       ${renderScorecardTable(round, holes)}

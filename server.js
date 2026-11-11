@@ -588,6 +588,7 @@ const routes = [
   { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/total$/, handler: requireStudent(handleSaveTotalEntry) },
   { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/finish$/, handler: requireStudent(handleFinishRound) },
   { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/delete$/, handler: requireStudent(handleDeleteRound) },
+  { method: 'POST', pattern: /^\/rounds\/(?<id>\d+)\/course$/, handler: requireStudent(handleUpdateCourseName) },
   { method: 'GET', pattern: /^\/analysis$/, handler: requireStudent(handleAnalysisPage) },
   { method: 'POST', pattern: /^\/ai\/round-coach$/, handler: requireStudent(handleRoundCoachAi) },
   { method: 'GET', pattern: /^\/goals\/new$/, handler: requireStudent(handleNewGoalPage) },
@@ -1182,6 +1183,27 @@ function handleDeleteRound(ctx) {
   }
   run(`DELETE FROM rounds WHERE id = ?`, [round.id]);
   redirect(ctx.res, '/rounds', [encodeFlash('success', 'ラウンド記録を削除しました。')]);
+}
+
+// Lets a student fix a mistyped course name from the hole-entry, total-entry,
+// or finished-round page — redirects back to whichever of those it came from.
+async function handleUpdateCourseName(ctx) {
+  const round = loadOwnedRound(ctx);
+  if (!round) return roundNotFound(ctx);
+  const { fields } = await parseRequestBody(ctx.req);
+  const courseName = (fields.course_name || '').trim();
+  const returnTo =
+    round.status === 'in_progress'
+      ? round.entry_mode === 'hole'
+        ? `/rounds/${round.id}/holes`
+        : `/rounds/${round.id}/total`
+      : `/rounds/${round.id}`;
+  if (!courseName) {
+    return redirect(ctx.res, returnTo, [encodeFlash('error', 'コース名を入力してください。')]);
+  }
+  run(`UPDATE rounds SET course_name = ?, updated_at = datetime('now') WHERE id = ?`, [courseName, round.id]);
+  rememberCourse(ctx.user.id, courseName, round.holes, JSON.parse(round.pars));
+  redirect(ctx.res, returnTo, [encodeFlash('success', 'コース名を変更しました。')]);
 }
 
 function handleHoleEntryPage(ctx) {
