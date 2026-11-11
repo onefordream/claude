@@ -452,6 +452,21 @@ input:focus, textarea:focus, select:focus {
 .video-library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
 .video-library-card video { width: 100%; border-radius: var(--radius-sm); background: black; margin-bottom: 0.5rem; }
 .video-library-card h3 { margin: 0.25rem 0; }
+.video-thumbnail-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 0.5rem 0;
+}
+.video-thumbnail-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: var(--fs-xs);
+  color: var(--ink-soft);
+  font-weight: 600;
+}
 .link-button-danger { color: var(--danger); }
 .account-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; }
 

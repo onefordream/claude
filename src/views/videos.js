@@ -18,6 +18,9 @@ export function videoLibraryPage({ user, flash, videos, values = {} }) {
           <label>動画ファイル
             <input type="file" name="video" accept="video/*" required>
           </label>
+          <label>サムネイル画像(任意)
+            <input type="file" name="thumbnail" accept="image/*">
+          </label>
           <button type="submit" class="btn btn-primary">アップロードする</button>
         </form>
       </div>`
@@ -28,12 +31,19 @@ export function videoLibraryPage({ user, flash, videos, values = {} }) {
         .map(
           (v) => `
       <div class="card video-library-card">
-        <video controls preload="metadata" src="/media/${encodeURIComponent(v.filename)}"></video>
+        <video controls preload="metadata" ${v.thumbnail_filename ? `poster="/media/${encodeURIComponent(v.thumbnail_filename)}"` : ''} src="/media/${encodeURIComponent(v.filename)}"></video>
         <h3>${escapeHtml(v.title)}</h3>
         ${v.description ? `<p class="muted">${nl2br(v.description)}</p>` : ''}
         ${
           isInstructor
-            ? `<form method="post" action="/videos/${v.id}/delete" class="inline-form" onsubmit="return confirm('この動画を削除しますか？');">
+            ? `
+        <form method="post" action="/videos/${v.id}/thumbnail" enctype="multipart/form-data" class="video-thumbnail-form">
+          <label class="video-thumbnail-label">${v.thumbnail_filename ? 'サムネイルを変更' : 'サムネイルを設定'}
+            <input type="file" name="thumbnail" accept="image/*" required>
+          </label>
+          <button type="submit" class="btn btn-secondary btn-sm">設定する</button>
+        </form>
+        <form method="post" action="/videos/${v.id}/delete" class="inline-form" onsubmit="return confirm('この動画を削除しますか？');">
                  <button type="submit" class="link-button link-button-danger">削除</button>
                </form>`
             : ''

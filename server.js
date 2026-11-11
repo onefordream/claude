@@ -217,6 +217,13 @@ function serveMedia(req, res, filename, user) {
   const libraryVideo = get(`SELECT * FROM library_videos WHERE filename = ?`, [filename]);
   if (libraryVideo) return streamVideoFile(req, res, libraryVideo.filename, libraryVideo.mime_type);
 
+  // That library video's thumbnail image — same viewing rule as the video itself.
+  const libraryThumb = get(`SELECT thumbnail_filename FROM library_videos WHERE thumbnail_filename = ?`, [filename]);
+  if (libraryThumb) {
+    const ext = extname(libraryThumb.thumbnail_filename).toLowerCase();
+    return streamVideoFile(req, res, libraryThumb.thumbnail_filename, MIME_TYPES[ext] || 'application/octet-stream');
+  }
+
   // A round's attached photo — same ownership rule as a personal video.
   const round = get(`SELECT * FROM rounds WHERE photo_filename = ?`, [filename]);
   if (round) {
@@ -608,6 +615,11 @@ const routes = [
     method: 'POST',
     pattern: /^\/videos\/(?<id>\d+)\/delete$/,
     handler: requireOwner(handleDeleteLibraryVideo),
+  },
+  {
+    method: 'POST',
+    pattern: /^\/videos\/(?<id>\d+)\/thumbnail$/,
+    handler: requireOwner(handleUpdateLibraryVideoThumbnail),
   },
   { method: 'GET', pattern: /^\/admin$/, handler: requireInstructor(handleStudentList) },
   { method: 'GET', pattern: /^\/admin\/export$/, handler: requireOwner(handleExportData) },
@@ -1701,6 +1713,7 @@ async function handleUploadLibraryVideo(ctx) {
   const title = (fields.title || '').trim();
   const description = (fields.description || '').trim();
   const videoFile = files.find((f) => f.fieldName === 'video');
+  const thumbnailFile = files.find((f) => f.fieldName === 'thumbnail');
 
   if (!title || !videoFile) {
     const videos = all(`SELECT * FROM library_videos ORDER BY created_at DESC, id DESC`);
@@ -1717,10 +1730,20 @@ async function handleUploadLibraryVideo(ctx) {
   }
 
   const storedName = saveVideoFile(videoFile);
+  const thumbnailName = thumbnailFile && thumbnailFile.mimeType.startsWith('image/') ? saveVideoFile(thumbnailFile) : null;
   const result = run(
-    `INSERT INTO library_videos (title, description, filename, original_name, mime_type, size_bytes, uploaded_by)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [title, description || null, storedName, videoFile.filename, videoFile.mimeType, videoFile.data.length, ctx.user.id]
+    `INSERT INTO library_videos (title, description, filename, original_name, mime_type, size_bytes, uploaded_by, thumbnail_filename)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      title,
+      description || null,
+      storedName,
+      videoFile.filename,
+      videoFile.mimeType,
+      videoFile.data.length,
+      ctx.user.id,
+      thumbnailName,
+    ]
   );
   const libraryVideoId = Number(result.lastInsertRowid);
   compressSavedVideoInBackground(storedName, (newFilename, newSize) => {
@@ -1739,8 +1762,43 @@ function handleDeleteLibraryVideo(ctx) {
     run(`DELETE FROM library_videos WHERE id = ?`, [video.id]);
     const filePath = join(UPLOADS_DIR, video.filename);
     if (existsSync(filePath)) unlinkSync(filePath);
+    if (video.thumbnail_filename) {
+      const thumbPath = join(UPLOADS_DIR, video.thumbnail_filename);
+      if (existsSync(thumbPath)) unlinkSync(thumbPath);
+    }
   }
   redirect(ctx.res, '/videos', [encodeFlash('success', '動画を削除しました。')]);
+}
+
+// Sets or replaces the thumbnail on an already-uploaded video — mainly for
+// videos that were added before this existed, so fixing a missing/ugly
+// thumbnail doesn't mean re-uploading the whole video file again.
+async function handleUpdateLibraryVideoThumbnail(ctx) {
+  const video = get(`SELECT * FROM library_videos WHERE id = ?`, [ctx.params.id]);
+  if (!video) return redirect(ctx.res, '/videos', [encodeFlash('error', '動画が見つかりません。')]);
+
+  let files;
+  try {
+    ({ files } = await parseRequestBody(ctx.req, { maxBytes: MAX_PHOTO_BYTES }));
+  } catch (err) {
+    if (err.code === 'BODY_TOO_LARGE') {
+      return redirect(ctx.res, '/videos', [encodeFlash('error', 'サムネイル画像のサイズが大きすぎます(上限15MB)。')]);
+    }
+    throw err;
+  }
+
+  const thumbnailFile = (files || []).find((f) => f.fieldName === 'thumbnail');
+  if (!thumbnailFile || !thumbnailFile.mimeType.startsWith('image/')) {
+    return redirect(ctx.res, '/videos', [encodeFlash('error', '画像ファイルを選択してください。')]);
+  }
+
+  const newThumbnailName = saveVideoFile(thumbnailFile);
+  run(`UPDATE library_videos SET thumbnail_filename = ? WHERE id = ?`, [newThumbnailName, video.id]);
+  if (video.thumbnail_filename) {
+    const oldPath = join(UPLOADS_DIR, video.thumbnail_filename);
+    if (existsSync(oldPath)) unlinkSync(oldPath);
+  }
+  redirect(ctx.res, '/videos', [encodeFlash('success', 'サムネイルを設定しました。')]);
 }
 
 // Full data export for backup/portability. Deliberately excludes
