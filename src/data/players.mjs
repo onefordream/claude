@@ -416,6 +416,15 @@ export const players = [
     instagram: "https://www.instagram.com/risagolf0126?xtok=MWdmdmg0N2VocGdibQ==",
     photo: "/images/players/ito-risa.jpg",
   },
+  {
+    id: "player-45",
+    status: "announced",
+    name: "松井梨緒",
+    nameKana: "まつい りお",
+    nameRomaji: "Matsui Rio",
+    instagram: "https://www.instagram.com/team.rio.54.golf?srtk=MWdyZGljNXJjZ2gwYQ==",
+    photo: "/images/players/matsui-rio.jpg",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
