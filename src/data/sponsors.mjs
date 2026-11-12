@@ -17,6 +17,7 @@ export const sponsors = [
   { name: "山口税理士事務所", logo: "/images/sponsors/yamaguchi-zeirishi.webp" },
   { name: "株式会社岡田製作所", logo: "/images/sponsors/okada-seisakusho.webp" },
   { name: "株式会社大創ホーム", logo: "/images/sponsors/daisou-homes.png" },
+  { name: "golf ZERO", logo: "/images/sponsors/golf-zero.png" },
 ];
 
 export default sponsors;
