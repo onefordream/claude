@@ -398,6 +398,15 @@ export const players = [
     instagram: "https://www.instagram.com/tarumoto.sakura?xtok=MWlxdWNrbHV0Yzc0MA==",
     photo: "/images/players/tarumoto-sakura.jpg",
   },
+  {
+    id: "player-43",
+    status: "announced",
+    name: "原田あゆ",
+    nameKana: "はらだ あゆ",
+    nameRomaji: "Harada Ayu",
+    instagram: "https://www.instagram.com/a___yu0809?dlrf=dTEzbnYzcHVsNDVl",
+    photo: "/images/players/harada-ayu.png",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
