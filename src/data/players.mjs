@@ -425,6 +425,14 @@ export const players = [
     instagram: "https://www.instagram.com/team.rio.54.golf?srtk=MWdyZGljNXJjZ2gwYQ==",
     photo: "/images/players/matsui-rio.jpg",
   },
+  {
+    id: "player-46",
+    status: "announced",
+    name: "森田乃愛",
+    nameKana: "もりた のあ",
+    nameRomaji: "Morita Noa",
+    instagram: "https://www.instagram.com/noanoa_1110?vrfl=eHhvaXcwaWh0Z2Nt",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
