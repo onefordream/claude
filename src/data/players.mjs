@@ -407,6 +407,15 @@ export const players = [
     instagram: "https://www.instagram.com/a___yu0809?dlrf=dTEzbnYzcHVsNDVl",
     photo: "/images/players/harada-ayu.png",
   },
+  {
+    id: "player-44",
+    status: "announced",
+    name: "伊藤里紗",
+    nameKana: "いとう りさ",
+    nameRomaji: "Ito Risa",
+    instagram: "https://www.instagram.com/risagolf0126?xtok=MWdmdmg0N2VocGdibQ==",
+    photo: "/images/players/ito-risa.jpg",
+  },
 
   ...Array.from({ length: 0 }, (_, i) => ({
     id: `coming-soon-${i + 1}`,
