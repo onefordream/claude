@@ -50,6 +50,20 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  -- Measurement-data screenshots, simulator score images, etc. attached to a
+  -- lesson/practice record alongside (or instead of) a video — same shape as
+  -- the videos table on purpose, so permission checks and file cleanup can
+  -- reuse it.
+  CREATE TABLE IF NOT EXISTS record_photos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lesson_record_id INTEGER NOT NULL REFERENCES lesson_records(id) ON DELETE CASCADE,
+    filename TEXT NOT NULL,
+    original_name TEXT NOT NULL,
+    mime_type TEXT NOT NULL,
+    size_bytes INTEGER NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE TABLE IF NOT EXISTS round_records (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -160,6 +174,7 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_lesson_records_user ON lesson_records(user_id, record_date);
   CREATE INDEX IF NOT EXISTS idx_round_records_user ON round_records(user_id, round_date);
   CREATE INDEX IF NOT EXISTS idx_videos_record ON videos(lesson_record_id);
+  CREATE INDEX IF NOT EXISTS idx_record_photos_record ON record_photos(lesson_record_id);
   CREATE INDEX IF NOT EXISTS idx_goals_user ON goals(user_id, status);
   CREATE INDEX IF NOT EXISTS idx_courses_user ON courses(user_id);
   CREATE INDEX IF NOT EXISTS idx_rounds_user ON rounds(user_id, play_date);

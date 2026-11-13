@@ -212,6 +212,11 @@ function serveMedia(req, res, filename, user) {
   const video = get(`SELECT * FROM videos WHERE filename = ?`, [filename]);
   if (video) return servePersonalVideo(req, res, video, user);
 
+  // A measurement-data/simulator-score photo attached to a record — same
+  // shape and ownership rule as a personal video, so the same guard applies.
+  const recordPhoto = get(`SELECT * FROM record_photos WHERE filename = ?`, [filename]);
+  if (recordPhoto) return servePersonalVideo(req, res, recordPhoto, user);
+
   // Library videos (instructor-provided teaching material) are viewable by
   // any logged-in student or instructor, not just the uploader.
   const libraryVideo = get(`SELECT * FROM library_videos WHERE filename = ?`, [filename]);
@@ -501,6 +506,19 @@ function saveUploadedVideos(recordId, files) {
         videoId,
       ]);
     });
+  }
+}
+
+// Saves images attached to a lesson/practice record — measurement-data
+// screenshots, simulator score photos, etc. — alongside any videos. No
+// compression here: these are already small, static images, not video.
+function saveUploadedPhotos(recordId, files) {
+  for (const file of files.filter((f) => f.fieldName === 'photos' && f.mimeType.startsWith('image/'))) {
+    const storedName = saveVideoFile(file);
+    run(
+      `INSERT INTO record_photos (lesson_record_id, filename, original_name, mime_type, size_bytes) VALUES (?, ?, ?, ?, ?)`,
+      [recordId, storedName, file.filename, file.mimeType, file.data.length]
+    );
   }
 }
 
@@ -834,7 +852,8 @@ function handleDashboard(ctx) {
   const { weeklyCount } = weeklyActivity(ctx.user.id);
   const todayMessage = pickTodayMessage({ streak, recordedToday, weeklyCount, hasGoal: Boolean(goal), userId: ctx.user.id });
   const recentCombined = all(
-    `SELECT lr.*, (SELECT COUNT(*) FROM videos v WHERE v.lesson_record_id = lr.id) AS video_count
+    `SELECT lr.*, (SELECT COUNT(*) FROM videos v WHERE v.lesson_record_id = lr.id) AS video_count,
+            (SELECT COUNT(*) FROM record_photos rp WHERE rp.lesson_record_id = lr.id) AS photo_count
      FROM lesson_records lr WHERE lr.user_id = ? ORDER BY lr.record_date DESC, lr.id DESC LIMIT 6`,
     [ctx.user.id]
   );
@@ -1028,6 +1047,7 @@ async function handleCreateRecord(ctx) {
   const recordId = Number(result.lastInsertRowid);
 
   saveUploadedVideos(recordId, files);
+  saveUploadedPhotos(recordId, files);
 
   // Fire-and-forget AI summarization so the user isn't blocked on the API call.
   generateAiSummaryInBackground(recordId, content, notes);
@@ -1093,6 +1113,7 @@ async function handleCreatePractice(ctx) {
   const recordId = Number(result.lastInsertRowid);
 
   saveUploadedVideos(recordId, files);
+  saveUploadedPhotos(recordId, files);
 
   generateAiSummaryInBackground(recordId, content, notes);
 
@@ -1114,6 +1135,7 @@ function handleRecordDetail(ctx) {
     return ctx.res.end('この記録を閲覧する権限がありません');
   }
   const videos = all(`SELECT * FROM videos WHERE lesson_record_id = ? ORDER BY id`, [record.id]);
+  const photos = all(`SELECT * FROM record_photos WHERE lesson_record_id = ? ORDER BY id`, [record.id]);
   const comments = all(
     `SELECT rc.*, u.name AS author_name, u.avatar_filename AS author_avatar FROM record_comments rc LEFT JOIN users u ON u.id = rc.author_id WHERE rc.record_id = ? ORDER BY rc.id`,
     [record.id]
@@ -1134,6 +1156,7 @@ function handleRecordDetail(ctx) {
       flash: ctx.flash,
       record,
       videos,
+      photos,
       comments,
       readOnly: isInstructor,
       ownerName,
@@ -1817,6 +1840,9 @@ function handleExportData(ctx) {
     courses: all(`SELECT * FROM courses ORDER BY id`),
     goals: all(`SELECT * FROM goals ORDER BY id`),
     videos: all(`SELECT id, lesson_record_id, filename, original_name, mime_type, size_bytes, created_at FROM videos ORDER BY id`),
+    record_photos: all(
+      `SELECT id, lesson_record_id, filename, original_name, mime_type, size_bytes, created_at FROM record_photos ORDER BY id`
+    ),
     library_videos: all(
       `SELECT id, title, description, filename, original_name, mime_type, size_bytes, uploaded_by, created_at FROM library_videos ORDER BY id`
     ),
@@ -1848,6 +1874,8 @@ function getStorageUsage() {
        SELECT size_bytes FROM videos
        UNION ALL
        SELECT size_bytes FROM library_videos
+       UNION ALL
+       SELECT size_bytes FROM record_photos
      )`
   ).bytes;
   const studentCount = get(`SELECT COUNT(*) AS n FROM users WHERE role = 'student'`).n;
@@ -1965,8 +1993,8 @@ function handleToggleStudentSuspend(ctx) {
 }
 
 // A permanent, irreversible delete — all of the student's records, rounds,
-// goals, videos (DB rows) and sessions cascade via the FK ON DELETE CASCADE
-// defined in db.js. The video *files* on disk don't cascade, so they're
+// goals, videos/photos (DB rows) and sessions cascade via the FK ON DELETE
+// CASCADE defined in db.js. The files on disk don't cascade, so they're
 // unlinked explicitly first to avoid leaving orphaned files behind.
 function handleDeleteStudent(ctx) {
   const student = get(`SELECT * FROM users WHERE id = ? AND role = 'student'`, [ctx.params.id]);
@@ -1978,10 +2006,14 @@ function handleDeleteStudent(ctx) {
     `SELECT v.filename FROM videos v JOIN lesson_records lr ON lr.id = v.lesson_record_id WHERE lr.user_id = ?`,
     [student.id]
   );
+  const recordPhotos = all(
+    `SELECT rp.filename FROM record_photos rp JOIN lesson_records lr ON lr.id = rp.lesson_record_id WHERE lr.user_id = ?`,
+    [student.id]
+  );
   const roundPhotos = all(`SELECT photo_filename FROM rounds WHERE user_id = ? AND photo_filename IS NOT NULL`, [
     student.id,
   ]);
-  for (const f of [...videos, ...roundPhotos.map((r) => ({ filename: r.photo_filename }))]) {
+  for (const f of [...videos, ...recordPhotos, ...roundPhotos.map((r) => ({ filename: r.photo_filename }))]) {
     const filePath = join(UPLOADS_DIR, f.filename);
     if (existsSync(filePath)) unlinkSync(filePath);
   }

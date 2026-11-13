@@ -62,6 +62,7 @@ const ICON_PATHS = {
   person: '<circle cx="12" cy="8.5" r="3.5"/><path d="M4.5 20c0-3.6 3.4-6.2 7.5-6.2s7.5 2.6 7.5 6.2"/>',
   mic: '<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><line x1="12" y1="17.5" x2="12" y2="21"/><line x1="8.5" y1="21" x2="15.5" y2="21"/>',
   bell: '<path d="M6 10.5a6 6 0 0 1 12 0c0 3 1 4.5 2 5.5H4c1-1 2-2.5 2-5.5Z"/><path d="M10 19a2 2 0 0 0 4 0"/>',
+  image: '<rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 16.5l5-4.5 3.5 3L16 11l4 5"/>',
 };
 
 export function icon(name, { size = 20, className = '' } = {}) {

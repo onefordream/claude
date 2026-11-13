@@ -117,6 +117,8 @@ function recentRecordCard(r) {
   if (r.ball_count) meta.push(`${icon('target', { size: 13 })}<span>${r.ball_count}球</span>`);
   if (r.video_count > 0)
     meta.push(`${icon('play', { size: 13 })}<span>動画${r.video_count > 1 ? ` ×${r.video_count}` : ''}</span>`);
+  if (r.photo_count > 0)
+    meta.push(`${icon('image', { size: 13 })}<span>画像${r.photo_count > 1 ? ` ×${r.photo_count}` : ''}</span>`);
 
   return `
     <a href="/records/${r.id}" class="record-card ${kind.cls}">
@@ -292,6 +294,9 @@ export function newRecordPage({ user, flash, values = {} }) {
         <label>動画を添付（任意・複数可、1ファイル60MBまで）
           <input type="file" name="videos" accept="video/*" multiple>
         </label>
+        <label>画像を添付（任意・複数可／計測データやシミュレーションのスコアなど）
+          <input type="file" name="photos" accept="image/*" multiple>
+        </label>
         <button type="submit" class="btn btn-primary">記録を保存する</button>
       </form>
     `,
@@ -362,13 +367,16 @@ export function newPracticePage({ user, flash, values = {} }) {
         <label>動画を添付（任意・複数可、1ファイル60MBまで）
           <input type="file" name="videos" accept="video/*" multiple>
         </label>
+        <label>画像を添付（任意・複数可／計測データやシミュレーションのスコアなど）
+          <input type="file" name="photos" accept="image/*" multiple>
+        </label>
         <button type="submit" class="btn btn-primary">記録を保存する</button>
       </form>
     `,
   });
 }
 
-export function recordDetailPage({ user, flash, record, videos, comments = [], readOnly = false, ownerName }) {
+export function recordDetailPage({ user, flash, record, videos, photos = [], comments = [], readOnly = false, ownerName }) {
   const isPractice = record.record_type === 'self_practice';
   const videosHtml = videos.length
     ? videos
@@ -381,6 +389,20 @@ export function recordDetailPage({ user, flash, record, videos, comments = [], r
         )
         .join('')
     : `<p class="muted">添付動画はありません。</p>`;
+
+  // Measurement-data screenshots / simulator scores etc. — linked to the
+  // full-size image in a new tab, since these are often read by zooming in.
+  const photosHtml = photos.length
+    ? photos
+        .map(
+          (p) => `
+      <a class="photo-item" href="/media/${encodeURIComponent(p.filename)}" target="_blank" rel="noopener">
+        <img src="/media/${encodeURIComponent(p.filename)}" alt="${escapeHtml(p.original_name)}" loading="lazy">
+        <div class="video-name">${escapeHtml(p.original_name)}</div>
+      </a>`
+        )
+        .join('')
+    : '';
 
   const aiSection =
     record.ai_status === 'done'
@@ -427,6 +449,16 @@ export function recordDetailPage({ user, flash, record, videos, comments = [], r
         <h3>添付動画</h3>
         <div class="video-grid">${videosHtml}</div>
       </div>
+
+      ${
+        photos.length
+          ? `
+      <div class="card">
+        <h3>添付画像</h3>
+        <div class="video-grid">${photosHtml}</div>
+      </div>`
+          : ''
+      }
 
       <div class="card">
         <h3>指導者からのコメント</h3>
