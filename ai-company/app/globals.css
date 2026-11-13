@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #050812;
+  --color-navy-950: #070c1a;
+  --color-navy-900: #0b1226;
+  --color-navy-800: #111a35;
+  --color-navy-700: #18244a;
+  --color-navy-600: #233263;
+  --color-line: rgba(148, 163, 214, 0.16);
+  --color-gold: #d4af37;
+  --color-gold-soft: #f3d98b;
+  --color-gold-deep: #a8841f;
+  --color-sky: #5b9dff;
+  --color-sky-soft: #9cc3ff;
+  --color-text: #e9edf7;
+  --color-muted: #8f9abb;
+  --color-success: #4ade80;
+  --color-danger: #f87171;
+
+  --font-sans: "Noto Sans JP", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, system-ui, sans-serif;
+  --font-display: "Outfit", "Noto Sans JP", system-ui, sans-serif;
+
+  --animate-float: float 6s ease-in-out infinite;
+  --animate-shine: shine 3.2s linear infinite;
+  --animate-blink: blink 4.5s infinite;
+  --animate-talk: talk 0.28s ease-in-out infinite alternate;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  @keyframes shine {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes blink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.1); }
+  }
+  @keyframes talk {
+    from { transform: scaleY(0.4); }
+    to { transform: scaleY(1); }
+  }
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-ink);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  min-height: 100dvh;
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(91, 157, 255, 0.12), transparent 60%),
+    radial-gradient(900px 500px at -10% 20%, rgba(212, 175, 55, 0.08), transparent 60%),
+    var(--color-ink);
+  background-attachment: fixed;
+}
+
+/* 背景のグリッド（オフィスの床・ホログラム感） */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(120, 150, 230, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(120, 150, 230, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.text-gold-gradient {
+  background: linear-gradient(100deg, #a8841f 0%, #f3d98b 35%, #fff4cf 50%, #f3d98b 65%, #a8841f 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.shine {
+  background-size: 200% 100%;
+  animation: var(--animate-shine);
+}
+
+.panel {
+  background: linear-gradient(180deg, rgba(24, 36, 74, 0.72), rgba(11, 18, 38, 0.82));
+  border: 1px solid var(--color-line);
+  border-radius: 1.25rem;
+  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(10px);
+}
+
+.panel-gold {
+  border-color: rgba(212, 175, 55, 0.45);
+  box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.12), 0 12px 40px -16px rgba(212, 175, 55, 0.35);
+}
+
+/* Markdown 表示（AIの成果物） */
+.prose-ai {
+  line-height: 1.8;
+  font-size: 0.94rem;
+  overflow-wrap: anywhere;
+}
+.prose-ai h1, .prose-ai h2, .prose-ai h3 {
+  font-weight: 700;
+  margin: 1em 0 0.4em;
+  color: var(--color-gold-soft);
+}
+.prose-ai h1 { font-size: 1.15rem; }
+.prose-ai h2 { font-size: 1.05rem; }
+.prose-ai h3 { font-size: 0.98rem; }
+.prose-ai p { margin: 0.5em 0; }
+.prose-ai ul, .prose-ai ol { margin: 0.4em 0; padding-left: 1.3em; }
+.prose-ai ul { list-style: disc; }
+.prose-ai ol { list-style: decimal; }
+.prose-ai li { margin: 0.2em 0; }
+.prose-ai strong { color: #fff; }
+.prose-ai code { background: rgba(255,255,255,0.08); padding: 0 0.3em; border-radius: 4px; }
+.prose-ai table { width: 100%; border-collapse: collapse; margin: 0.6em 0; font-size: 0.85rem; display: block; overflow-x: auto; }
+.prose-ai th, .prose-ai td { border: 1px solid var(--color-line); padding: 0.35em 0.5em; text-align: left; vertical-align: top; }
+.prose-ai th { background: rgba(255,255,255,0.05); }
+.prose-ai hr { border-color: var(--color-line); margin: 1em 0; }
+
+.scrollbar-none::-webkit-scrollbar { display: none; }
+.scrollbar-none { scrollbar-width: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

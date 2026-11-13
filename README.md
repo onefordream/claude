@@ -68,3 +68,11 @@ npx serve public
 - Netlify：Publish directory を `public`
 - Vercel：Output Directory を `public`（ビルドコマンドなし）
 - Cloudflare Pages：Build output directory を `public`
+
+---
+
+## AI COMPANY（別アプリ）
+
+`ai-company/` ディレクトリには、AI会社経営ゲーム「AI COMPANY」（Next.js）が入っています。
+上記の静的ページ（`public/`）とは独立しており、Vercel では Root Directory を `ai-company` にしてデプロイします。
+詳細は [ai-company/README.md](ai-company/README.md) を参照してください。

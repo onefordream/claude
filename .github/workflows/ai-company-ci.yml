@@ -1,0 +1,47 @@
+name: AI COMPANY CI
+
+on:
+  push:
+    paths: ["ai-company/**", ".github/workflows/ai-company-ci.yml"]
+  pull_request:
+    paths: ["ai-company/**", ".github/workflows/ai-company-ci.yml"]
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: ai-company
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ai-company/package-lock.json
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: RLS tests (local PostgreSQL)
+        run: npm run test:rls
+      - name: Production build
+        run: npm run build
+      - name: E2E (local dev mode, mobile viewport)
+        run: |
+          npm i --no-save playwright@1.63.0
+          npx playwright install --with-deps chromium
+          DEV_LOCAL_MODE=1 DEV_SESSION_SECRET=ci ADMIN_EMAILS=admin@example.com npx next start -p 3100 &
+          npx --yes wait-on@8 http://localhost:3100 -t 60000
+          BASE_URL=http://localhost:3100 npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-screenshots
+          path: ai-company/test-results
+          if-no-files-found: ignore
