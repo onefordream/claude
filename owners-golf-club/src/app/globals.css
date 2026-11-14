@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #111111;
+  --color-paper: #ffffff;
+  --color-green: #0c3b2e;
+  --color-green-soft: #e8efec;
+  --color-gold: #c9a227;
+  --color-line: #e3e3e0;
+  --color-mute: #6b6b6b;
+  --color-cream: #f7f6f2;
+  --font-serif: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-sans: "Noto Sans JP", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: #ffffff;
+  color: #111111;
+  font-family: var(--font-sans);
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+}
+
+h1,
+h2,
+h3,
+.font-serif {
+  font-family: var(--font-serif);
+  letter-spacing: 0.06em;
+}
+
+input,
+select,
+textarea {
+  font-size: 16px; /* iOS のズーム防止 */
+}
+
+.prose-ogc p + p {
+  margin-top: 1em;
+}
+.prose-ogc h2 {
+  font-size: 1.125rem;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--color-line);
+}
+.prose-ogc ol,
+.prose-ogc ul {
+  padding-left: 1.25rem;
+  list-style: decimal;
+}
+.prose-ogc ul {
+  list-style: disc;
+}

@@ -1,0 +1,412 @@
+// OWNERS GOLF CLUB データモデル
+// カード情報は一切保存しない。Stripe の各種IDと取引状態のみを保持する。
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  APPLICANT
+  MEMBER
+  ADMIN
+}
+
+enum MemberStatus {
+  APPLIED
+  NEEDS_INFO
+  APPROVED
+  ACTIVE
+  PAST_DUE
+  REJECTED
+  SUSPENDED
+  CANCEL_REQUESTED
+  CANCELLED
+}
+
+enum Region {
+  KANSAI
+  KANTO
+  OTHER
+}
+
+enum PartnerType {
+  GOLF_COURSE
+  MAKER
+}
+
+enum PaymentType {
+  INITIAL // 入会金＋初月会費（初回請求）
+  MONTHLY // 月会費
+}
+
+enum PaymentStatus {
+  PAID
+  FAILED
+}
+
+enum ShipmentStatus {
+  NOT_REQUESTED // 未依頼
+  REQUESTED // 製作依頼済み
+  PREPARING // 準備中
+  SHIPPED // 発送済み
+}
+
+enum RegistrationStatus {
+  APPLIED // 申込受付
+  CONFIRMED // 参加確定
+  WAITLIST // キャンセル待ち
+  CANCELLED // キャンセル
+}
+
+enum OrderStatus {
+  RECEIVED // 注文受付
+  CONFIRMED // 確認済み
+  PREPARING // 準備中
+  SHIPPED // 発送済み
+  CANCELLED // キャンセル
+}
+
+enum ContentKind {
+  SEMINAR // 勉強会・セミナー
+  ARCHIVE // 録画アーカイブ
+}
+
+enum InquiryKind {
+  CONTACT // お問い合わせ
+  PRE_REGISTRATION // 事前登録
+}
+
+enum InquiryStatus {
+  NEW
+  IN_PROGRESS
+  CLOSED
+}
+
+model User {
+  id              String       @id @default(cuid())
+  email           String       @unique
+  passwordHash    String
+  name            String
+  role            Role         @default(APPLICANT)
+  status          MemberStatus @default(APPLIED)
+  emailVerifiedAt DateTime?
+  // 会員番号: ACTIVE になった時点で採番（OGC-000001形式）。再利用しない。
+  memberNumber    String?      @unique
+  memberSince     DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  application        Application?
+  statusHistory      StatusHistory[]        @relation("HistoryUser")
+  changedHistory     StatusHistory[]        @relation("HistoryActor")
+  subscription       Subscription?
+  payments           Payment[]
+  sessions           Session[]
+  registrations      EventRegistration[]
+  orders             Order[]
+  cardShipment       CardShipment?
+  profile            MemberProfile?
+  passwordResets     PasswordResetToken[]
+  emailVerifications EmailVerificationToken[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+// 入会申請情報（審査ステータスは User.status が正本。審査メモ等をここに持つ）
+model Application {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone               String
+  companyName         String
+  companyAddress      String
+  position            String
+  industry            String
+  businessDescription String
+  website             String
+  sns                 String?
+  golfHistory         String?
+  averageScore        String?
+  postalCode          String
+  mailingAddress      String
+  cardDisplayName     String // 会員証・ネームプレート用表記名
+  agreedTermsAt       DateTime
+  agreedPrivacyAt     DateTime
+  reviewNote          String?   @db.Text // 審査メモ（管理者のみ）
+  infoRequestMessage  String?   @db.Text // 追加情報の依頼内容
+  additionalInfo      String?   @db.Text // 申請者からの追加情報
+  additionalInfoAt    DateTime?
+  reviewedAt          DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+model StatusHistory {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation("HistoryUser", fields: [userId], references: [id], onDelete: Cascade)
+  fromStatus  MemberStatus?
+  toStatus    MemberStatus
+  changedById String? // null = システム（Webhook 等）
+  changedBy   User?         @relation("HistoryActor", fields: [changedById], references: [id], onDelete: SetNull)
+  note        String?       @db.Text
+  createdAt   DateTime      @default(now())
+
+  @@index([userId, createdAt])
+  @@index([toStatus, createdAt])
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  checkoutSessionId    String?
+  status               String? // Stripe の subscription.status（active / past_due / canceled 等）
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean   @default(false)
+  isMock               Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  userId                String
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type                  PaymentType
+  status                PaymentStatus
+  amount                Int // 税込・円
+  stripeInvoiceId       String?       @unique
+  stripePaymentIntentId String?
+  description           String?
+  paidAt                DateTime?
+  isMock                Boolean       @default(false)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, paidAt])
+}
+
+// 処理済み Stripe Webhook イベント（冪等化用）。生ペイロードは保存しない。
+model StripeEvent {
+  id          String   @id // Stripe イベントID (evt_...)
+  type        String
+  processedAt DateTime @default(now())
+}
+
+model Counter {
+  key   String @id
+  value Int
+}
+
+model RateLimit {
+  key         String   @id
+  count       Int
+  windowStart DateTime
+}
+
+model Event {
+  id            String              @id @default(cuid())
+  title         String
+  description   String              @db.Text
+  region        Region
+  venue         String
+  startsAt      DateTime
+  capacity      Int?
+  feeNote       String? // 参加費の表記（未確定なら「未確定」）
+  withCaddie    Boolean             @default(true)
+  pairingMemo   String?             @db.Text // 組み合わせメモ（管理者のみ）
+  published     Boolean             @default(false)
+  isSample      Boolean             @default(false)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  registrations EventRegistration[]
+}
+
+model EventRegistration {
+  id         String             @id @default(cuid())
+  eventId    String
+  event      Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status     RegistrationStatus @default(APPLIED)
+  memberNote String?            @db.Text
+  adminNote  String?            @db.Text
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@unique([eventId, userId])
+}
+
+model PartnerCourse {
+  id          String      @id @default(cuid())
+  type        PartnerType @default(GOLF_COURSE)
+  name        String
+  region      Region
+  prefecture  String?
+  description String      @db.Text
+  benefit     String      @db.Text // 優待条件
+  howToUse    String      @db.Text // 利用方法
+  published   Boolean     @default(false)
+  isSample    Boolean     @default(false)
+  sortOrder   Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String      @db.Text
+  price       Int // 税抜・円
+  stock       Int         @default(0)
+  published   Boolean     @default(false)
+  isSample    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status          OrderStatus @default(RECEIVED)
+  subtotal        Int // 税抜
+  tax             Int
+  total           Int // 税込
+  shippingName    String
+  postalCode      String
+  shippingAddress String
+  note            String?     @db.Text
+  adminNote       String?     @db.Text
+  shippedAt       DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  items           OrderItem[]
+
+  @@index([userId, createdAt])
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  name      String // 注文時点の商品名
+  unitPrice Int // 注文時点の税抜単価
+  quantity  Int
+}
+
+model CardShipment {
+  id           String         @id @default(cuid())
+  userId       String         @unique
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status       ShipmentStatus @default(NOT_REQUESTED)
+  note         String?        @db.Text
+  trackingInfo String?
+  requestedAt  DateTime?
+  shippedAt    DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+// 会員企業・経営者紹介。visibility は項目ごとの公開設定 { companyName: true, ... }
+model MemberProfile {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listed              Boolean  @default(false) // 会員紹介ページへの掲載（本人設定）
+  hiddenByAdmin       Boolean  @default(false) // 運営による非掲載
+  featured            Boolean  @default(false) // PR掲載（運営設定）
+  companyName         String?
+  position            String?
+  industry            String?
+  businessDescription String?  @db.Text
+  website             String?
+  sns                 String?
+  prefecture          String?
+  golfHistory         String?
+  averageScore        String?
+  message             String?  @db.Text
+  visibility          Json     @default("{}")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+}
+
+model Content {
+  id          String      @id @default(cuid())
+  kind        ContentKind
+  title       String
+  description String      @db.Text
+  scheduledAt DateTime?
+  location    String?
+  videoUrl    String? // 録画アーカイブの置き場（URL）
+  published   Boolean     @default(false)
+  isSample    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Notice {
+  id          String   @id @default(cuid())
+  title       String
+  body        String   @db.Text
+  published   Boolean  @default(false)
+  publishedAt DateTime @default(now())
+  isSample    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Inquiry {
+  id        String        @id @default(cuid())
+  kind      InquiryKind
+  name      String
+  email     String
+  company   String?
+  position  String?
+  message   String?       @db.Text
+  status    InquiryStatus @default(NEW)
+  adminNote String?       @db.Text
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}

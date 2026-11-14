@@ -1,5 +1,7 @@
 # DAILY GOLF — PRIVATE OFFER
 
+> 会員制Webアプリ「OWNERS GOLF CLUB」は [`owners-golf-club/`](owners-golf-club/README.md) にあります（Next.js。本静的サイトとは独立）。
+
 デイリー社グループ（関西）4コースのシークレットプランへ案内する、1ページ完結の限定ページです。
 ビルド不要の静的サイト（HTML / CSS / JavaScript のみ）です。
 
