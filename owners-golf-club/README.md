@@ -127,9 +127,18 @@ ACTIVE / PAST_DUE → SUSPENDED（管理者）
 
 ## Vercel へのデプロイ
 
-- Root Directory: `owners-golf-club`
-- Build Command: `npm run build`（`prisma generate` を含む）
-- 環境変数を設定し、初回は `npm run db:deploy` と `npm run db:seed` をローカル等から本番DBに対して実行
+1. Vercel で「Add New → Project」→ GitHub の `onefordream/claude` を Import
+2. **Root Directory** を `owners-golf-club` に設定（Framework は Next.js が自動選択）
+3. プロジェクトの **Storage → Neon（Postgres）** を作成して接続
+   → `DATABASE_URL` と `DATABASE_URL_UNPOOLED` が自動で設定される
+4. **Settings → Environment Variables** に追加
+   - `SESSION_SECRET`（32文字以上のランダム文字列）
+   - `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD`（初期管理者）
+   - Stripe の4変数（未設定ならモック決済モード）
+   - `APP_URL`（独自ドメイン使用時のみ。未設定なら Vercel のURLを自動使用）
+5. Deploy（作業ブランチを見る場合は Deployments からそのブランチを Redeploy、または Settings → Git の Production Branch を変更）
+
+ビルド時は `vercel-build` スクリプトが実行され、`prisma migrate deploy` → `prisma db seed`（管理者作成・サンプルデータは初回のみ）→ `next build` の順に動きます。
 
 ## 未確定事項（【未確定】／【仮決め】表記）
 

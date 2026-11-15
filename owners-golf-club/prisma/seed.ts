@@ -12,7 +12,13 @@ const prisma = new PrismaClient();
 async function main() {
   const email = process.env.SEED_ADMIN_EMAIL?.toLowerCase();
   const password = process.env.SEED_ADMIN_PASSWORD;
-  if (!email || !password) throw new Error("SEED_ADMIN_EMAIL と SEED_ADMIN_PASSWORD を設定してください");
+  if (!email || !password) {
+    if (process.env.VERCEL) {
+      console.warn("[seed] SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD が未設定のため seed をスキップしました");
+      return;
+    }
+    throw new Error("SEED_ADMIN_EMAIL と SEED_ADMIN_PASSWORD を設定してください");
+  }
   if (password.length < 12) throw new Error("SEED_ADMIN_PASSWORD は12文字以上にしてください");
 
   const passwordHash = await bcrypt.hash(password, 12);

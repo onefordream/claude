@@ -7,7 +7,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  url       = env("DATABASE_URL")
+  // マイグレーション用の直接接続（Neon / Vercel 連携では自動設定される）。プーラーを使わない場合は DATABASE_URL と同じ値でよい
+  directUrl = env("DATABASE_URL_UNPOOLED")
 }
 
 enum Role {
