@@ -1,0 +1,12 @@
+{
+  "name": "AI GOLF LAB",
+  "short_name": "GOLF LAB",
+  "description": "スマホのスロー動画でゴルフの弾道を測定し、AIコーチが練習メニューを提案します。",
+  "start_url": "./#home",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F3F6F2",
+  "theme_color": "#0E5A3F",
+  "lang": "ja",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

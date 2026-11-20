@@ -68,3 +68,27 @@ npx serve public
 - Netlify：Publish directory を `public`
 - Vercel：Output Directory を `public`（ビルドコマンドなし）
 - Cloudflare Pages：Build output directory を `public`
+
+---
+
+# AI GOLF LAB（試作版）
+
+`public/ai-golf/` にある、スマホのスロー動画でゴルフの弾道を測り、AIコーチが課題と練習メニューを出すアプリの試作版です。
+
+- 公開URL（main に反映後）：https://onefordream.github.io/claude/ai-golf/
+- 商品化プラン：[`docs/ai-golf-plan.md`](docs/ai-golf-plan.md)
+
+```
+public/ai-golf/
+├── index.html
+├── css/app.css
+└── js/
+    ├── app.js       画面・フロー
+    ├── measure.js   動画からの計測（タップ方式）
+    ├── physics.js   弾道シミュレーション
+    ├── coach.js     スコア・診断・練習メニュー・伸び代
+    ├── charts.js    推移グラフ・弾道グラフ
+    ├── clubs.js     クラブ別の基準値
+    ├── pass.js      AIパス（買い切り）
+    └── store.js     端末内保存
+```
