@@ -23,6 +23,9 @@ targets:
       - path: ../public/ai-golf
         type: folder
         buildPhase: resources
+      # Xcode 上で課金をテストするための StoreKit 設定（アプリには含めない）
+      - path: StoreKit/AIGolfLab.storekit
+        buildPhase: none
     dependencies:
       - package: GolfCore
     info:
@@ -39,6 +42,9 @@ targets:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeRight
         UIApplicationSupportsIndirectInputEvents: true
+    scheme:
+      # 実行時に StoreKit 設定を使う（App Store Connect なしで購入を試せる）
+      storeKitConfiguration: StoreKit/AIGolfLab.storekit
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.aigolflab

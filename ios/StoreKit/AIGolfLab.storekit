@@ -1,0 +1,62 @@
+{
+  "identifier" : "AIGOLFLAB-LOCAL",
+  "nonRenewingSubscriptions" : [
+    {
+      "displayPrice" : "160",
+      "familyShareable" : false,
+      "internalID" : "6740000001",
+      "localizations" : [
+        {
+          "description" : "AIコーチ（診断・練習メニュー・伸び代）を1日使えます。自動更新はありません。",
+          "displayName" : "AIパス 1日",
+          "locale" : "ja"
+        }
+      ],
+      "productID" : "com.example.aigolflab.pass.day1",
+      "referenceName" : "AI Pass 1 day",
+      "type" : "NonRenewingSubscription"
+    },
+    {
+      "displayPrice" : "360",
+      "familyShareable" : false,
+      "internalID" : "6740000003",
+      "localizations" : [
+        {
+          "description" : "AIコーチ（診断・練習メニュー・伸び代）を3日間使えます。自動更新はありません。",
+          "displayName" : "AIパス 3日",
+          "locale" : "ja"
+        }
+      ],
+      "productID" : "com.example.aigolflab.pass.day3",
+      "referenceName" : "AI Pass 3 days",
+      "type" : "NonRenewingSubscription"
+    },
+    {
+      "displayPrice" : "600",
+      "familyShareable" : false,
+      "internalID" : "6740000007",
+      "localizations" : [
+        {
+          "description" : "AIコーチ（診断・練習メニュー・伸び代）を7日間使えます。自動更新はありません。",
+          "displayName" : "AIパス 7日",
+          "locale" : "ja"
+        }
+      ],
+      "productID" : "com.example.aigolflab.pass.day7",
+      "referenceName" : "AI Pass 7 days",
+      "type" : "NonRenewingSubscription"
+    }
+  ],
+  "products" : [ ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "ja_JP",
+    "_storefront" : "JPN",
+    "_storeKitErrors" : [ ]
+  },
+  "subscriptionGroups" : [ ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

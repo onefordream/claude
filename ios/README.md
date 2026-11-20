@@ -54,8 +54,38 @@ ios/
 └── AIGolfLab/
     ├── App/                    起動・画面の向き
     ├── Web/                    Web 版を表示する WKWebView と JS 連携
+    ├── Store/                  AIパスの購入（StoreKit 2）
     └── Live/                   カメラ（240fps）とライブ計測画面
 ```
+
+## AIパスの課金（App Store）
+
+AIパスは **非更新サブスクリプション**（自動更新なしの期間パス）として販売します。
+
+| Web 側の ID | 製品 ID | 日数 | 価格（案） |
+|---|---|---|---|
+| day1 | `com.example.aigolflab.pass.day1` | 1 | ¥160 |
+| day3 | `com.example.aigolflab.pass.day3` | 3 | ¥360 |
+| day7 | `com.example.aigolflab.pass.day7` | 7 | ¥600 |
+
+- 期限は購入履歴から計算します（`AIGolfLab/Store/PassStore.swift`）。有効期間中に買い足すと期限が延びます。
+- 購入履歴は同じ Apple ID の端末間で同期されるので、機種変更や再インストールでも「購入を復元」で戻せます。
+
+### Xcode 上で購入を試す（App Store Connect 不要）
+
+`xcodegen` で作ったスキームには `StoreKit/AIGolfLab.storekit` が設定済みです。そのまま ▶︎ で実行し、AIパス画面で購入すると、テスト用の購入画面が出ます（実際の請求はされません）。
+
+- 購入履歴の確認・削除：Xcode メニュー Debug > StoreKit > Manage Transactions
+- 期限切れを試す：Manage Transactions で購入を削除すると、パスが無効に戻ります
+
+### 本番に向けて
+
+1. Bundle ID を決め、`PassStore.productPrefix` と `.storekit` の製品 ID をそれに合わせる
+2. App Store Connect で「非更新サブスクリプション」を3つ登録し、価格・説明・審査用スクリーンショットを用意する
+3. 有料アプリ契約（銀行口座・税務情報）を済ませる
+4. TestFlight のサンドボックス環境で購入・復元を確認する
+
+将来アカウント機能を入れる場合は、購入の検証と期限の管理をサーバーに移すと、Android 版や Web 版とパスを共有できます。
 
 ## 撮り方のコツ（精度に直結）
 
@@ -70,4 +100,5 @@ ios/
 - [ ] 傾き補正の向き：わざと傾けて同じ球を打ち、打ち出し角が変わらないか
 - [ ] 練習場マット・芝・屋内ネットそれぞれでボールを見つけられるか
 - [ ] Web 版の記録（localStorage）がアプリを再起動しても残るか
+- [ ] AIパスの購入・期限切れ・復元（StoreKit 設定で確認）
 - [ ] 計測値をレーダー式計測器（練習場の弾道計測器など）と比べて誤差を確認

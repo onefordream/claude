@@ -7,6 +7,9 @@ import { mountVideoMeasure } from './measure.js';
 
 let state = load();
 // iPhoneアプリ内で動いているときは、ライブ計測（240fps・自動検知）が使える
+const HAS_IAP = !!(window.AIGolfHost && window.AIGolfHost.iap && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.golf);
+const nativePrices = {}; // App Store の表示価格（例: { day1: '¥160' }）
+let buying = null;
 const HAS_LIVE = !!(window.AIGolfHost && window.AIGolfHost.live && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.golf);
 const persist = () => save(state);
 const $ = (s, r = document) => r.querySelector(s);
@@ -517,12 +520,13 @@ function renderPass() {
           <div class="pass ${p.best ? 'pass-best' : ''}">
             ${p.best ? '<span class="pill pill-accent">いちばんお得</span>' : ''}
             <h2>${p.label}</h2>
-            <p class="price">¥${p.price.toLocaleString()}</p>
+            <p class="price">${nativePrices[p.id] || `¥${p.price.toLocaleString()}`}</p>
             <p class="muted small">1日あたり ¥${Math.round(p.price / p.days)} · ${p.note}</p>
-            <button type="button" class="btn ${p.best ? 'btn-primary' : 'btn-ghost'}" data-buy="${p.id}">${active ? '期間を延長' : '購入する'}</button>
+            <button type="button" class="btn ${p.best ? 'btn-primary' : 'btn-ghost'}" data-buy="${p.id}" ${buying ? 'disabled' : ''}>${buying === p.id ? '処理中…' : active ? '期間を延長' : '購入する'}</button>
           </div>`).join('')}
       </div>
       <div id="buy-confirm"></div>
+      ${HAS_IAP ? `<div class="row-end"><button type="button" class="link" id="restore">購入を復元</button></div>` : ''}
     </section>
     <section class="card">
       <h2>無料とAIパスの違い</h2>
@@ -541,8 +545,17 @@ function renderPass() {
       </div>
       <p class="muted small">パス期間中に診断した結果は、期間が終わっても見返せます。</p>
     </section>`;
+  const r = $('#restore');
+  if (r) r.onclick = () => { window.webkit.messageHandlers.golf.postMessage({ type: 'restore' }); toast('購入履歴を確認しています'); };
   v.querySelectorAll('[data-buy]').forEach((b) => b.addEventListener('click', () => {
     const p = PASSES.find((x) => x.id === b.dataset.buy);
+    if (HAS_IAP) {
+      // App Store の購入画面が確認を兼ねるので、ここでは確認を出さない
+      buying = p.id;
+      window.webkit.messageHandlers.golf.postMessage({ type: 'buy', id: p.id });
+      renderPass();
+      return;
+    }
     $('#buy-confirm').innerHTML = `
       <div class="notice">
         <p><b>${p.label}（¥${p.price}）を購入しますか？</b></p>
@@ -556,6 +569,25 @@ function renderPass() {
 
 // ---------- iPhoneアプリ（ライブ計測）との連携 ----------
 window.AIGolfNative = {
+  /** App Store のパス状態（アプリ側が正）。status: sync | purchased | cancelled | pending | failed */
+  receivePass(info) {
+    if (!info) return;
+    if (info.prices) Object.assign(nativePrices, info.prices);
+    const until = Number(info.until) || 0;
+    state.pass = until > Date.now() ? { id: info.id || 'store', until } : null;
+    persist();
+    const msg = {
+      purchased: 'AIパスを有効にしました',
+      cancelled: '購入をキャンセルしました',
+      pending: '購入の承認待ちです。承認されると有効になります',
+      failed: info.message || '購入できませんでした。時間をおいてもう一度お試しください',
+      restored: until > Date.now() ? '購入を復元しました' : '復元できる有効なパスはありませんでした',
+    }[info.status];
+    if (msg) toast(msg);
+    if (info.status !== 'sync') buying = null;
+    renderPassChip();
+    if (!$('#v-pass').hidden) renderPass();
+  },
   receiveShots(shots) {
     if (!run || !Array.isArray(shots) || !shots.length) return;
     shots.forEach((s) => {
@@ -569,6 +601,7 @@ window.AIGolfNative = {
 };
 
 // ---------- 起動 ----------
+if (HAS_IAP) window.webkit.messageHandlers.golf.postMessage({ type: 'pass-sync' });
 window.addEventListener('hashchange', route);
 $('#pass-chip').addEventListener('click', () => go('pass'));
 route();
