@@ -18,7 +18,7 @@ const peerOpts = () => window.SWINGCAM_PEER_OPTS || {};
 const VIEW_LABEL = { back: '後方', front: '正面', solo: 'カメラ' };
 
 /* ------------------------------------------------------------------ settings */
-const DEFAULTS = { detect: 'sound', sens: 5, pre: 3, post: 1.5, res: '720', fps: '60', autoSpeed: '0.25', localReplay: false };
+const DEFAULTS = { detect: 'soundmotion', sens: 5, pre: 3, post: 1.5, res: '720', fps: '60', autoSpeed: '0.25', localReplay: false };
 const settings = (() => {
   try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem('swingcam') || '{}') }; } catch { return { ...DEFAULTS }; }
 })();

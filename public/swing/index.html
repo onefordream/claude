@@ -51,8 +51,8 @@
     <summary>設定</summary>
     <label>検知方法
       <select data-set="detect">
-        <option value="sound">インパクト音（おすすめ）</option>
-        <option value="soundmotion">音＋動き（隣の打席の音を無視）</option>
+        <option value="soundmotion">音＋動き（おすすめ・隣の打席の音を無視）</option>
+        <option value="sound">インパクト音のみ</option>
         <option value="motion">動き（素振りも記録）</option>
         <option value="manual">手動のみ</option>
       </select>
@@ -95,7 +95,7 @@
     <ol>
       <li><b>後方カメラ</b>：飛球線の真後ろ、手元の高さに三脚。スイング全体（クラブヘッドの軌道）が画面に入るように。</li>
       <li><b>正面カメラ</b>：打者の正面、ボールの位置〜おへその高さ。</li>
-      <li>「インパクト音」検知はボールを打った「カーン」という音で反応します。隣の打席が近い場合は「音＋動き」に。</li>
+      <li>標準の「音＋動き」は、打球音（カーン）とスイングの動きが両方あったときだけ反応します。隣の打席の音や、素振りでは反応しません。</li>
       <li>画面上の<b>音メーター</b>・<b>動きメーター</b>の白線（しきい値）を見ながら感度を調整してください。</li>
       <li>2台で使う：PC/タブレットで「モニター」を開く → 表示されたコードを各スマホで入力（またはQRを読む）。</li>
       <li>TVに映す：モニター役のPCをHDMI接続、または1台モードのスマホをAirPlay/画面ミラーリング。</li>
@@ -120,8 +120,8 @@
   <div class="cam-bottom">
     <button class="btn" id="cam-exit">終了</button>
     <select id="cam-detect" class="btn">
-      <option value="sound">音</option>
       <option value="soundmotion">音＋動き</option>
+      <option value="sound">音</option>
       <option value="motion">動き</option>
       <option value="manual">手動</option>
     </select>
