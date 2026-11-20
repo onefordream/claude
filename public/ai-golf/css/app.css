@@ -307,3 +307,12 @@ th:first-child, td:first-child { text-align: left; }
   .score { width: 88px; height: 88px; }
   .score-num { font-size: 38px; }
 }
+
+/* ---- AIコーチ（サーバー） ---- */
+.coach-loading { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--muted); padding: 10px 0; }
+.spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid var(--accent-soft); border-top-color: var(--accent); animation: spin .9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 3s; } }
+.rule-details { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.rule-details summary { cursor: pointer; font-weight: 700; font-size: 14px; }
+.rule-details[open] summary { margin-bottom: 8px; }

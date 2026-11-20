@@ -4,6 +4,7 @@ import { PASSES, passActive, grantPass, remainingText } from './pass.js';
 import { sessionStats, shotMetrics, diagnose } from './coach.js';
 import { lineChart, trajectoryChart } from './charts.js';
 import { mountVideoMeasure } from './measure.js';
+import { aiCoachEnabled, buildCoachPayload, fetchCoach } from './aicoach.js';
 
 let state = load();
 // iPhoneアプリ内で動いているときは、ライブ計測（240fps・自動検知）が使える
@@ -390,9 +391,10 @@ function renderAI(session) {
   $('#ai-body').innerHTML = `
     <div class="theme">
       <span class="pill pill-accent">今日のテーマ</span>
-      <h3>${esc(theme.title)}</h3>
-      <p>${esc(theme.text)}</p>
+      <h3 id="theme-title">${esc(theme.title)}</h3>
+      <p id="theme-text">${esc(theme.text)}</p>
     </div>
+    <div id="ai-coach"></div>
 
     <div class="potential">
       <div class="pot-head">
@@ -410,6 +412,7 @@ function renderAI(session) {
       <p class="muted small">今日の初速・打ち出し角と標準スピンから弾道計算した推定値です。ヘッドスピード+2m/sは、3か月ほどの継続練習を想定しています。</p>
     </div>
 
+    <div id="rule-detail">
     ${issues.length ? `
     <h3 class="sub">見つかった課題</h3>
     <ul class="issues">
@@ -420,6 +423,7 @@ function renderAI(session) {
     <ol class="menu">
       ${menu.map((m) => `<li><div class="menu-top"><b>${esc(m.title)}</b><span class="reps">${esc(m.reps)}</span></div><p>${esc(m.how)}</p></li>`).join('')}
     </ol>
+    </div>
     <p class="muted small">練習後にもう一度「今日の診断」をすると、変化が記録に残ります。</p>
 
     ${g ? `<h3 class="sub">前回（${fmtDate(g.prevDate)}）からの変化</h3>
@@ -431,6 +435,51 @@ function renderAI(session) {
       </div>
       <p>${esc(g.text)}</p>
     </div>` : ''}`;
+  renderAiCoach(session, d);
+}
+
+/** Claude による個別の指導（サーバーが設定されているときだけ） */
+function renderAiCoach(session, d) {
+  const box = $('#ai-coach');
+  if (!box || session.sample || !aiCoachEnabled()) return;
+  const show = (c) => {
+    $('#theme-title').textContent = c.headline;
+    $('#theme-text').textContent = c.summary;
+    box.innerHTML = `
+      <h3 class="sub">AIコーチからの練習プラン</h3>
+      <ol class="menu">
+        ${c.priorities.map((p) => `<li>
+          <div class="menu-top"><b>${esc(p.title)}</b><span class="reps">${esc(p.reps)}</span></div>
+          <p class="muted small">${esc(p.why)}</p>
+          <p><b>${esc(p.drill)}</b>：${esc(p.how)}</p>
+          <p class="small">確認：${esc(p.check)}</p>
+        </li>`).join('')}
+      </ol>
+      <p>${esc(c.potential_comment)}</p>
+      <p class="muted small">次回のチェック：${esc(c.next_check)}</p>`;
+    // 数値基準の診断は折りたたんで残す
+    const rd = $('#rule-detail');
+    if (rd && !rd.closest('details')) {
+      const det = document.createElement('details');
+      det.className = 'rule-details';
+      det.innerHTML = '<summary>数値の基準による課題とメニュー</summary>';
+      rd.replaceWith(det);
+      det.appendChild(rd);
+    }
+  };
+  if (session.aiCoach) { show(session.aiCoach); return; }
+  box.innerHTML = `<div class="coach-loading" role="status"><span class="spinner" aria-hidden="true"></span>AIコーチがデータを読んでいます…</div>`;
+  fetchCoach(buildCoachPayload(session, d, state.sessions))
+    .then((c) => {
+      session.aiCoach = c;
+      persist();
+      if (location.hash === `#r-${session.id}`) show(c);
+    })
+    .catch((e) => {
+      if (location.hash !== `#r-${session.id}`) return;
+      box.innerHTML = `<p class="muted small">${esc(e.message)} 数値の基準による診断を表示しています。 <button type="button" class="link" id="coach-retry">もう一度試す</button></p>`;
+      $('#coach-retry').onclick = () => renderAiCoach(session, d);
+    });
 }
 
 // ---------- 記録 ----------
