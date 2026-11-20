@@ -6,6 +6,8 @@ import { lineChart, trajectoryChart } from './charts.js';
 import { mountVideoMeasure } from './measure.js';
 
 let state = load();
+// iPhoneアプリ内で動いているときは、ライブ計測（240fps・自動検知）が使える
+const HAS_LIVE = !!(window.AIGolfHost && window.AIGolfHost.live && window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.golf);
 const persist = () => save(state);
 const $ = (s, r = document) => r.querySelector(s);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -157,7 +159,7 @@ function renderTestSetup() {
     v.querySelectorAll('.seg-btn').forEach((x) => x.setAttribute('aria-checked', x === b));
   }));
   $('#begin').onclick = () => {
-    run = { club, total: testCfg.total, kind: testCfg.kind, shots: [], method: run?.method || 'video' };
+    run = { club, total: testCfg.total, kind: testCfg.kind, shots: [], method: run?.method || (HAS_LIVE ? 'live' : 'video') };
     renderShot();
   };
 }
@@ -174,6 +176,7 @@ function renderShot() {
       </div>
       ${run.total > 1 ? `<div class="dots">${Array.from({ length: run.total }, (_, k) => `<span class="${k < i ? 'done' : k === i ? 'now' : ''}"></span>`).join('')}</div>` : ''}
       <div class="seg" role="tablist" aria-label="測定方法">
+        ${HAS_LIVE ? `<button type="button" class="seg-btn" role="tab" data-m="live" aria-selected="${run.method === 'live'}">ライブ</button>` : ''}
         <button type="button" class="seg-btn" role="tab" data-m="video" aria-selected="${run.method === 'video'}">動画で測る</button>
         <button type="button" class="seg-btn" role="tab" data-m="manual" aria-selected="${run.method === 'manual'}">数値を入力</button>
         <button type="button" class="seg-btn" role="tab" data-m="sample" aria-selected="${run.method === 'sample'}">サンプル</button>
@@ -191,7 +194,20 @@ function renderShot() {
   if (fe) fe.onclick = finishRun;
 
   const area = $('#method-area');
-  if (run.method === 'video') {
+  if (run.method === 'live') {
+    const left = run.total - run.shots.length;
+    area.innerHTML = `
+      <p class="muted small">カメラを向けて打つだけで、打った瞬間に初速・打ち出し角・キャリーが出ます。残り${left}球を続けて測れます。</p>
+      <ol class="steps small">
+        <li>スマホを横向きにして固定し、ボールの真横2〜3mに置きます。</li>
+        <li>画面のボールをタップし、輪が緑になったら打ちます。</li>
+        <li>次のボールを同じ場所に置けば、そのまま続けて測れます。</li>
+      </ol>
+      <button type="button" class="btn btn-primary btn-xl" id="open-live">カメラを起動</button>`;
+    $('#open-live').onclick = () => {
+      window.webkit.messageHandlers.golf.postMessage({ type: 'live', club: run.club, total: left });
+    };
+  } else if (run.method === 'video') {
     mountVideoMeasure(area, (r) => showPreview(r));
   } else if (run.method === 'manual') {
     area.innerHTML = `
@@ -537,6 +553,20 @@ function renderPass() {
     $('#buy-yes').onclick = () => { grantPass(state, p.id); persist(); toast(`${p.label}を有効にしました`); renderPass(); renderPassChip(); };
   }));
 }
+
+// ---------- iPhoneアプリ（ライブ計測）との連携 ----------
+window.AIGolfNative = {
+  receiveShots(shots) {
+    if (!run || !Array.isArray(shots) || !shots.length) return;
+    shots.forEach((s) => {
+      if (run.shots.length < run.total && Number.isFinite(s.speed) && Number.isFinite(s.launch)) {
+        run.shots.push({ speed: s.speed, launch: s.launch, shape: s.shape || null, source: 'live' });
+      }
+    });
+    if (run.shots.length >= run.total) finishRun();
+    else renderShot();
+  },
+};
 
 // ---------- 起動 ----------
 window.addEventListener('hashchange', route);

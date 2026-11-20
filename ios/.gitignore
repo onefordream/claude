@@ -1,0 +1,9 @@
+# XcodeGen が生成するもの
+*.xcodeproj
+AIGolfLab/Info.plist
+# ビルド成果物
+.build/
+DerivedData/
+xcuserdata/
+*.xcworkspace
+.swiftpm/

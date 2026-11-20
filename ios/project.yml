@@ -1,0 +1,46 @@
+# XcodeGen 設定。`xcodegen` を実行すると AIGolfLab.xcodeproj が生成される。
+name: AIGolfLab
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+packages:
+  GolfCore:
+    path: GolfCore
+targets:
+  AIGolfLab:
+    type: application
+    platform: iOS
+    sources:
+      - path: AIGolfLab
+      # Web 版の画面（診断・記録・グラフ）をそのままアプリに同梱する
+      - path: ../public/ai-golf
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: GolfCore
+    info:
+      path: AIGolfLab/Info.plist
+      properties:
+        CFBundleDisplayName: AI GOLF LAB
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSCameraUsageDescription: 打ったボールの初速と打ち出し角を計測するためにカメラを使います。
+        UILaunchScreen: {}
+        UIRequiresFullScreen: true
+        UIStatusBarHidden: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeRight
+        UIApplicationSupportsIndirectInputEvents: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.aigolflab
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic

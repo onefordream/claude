@@ -77,6 +77,7 @@ npx serve public
 
 - 公開URL（main に反映後）：https://onefordream.github.io/claude/ai-golf/
 - 商品化プラン：[`docs/ai-golf-plan.md`](docs/ai-golf-plan.md)
+- iPhone アプリ（カメラを向けて打つだけで計測）：[`ios/README.md`](ios/README.md)
 
 ```
 public/ai-golf/
