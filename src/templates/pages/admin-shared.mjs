@@ -45,6 +45,12 @@ export const ADMIN_STYLES = `
   }
   .broadcast button:hover { background: #a12e54; }
   .checkbox-col { width: 2rem; }
+  .search-toolbar { margin-bottom: 0.8rem; display: flex; gap: 0.7rem; align-items: center; flex-wrap: wrap; }
+  .search-toolbar input[type="search"] {
+    padding: 0.5rem 0.8rem; border: 1px solid #ddd; border-radius: 6px; font-size: 0.85rem;
+    font-family: inherit; width: 320px; max-width: 100%;
+  }
+  .search-toolbar__count { font-size: 0.78rem; color: #888; }
   .select-toolbar { margin-bottom: 0.8rem; display: flex; gap: 0.6rem; flex-wrap: wrap; }
   .select-toolbar button {
     background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 0.45rem 0.9rem;

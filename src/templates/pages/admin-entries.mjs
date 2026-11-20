@@ -88,6 +88,11 @@ export function renderAdminEntries({ entries, capacity, query = new URLSearchPar
     <a href="/admin/entries.csv">CSVでダウンロード（Excelで開けます）</a>
   </div>
 
+  <div class="search-toolbar">
+    <input type="search" id="entry-search" placeholder="氏名・フリガナ・メール・同伴者で検索" />
+    <span id="entry-search-count" class="search-toolbar__count"></span>
+  </div>
+
   <div class="select-toolbar">
     <button type="button" data-select="all">全員選択</button>
     <button type="button" data-select="none">選択解除</button>
