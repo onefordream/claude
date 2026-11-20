@@ -68,3 +68,14 @@ npx serve public
 - Netlify：Publish directory を `public`
 - Vercel：Output Directory を `public`（ビルドコマンドなし）
 - Cloudflare Pages：Build output directory を `public`
+
+---
+
+# SWING CAM（ゴルフ用モーションカメラ）
+
+`public/swing/` — スマホだけで動くスイング解析カメラ。公開URL：https://onefordream.github.io/claude/swing/
+
+- インパクト音 / 動き でショットを自動検知し、直前のスイングを即リプレイ
+- コマ送り・スロー（1/2・1/4・1/8）・ループ・線（傾き表示）・角度・円・手書き
+- 2台接続（後方＋正面）→ PC/タブレット/TV の「モニター」に2画面同期表示（PeerJS / WebRTC で端末間直接送信）
+- アプリのインストール不要（Chrome / iOS Safari 14.5+）。カメラ利用のため https で開く必要があります

@@ -1,0 +1,9 @@
+{
+  "name": "SWING CAM",
+  "short_name": "SWING CAM",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#07100c",
+  "theme_color": "#07100c",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}

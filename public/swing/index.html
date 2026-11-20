@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>SWING CAM｜スマホで作るゴルフ用モーションカメラ</title>
+  <meta name="description" content="ショットを自動検知して、スマホで撮ったスイングを即リプレイ。コマ送り・スロー・線・角度。2台で正面＋後方を同時にモニター表示。">
+  <meta name="theme-color" content="#07100c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="swing.css">
+</head>
+<body>
+
+<!-- ============ HOME ============ -->
+<section id="home" class="screen active">
+  <header class="home-head">
+    <div class="logo">SWING<span>CAM</span></div>
+    <p class="tag">ショットを自動検知 → 瞬時にリプレイ</p>
+  </header>
+
+  <div class="modes">
+    <button class="mode-card" data-go="solo">
+      <b>1台で使う</b>
+      <span>このスマホで撮影して、このスマホで見る</span>
+    </button>
+    <button class="mode-card" data-go="join">
+      <b>カメラとして接続</b>
+      <span>モニターに映像を送る（後方・正面の2台まで）</span>
+    </button>
+    <button class="mode-card" data-go="monitor">
+      <b>モニター</b>
+      <span>PC・タブレット・TVでリプレイを表示</span>
+    </button>
+  </div>
+
+  <div id="join-form" class="panel" hidden>
+    <label>ルームコード（モニターに表示された4桁）
+      <input id="join-code" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="1234" autocomplete="off">
+    </label>
+    <div class="seg" id="join-view">
+      <button data-v="back" class="on">後方（飛球線後方）</button>
+      <button data-v="front">正面</button>
+    </div>
+    <button id="join-go" class="btn primary wide">カメラを起動して接続</button>
+  </div>
+
+  <details class="panel settings" id="settings">
+    <summary>設定</summary>
+    <label>検知方法
+      <select data-set="detect">
+        <option value="sound">インパクト音（おすすめ）</option>
+        <option value="soundmotion">音＋動き（隣の打席の音を無視）</option>
+        <option value="motion">動き（素振りも記録）</option>
+        <option value="manual">手動のみ</option>
+      </select>
+    </label>
+    <label>検知感度 <output data-out="sens"></output>
+      <input type="range" min="1" max="10" step="1" data-set="sens">
+    </label>
+    <label>インパクト前 <output data-out="pre"></output>秒
+      <input type="range" min="1.5" max="5" step="0.5" data-set="pre">
+    </label>
+    <label>インパクト後 <output data-out="post"></output>秒
+      <input type="range" min="0.5" max="3" step="0.5" data-set="post">
+    </label>
+    <label>画質
+      <select data-set="res">
+        <option value="720">720p（軽い・おすすめ）</option>
+        <option value="1080">1080p（高画質）</option>
+      </select>
+    </label>
+    <label>フレームレート
+      <select data-set="fps">
+        <option value="60">60fps（おすすめ）</option>
+        <option value="30">30fps</option>
+        <option value="120">120fps（対応機種のみ）</option>
+      </select>
+    </label>
+    <label>自動リプレイ速度
+      <select data-set="autoSpeed">
+        <option value="1">等速</option>
+        <option value="0.5">1/2</option>
+        <option value="0.25">1/4</option>
+        <option value="0.125">1/8</option>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" data-set="localReplay"> 接続カメラ側でもリプレイを表示</label>
+  </details>
+
+  <details class="panel howto">
+    <summary>使い方・置き方</summary>
+    <ol>
+      <li><b>後方カメラ</b>：飛球線の真後ろ、手元の高さに三脚。スイング全体（クラブヘッドの軌道）が画面に入るように。</li>
+      <li><b>正面カメラ</b>：打者の正面、ボールの位置〜おへその高さ。</li>
+      <li>「インパクト音」検知はボールを打った「カーン」という音で反応します。隣の打席が近い場合は「音＋動き」に。</li>
+      <li>画面上の<b>音メーター</b>・<b>動きメーター</b>の白線（しきい値）を見ながら感度を調整してください。</li>
+      <li>2台で使う：PC/タブレットで「モニター」を開く → 表示されたコードを各スマホで入力（またはQRを読む）。</li>
+      <li>TVに映す：モニター役のPCをHDMI接続、または1台モードのスマホをAirPlay/画面ミラーリング。</li>
+    </ol>
+    <p class="note">映像は端末間で直接送られ、サーバーには保存されません。2台接続にはインターネット接続が必要です（1台モードはオフラインでも可）。</p>
+  </details>
+</section>
+
+<!-- ============ CAMERA ============ -->
+<section id="cam" class="screen">
+  <video id="live" playsinline muted autoplay></video>
+  <div class="cam-top">
+    <span class="chip" id="cam-role">1台モード</span>
+    <span class="chip" id="cam-net" hidden>未接続</span>
+    <span class="chip" id="cam-buf">準備中…</span>
+  </div>
+  <div class="meters">
+    <div class="meter" title="音"><i>音</i><div class="bar"><div class="fill" id="m-sound"></div><div class="thr" id="t-sound"></div></div></div>
+    <div class="meter" title="動き"><i>動</i><div class="bar"><div class="fill" id="m-motion"></div><div class="thr" id="t-motion"></div></div></div>
+  </div>
+  <div class="flash" id="flash">SHOT!</div>
+  <div class="cam-bottom">
+    <button class="btn" id="cam-exit">終了</button>
+    <select id="cam-detect" class="btn">
+      <option value="sound">音</option>
+      <option value="soundmotion">音＋動き</option>
+      <option value="motion">動き</option>
+      <option value="manual">手動</option>
+    </select>
+    <label class="btn sens">感度 <input type="range" min="1" max="10" id="cam-sens"></label>
+    <button class="btn" id="cam-last" hidden>直前を見る</button>
+    <button class="btn primary big" id="cam-manual">● 今のショットを保存</button>
+  </div>
+</section>
+
+<!-- ============ MONITOR ============ -->
+<section id="mon" class="screen">
+  <div class="lobby">
+    <div class="logo small">SWING<span>CAM</span> モニター</div>
+    <p>各スマホで「カメラとして接続」を選び、このコードを入力</p>
+    <div class="code" id="mon-code">----</div>
+    <div class="qr" id="mon-qr"></div>
+    <p class="note">QRを読み取ると接続画面が開きます</p>
+    <ul class="cams" id="mon-cams"><li class="empty">カメラ未接続</li></ul>
+    <div class="row">
+      <button class="btn" id="mon-exit">終了</button>
+      <button class="btn" id="mon-fs">全画面</button>
+      <button class="btn primary" id="mon-manual">● 全カメラで保存</button>
+      <button class="btn" id="mon-last" hidden>リプレイを見る</button>
+    </div>
+    <p class="status" id="mon-status">サーバーに接続中…</p>
+  </div>
+</section>
+
+<!-- ============ VIEWER ============ -->
+<section id="viewer" hidden>
+  <div class="v-top">
+    <button class="btn" id="v-back">◀ ライブ</button>
+    <select class="btn" id="v-history"></select>
+    <span class="v-time" id="v-time">0.000s</span>
+    <button class="btn primary" id="v-capture" hidden>● 保存</button>
+    <a class="btn" id="v-dl">⬇ 動画</a>
+  </div>
+  <div class="v-stage" id="v-stage"></div>
+  <div class="v-ctrl">
+    <div class="scrub">
+      <input type="range" id="v-scrub" min="0" max="1" step="0.001" value="0">
+      <div class="impact-mark" id="v-impact" title="インパクト"></div>
+    </div>
+    <div class="row play">
+      <button class="btn" data-act="start" title="先頭">⏮</button>
+      <button class="btn" data-act="back" title="1コマ戻る">◀︎ 1コマ</button>
+      <button class="btn primary" data-act="toggle" id="v-play">▶︎</button>
+      <button class="btn" data-act="fwd" title="1コマ進む">1コマ ▶︎</button>
+      <button class="btn" data-act="impact" title="インパクトへ">◎</button>
+      <span class="sep"></span>
+      <span class="seg speeds" id="v-speeds">
+        <button data-s="1">1x</button><button data-s="0.5">1/2</button><button data-s="0.25">1/4</button><button data-s="0.125">1/8</button>
+      </span>
+      <button class="btn toggle on" id="v-loop">ループ</button>
+    </div>
+    <div class="row tools">
+      <span class="seg" id="v-tools">
+        <button data-t="none" class="on">✋</button>
+        <button data-t="line">／ 線</button>
+        <button data-t="angle">∠ 角度</button>
+        <button data-t="circle">○ 円</button>
+        <button data-t="free">✎ 手書き</button>
+      </span>
+      <span class="colors" id="v-colors">
+        <button data-c="#ffd400" class="on" style="--c:#ffd400"></button>
+        <button data-c="#ff3b3b" style="--c:#ff3b3b"></button>
+        <button data-c="#22d3ee" style="--c:#22d3ee"></button>
+        <button data-c="#ffffff" style="--c:#ffffff"></button>
+      </span>
+      <button class="btn" id="v-undo">↶ 戻す</button>
+      <button class="btn" id="v-clear">消去</button>
+    </div>
+  </div>
+</section>
+
+<div id="toast" class="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
