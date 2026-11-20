@@ -74,3 +74,9 @@
 - 無料診断 → パス購入の転換率
 - パス購入者の再購入率、購入間隔
 - 1ユーザーあたりの診断回数／月
+
+## 発売準備の資料
+
+- App Store 掲載情報（説明文・キーワード・スクリーンショット構成・審査メモ・プライバシー申告）：[`app-store-listing.md`](app-store-listing.md)
+- 規約類の下書き（特商法表記・利用規約・プライバシーポリシー）：[`legal-drafts.md`](legal-drafts.md)
+- AIコーチのサーバー：[`../server/README.md`](../server/README.md)
