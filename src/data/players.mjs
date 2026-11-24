@@ -320,15 +320,6 @@ export const players = [
     photo: "/images/players/yamaguchi-richi.png",
   },
   {
-    id: "player-34",
-    status: "announced",
-    name: "松本静",
-    nameKana: "まつもと しず",
-    nameRomaji: "Matsumoto Shizu",
-    instagram: "https://www.instagram.com/shizu_golf54?mdxt=MW9heDdkOXV4eTh5Mg==",
-    photo: "/images/players/matsumoto-shizu.png",
-  },
-  {
     id: "player-35",
     status: "announced",
     name: "小井手音葉",
@@ -432,6 +423,14 @@ export const players = [
     nameKana: "もりた のあ",
     nameRomaji: "Morita Noa",
     instagram: "https://www.instagram.com/noanoa_1110?vrfl=eHhvaXcwaWh0Z2Nt",
+  },
+  {
+    id: "player-47",
+    status: "announced",
+    name: "巽流愛",
+    nameKana: "たつみ るあ",
+    nameRomaji: "Tatsumi Rua",
+    instagram: "https://www.instagram.com/rua_tatsumi?jplx=bDR3cGtoMmc5b2pw",
   },
 
   ...Array.from({ length: 0 }, (_, i) => ({
