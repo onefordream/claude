@@ -225,7 +225,7 @@ export const players = [
   {
     id: "player-23",
     status: "announced",
-    name: "籔内優衣",
+    name: "藪内優衣",
     nameKana: "やぶうち ゆい",
     nameRomaji: "Yabuuchi Yui",
     instagram: "https://www.instagram.com/yabuuchi.yui?stkn=eXBmcGF3Z3h0N3d5",
@@ -261,7 +261,7 @@ export const players = [
   {
     id: "player-27",
     status: "announced",
-    name: "小林芽似",
+    name: "小林芽以",
     nameKana: "こばやし めい",
     nameRomaji: "Kobayashi Mei",
     instagram: "https://www.instagram.com/may._.k0712?stkn=MW1tZHZzcDBsbjRiMQ==",
