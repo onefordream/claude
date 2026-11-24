@@ -401,7 +401,7 @@ export const players = [
   {
     id: "player-44",
     status: "announced",
-    name: "伊藤里紗",
+    name: "伊東里紗",
     nameKana: "いとう りさ",
     nameRomaji: "Ito Risa",
     instagram: "https://www.instagram.com/risagolf0126?xtok=MWdmdmg0N2VocGdibQ==",
