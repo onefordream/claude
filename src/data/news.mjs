@@ -9,6 +9,24 @@
 /** @type {NewsItem[]} */
 export const news = [
   {
+    id: "news-2026-11-24-guidelines",
+    date: "2026-11-24",
+    category: "大会要項",
+    title: "大会要項・競技ルールを公開しました",
+    body: "日程、競技方法、参加資格、エントリーフィー、キャンセル規定、競技ルール・ローカルルールなど、大会当日に関する詳細情報をまとめた大会要項を公開しました。ご参加の皆さまは事前にご確認ください。",
+    url: "/documents/tournament-guidelines.pdf",
+    linkLabel: "大会要項を見る（PDF）",
+  },
+  {
+    id: "news-2026-11-24-pairings",
+    date: "2026-11-24",
+    category: "組み合わせ",
+    title: "組み合わせ（組合表）を公開しました",
+    body: "12月3日の大会当日の組み合わせ・スタート時間を公開しました。甲賀コース・伊賀コースそれぞれのスタート時間とプロ・アマチュアの組み合わせをご確認いただけます。",
+    url: "/documents/pairings-2026-12-03.pdf",
+    linkLabel: "組み合わせ表を見る（PDF）",
+  },
+  {
     id: "news-2026-10-18-practice-round",
     date: "2026-10-18",
     category: "会場",
