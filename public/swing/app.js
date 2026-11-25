@@ -18,9 +18,14 @@ const peerOpts = () => window.SWINGCAM_PEER_OPTS || {};
 const VIEW_LABEL = { back: '後方', front: '正面', solo: 'カメラ' };
 
 /* ------------------------------------------------------------------ settings */
-const DEFAULTS = { detect: 'soundmotion', sens: 5, pre: 3, post: 1.5, res: '720', fps: '60', autoSpeed: '0.25', localReplay: false };
+const DEFAULTS = { v: 2, detect: 'soundmotion', sens: 6, pre: 3, post: 3, res: '720', fps: '60', autoSpeed: '0.25', localReplay: false };
 const settings = (() => {
-  try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem('swingcam') || '{}') }; } catch { return { ...DEFAULTS }; }
+  try {
+    const saved = JSON.parse(localStorage.getItem('swingcam') || '{}');
+    // 旧バージョンの設定（インパクト後1.5秒・旧感度）は新しい標準値に置き換える
+    if ((saved.v || 1) < 2) { delete saved.post; delete saved.sens; delete saved.detect; }
+    return { ...DEFAULTS, ...saved, v: DEFAULTS.v };
+  } catch { return { ...DEFAULTS }; }
 })();
 function saveSettings() { try { localStorage.setItem('swingcam', JSON.stringify(settings)); } catch {} }
 
@@ -155,33 +160,79 @@ class Detector {
     this.video = video;
     this.onShot = onShot;
     this.lastShot = 0;
-    this.hist = [];        // [t, motion]
-    this.base = 0.01;
+    this.hist = [];        // [t, motion]  motion = 背景ノイズを除いた「動いた画素の割合(%)」
+    this.base = 0.01;      // 音の平常レベル
+    this.mBase = 0;        // 動きの平常レベル（風・人通り・カメラのノイズ）
     this.sound = 0; this.motion = 0;
+    this.spikeAt = 0;
+    this.startAt = now();
     this.swing = null;     // motion mode state
     if (audioCtx && stream.getAudioTracks().length) {
       const src = audioCtx.createMediaStreamSource(stream);
       const hp = audioCtx.createBiquadFilter();
-      hp.type = 'highpass'; hp.frequency.value = 1800; // 打球音の高い成分だけ見る（風・声を除外）
+      hp.type = 'highpass'; hp.frequency.value = 1500; // 打球音の高い成分だけ見る（風・声を除外）
       this.an = audioCtx.createAnalyser();
       this.an.fftSize = 2048;
       src.connect(hp); hp.connect(this.an);
       this.buf = new Float32Array(this.an.fftSize);
     }
+    this.W = 80; this.H = 60;
     this.cv = document.createElement('canvas');
-    this.cv.width = 64; this.cv.height = 48;
+    this.cv.width = this.W; this.cv.height = this.H;
     this.cx = this.cv.getContext('2d', { willReadFrequently: true });
     this.prev = null;
     this.alive = true;
-    this.frame = 0;
     const loop = () => { if (!this.alive) return; this.tick(); requestAnimationFrame(loop); };
     requestAnimationFrame(loop);
+    // 動きはカメラの新しいフレームごとに計算（同じフレーム同士の比較で0になるのを防ぐ）
+    if (video.requestVideoFrameCallback) {
+      const vf = () => { if (!this.alive) return; this.measureMotion(); video.requestVideoFrameCallback(vf); };
+      video.requestVideoFrameCallback(vf);
+    } else {
+      this.mTimer = setInterval(() => this.measureMotion(), 33);
+    }
   }
-  destroy() { this.alive = false; }
-  get soundThr() { return 0.6 * Math.pow(0.68, settings.sens - 1); }   // 感度1:0.6 → 10:0.019
-  get motionThr() { return 2 + (10 - settings.sens) * 1.3; }           // 感度1:13.7 → 10:2
+  destroy() { this.alive = false; clearInterval(this.mTimer); }
+  get soundThr() { return 0.5 * Math.pow(0.7, settings.sens - 1); }    // 感度1:0.5 → 10:0.02
+  get motionThr() { return 0.4 + (10 - settings.sens) * 0.4; }         // 動いた画素% 感度1:4% → 10:0.4%
+  measureMotion() {
+    if (this.video.readyState < 2) return;
+    const { W, H } = this;
+    this.cx.drawImage(this.video, 0, 0, W, H);
+    const d = this.cx.getImageData(0, 0, W, H).data;
+    const n = W * H, g = new Uint8Array(n);
+    let sum = 0;
+    for (let i = 0, j = 0; j < n; i += 4, j++) { g[j] = (d[i] * 3 + d[i + 1] * 4 + d[i + 2]) >> 3; sum += g[j]; }
+    let raw = 0;
+    if (this.prev) {
+      // 明るさの自動調整（露出の変化）分を差し引き、はっきり変化した画素だけ数える
+      const shift = (sum - this.prevSum) / n;
+      let changed = 0;
+      for (let j = 0; j < n; j++) if (Math.abs(g[j] - this.prev[j] - shift) > 22) changed++;
+      raw = (changed / n) * 100;
+    }
+    this.prev = g; this.prevSum = sum;
+    // 常に動いているもの（旗・木・隣の人）を平常レベルとして差し引く
+    const t = now();
+    const quiet = !this.swing && t - this.lastShot > 2000;
+    const warm = t - this.startAt < 2500;
+    if (quiet) this.mBase = warm ? this.mBase * 0.8 + raw * 0.2 : this.mBase * 0.97 + raw * 0.03;
+    // 1コマだけの瞬間的な変化（ピント・露出の揺れ）は無視：直近3コマの中央値
+    this.raws = [...(this.raws || []).slice(-2), Math.max(0, raw - this.mBase * 1.5)];
+    const r3 = [...this.raws].sort((x, y) => x - y);
+    this.motion = r3[Math.floor(r3.length / 2)];
+    this.hist.push([t, this.motion]);
+    while (this.hist.length && this.hist[0][0] < t - 3000) this.hist.shift();
+  }
+  /** 区間内で thr を超えたコマ数 */
+  motionFrames(from, to, thr) {
+    let n = 0;
+    for (const [ht, v] of this.hist) if (ht >= from && ht <= to && v > thr) n++;
+    return n;
+  }
   tick() {
     const t = now();
+    const mode = settings.detect;
     // --- sound
     let spike = false;
     if (this.an) {
@@ -189,34 +240,24 @@ class Detector {
       let p = 0;
       for (let i = 0; i < this.buf.length; i++) { const v = Math.abs(this.buf[i]); if (v > p) p = v; }
       this.sound = p;
-      spike = p > this.soundThr && p > this.base * 5;
+      const ratio = mode === 'soundmotion' ? 3 : 5;
+      spike = p > this.soundThr && p > this.base * ratio;
       if (!spike) this.base = Math.max(0.002, this.base * 0.97 + p * 0.03);
-    }
-    // --- motion（2フレームに1回）
-    if ((this.frame++ & 1) === 0 && this.video.readyState >= 2) {
-      this.cx.drawImage(this.video, 0, 0, 64, 48);
-      const d = this.cx.getImageData(0, 0, 64, 48).data;
-      const g = new Uint8Array(64 * 48);
-      let diff = 0;
-      for (let i = 0, j = 0; j < g.length; i += 4, j++) {
-        g[j] = (d[i] * 3 + d[i + 1] * 4 + d[i + 2]) >> 3;
-        if (this.prev) diff += Math.abs(g[j] - this.prev[j]);
-      }
-      this.prev = g;
-      this.motion = diff / g.length;
-      this.hist.push([t, this.motion]);
-      while (this.hist.length && this.hist[0][0] < t - 3000) this.hist.shift();
+      if (spike && t - this.spikeAt > 500) this.spikeAt = t;
     }
     // --- decision
-    const cool = t - this.lastShot < 3000;
-    const mode = settings.detect;
+    const cool = t - this.lastShot < 3000 || t - this.startAt < 3000; // 起動直後は平常レベルを学習
     if (cool || mode === 'manual') { this.swing = null; return; }
     if (mode === 'sound' && spike) return this.fire(t - 20);
-    if (mode === 'soundmotion' && spike) {
-      const m = Math.max(0, ...this.hist.filter(([ht]) => ht > t - 1200).map(([, v]) => v));
-      if (m > this.motionThr * 0.6) return this.fire(t - 20);
+    if (mode === 'soundmotion' && this.spikeAt && t - this.spikeAt < 500) {
+      // 打球音の前1.5秒〜後0.4秒にスイングの動きがあればショット
+      if (this.motionFrames(this.spikeAt - 1500, this.spikeAt + 400, this.motionThr) >= 3) {
+        const at = this.spikeAt - 20;
+        this.spikeAt = 0;
+        return this.fire(at);
+      }
     }
-    if (mode === 'motion') {
+    if (mode === 'motion' || (mode === 'soundmotion' && !this.an)) {
       const thr = this.motionThr;
       if (this.motion > thr) {
         if (!this.swing) this.swing = { start: t, peak: this.motion, peakAt: t, quietSince: 0 };
@@ -549,10 +590,6 @@ const Viewer = {
         const [x1, y1] = P(s.a), [x2, y2] = P(s.b);
         g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
         dot(x1, y1); dot(x2, y2);
-        const vw = p.video.videoWidth || 1, vh = p.video.videoHeight || 1;
-        let deg = Math.abs(Math.atan2((s.b.y - s.a.y) * vh, (s.b.x - s.a.x) * vw) * 180 / Math.PI);
-        if (deg > 90) deg = 180 - deg;
-        if (Math.hypot(x2 - x1, y2 - y1) > 20) label(`${deg.toFixed(1)}°`, (x1 + x2) / 2 + 8, (y1 + y2) / 2 - 8, s.color);
       } else if (s.type === 'angle') {
         const [ax, ay] = P(s.a), [bx, by] = P(s.b);
         g.beginPath(); g.moveTo(ax, ay); g.lineTo(bx, by);
@@ -631,7 +668,7 @@ const Cam = {
 
   updateHud() {
     const d = this.det; if (!d) return;
-    const sMax = 0.7, mMax = 20;
+    const sMax = 0.6, mMax = 15;
     const sf = $('#m-sound'), mf = $('#m-motion');
     sf.style.width = `${Math.min(100, (d.sound / sMax) * 100)}%`;
     sf.classList.toggle('hot', d.sound > d.soundThr);
@@ -842,7 +879,20 @@ const Mon = {
 };
 
 /* ------------------------------------------------------------------ wiring */
+function preventZoom() {
+  // iOS Safari はダブルタップ・ピンチで拡大してしまうため止める
+  let lastTouch = 0;
+  document.addEventListener('touchend', (e) => {
+    const t = Date.now();
+    if (t - lastTouch < 350 && !e.target.closest('input, select, textarea')) e.preventDefault();
+    lastTouch = t;
+  }, { passive: false });
+  ['gesturestart', 'gesturechange', 'dblclick'].forEach((ev) => document.addEventListener(ev, (e) => e.preventDefault(), { passive: false }));
+  document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+}
+
 function init() {
+  preventZoom();
   bindSettings();
   Viewer.init();
 

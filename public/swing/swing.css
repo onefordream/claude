@@ -10,7 +10,9 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
 }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+html, body { -webkit-text-size-adjust: 100%; -webkit-user-select: none; user-select: none; }
+input, select { -webkit-user-select: auto; user-select: auto; font-size: 16px !important; }
 html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Segoe UI", sans-serif; }
 body { overscroll-behavior: none; }
