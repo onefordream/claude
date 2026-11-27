@@ -189,14 +189,6 @@ export const players = [
     photo: "/images/players/sawada-chika.png",
   },
   {
-    id: "player-18",
-    status: "announced",
-    name: "山下真生",
-    nameKana: "やました まい",
-    nameRomaji: "Yamashita Mai",
-    instagram: "https://www.instagram.com/_mai_yamashita?stkn=cWpxN2l3d285aDVn",
-  },
-  {
     id: "player-19",
     status: "announced",
     name: "大内瑞喜",
@@ -431,6 +423,11 @@ export const players = [
     nameKana: "たつみ るあ",
     nameRomaji: "Tatsumi Rua",
     instagram: "https://www.instagram.com/rua_tatsumi?jplx=bDR3cGtoMmc5b2pw",
+  },
+  {
+    id: "player-48",
+    status: "announced",
+    name: "天羽さくら",
   },
 
   ...Array.from({ length: 0 }, (_, i) => ({
